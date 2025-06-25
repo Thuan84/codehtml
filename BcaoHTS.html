@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BÁO CÁO MỰC NƯỚC HÀNG NGÀY</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #f5f9ff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 20px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 28px;
+        }
+        .header p {
+            color: #7f8c8d;
+            margin: 5px 0 0;
+        }
+        .report-date {
+            text-align: right;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        .summary-card {
+            background: #e8f4fc;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            border-left: 4px solid #3498db;
+        }
+        .summary-card h3 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .summary-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .summary-item h4 {
+            margin: 0 0 10px;
+            color: #3498db;
+        }
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .summary-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        th {
+            background: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+        }
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-normal {
+            background: #2ecc71;
+            color: white;
+        }
+        .status-warning {
+            background: #f39c12;
+            color: white;
+        }
+        .status-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        .status-rain {
+            background: #3498db;
+            color: white;
+        }
+        .status-norain {
+            background: #95a5a6;
+            color: white;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #95a5a6;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        .logo {
+            height: 50px;
+            margin-bottom: 15px;
+        }
+        .table-container {
+            overflow-x: auto;
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            padding: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://via.placeholder.com/150x50?text=LOGO" alt="Company Logo" class="logo">
+            <h1>BÁO CÁO MỰC NƯỚC HÀNG NGÀY</h1>
+            <p>Trạm thủy nông Ninh Hải</p>
+        </div>
+        
+        <div class="report-date">
+            Ngày báo cáo: <span id="current-date"></span>
+        </div>
+        
+        <div id="summary-card" class="summary-card" style="display: none;">
+            <h3>TÓM TẮT TÌNH HÌNH HỒ CHỨA</h3>
+            <p>Báo cáo cập nhật tình hình mực nước và dung tích hồ chứa vào ngày hôm nay. Mực nước hiện tại là <span id="avg-water-level">0</span>m, đạt <span id="avg-percentage">0</span>% dung tích thiết kế.</p>
+        </div>
+        
+        <div id="summary-grid" class="summary-grid" style="display: none;">
+            <div class="summary-item">
+                <h4>MỰC NƯỚC HIỆN TẠI</h4>
+                <div class="summary-value" id="max-water-level">0 m</div>
+            </div>
+            <div class="summary-item">
+                <h4>TỔNG LƯỢNG MƯA</h4>
+                <div class="summary-value" id="total-rain">0 mm</div>
+            </div>
+            <div class="summary-item">
+                <h4>TỶ LỆ DUNG TÍCH</h4>
+                <div class="summary-value" id="avg-percentage-box">0%</div>
+            </div>
+        </div>
+        
+        <h3>DỮ LIỆU CHI TIẾT CÁC HỒ CHỨA</h3>
+        <div class="table-container">
+            <div id="loading" class="loading">Đang tải dữ liệu...</div>
+            <div id="error" class="error" style="display: none;"></div>
+            <table id="water-data-table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Thời điểm</th>
+                        <th colspan="2">Hiện trạng</th>
+                        <th rowspan="2">Lượng mưa (mm)</th>
+                        <th rowspan="2">Van ĐM (m)</th>
+                        <th rowspan="2">Hn KC (m)</th>
+                        <th colspan="2">Mực nước chết</th>
+                        <th colspan="2">Mực nước TK</th>
+                        <th rowspan="2">Tỷ lệ (%)</th>
+                        <th rowspan="2">MN cùng kỳ (m)</th>
+                        <th rowspan="2">Trạng thái mưa</th>
+                    </tr>
+                    <tr>
+                        <th>CT MNHT (m)</th>
+                        <th>DTHT (Tr.m3)</th>
+                        <th>CT MNC (m)</th>
+                        <th>DT MNC (Tr.m3)</th>
+                        <th>CT MNTK (m)</th>
+                        <th>DT MNTK (Tr.m3)</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Dữ liệu sẽ được thêm bằng JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div id="analysis-section" class="summary-card" style="display: none;">
+            <h3>NHẬN XÉT & KHUYẾN NGHỊ</h3>
+            <p>Tình hình hồ chứa ngày hôm nay:</p>
+            <ul id="summary-points">
+                <!-- Điểm nhận xét sẽ được thêm bằng JavaScript -->
+            </ul>
+            <p>Khuyến nghị:</p>
+            <ul>
+                <li>Theo dõi chặt chẽ thời tiết</li>
+                <li>Điều chỉnh mở nước điều tiết phù hợp</li>
+                <li>Chuẩn bị phương án ứng phó nếu có mưa</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p>Hệ thống báo cáo tự động - Trạm thủy nông Ninh Hải</p>
+            <p>Mọi thông tin chi tiết xin liên hệ: thuynongninhhai@gmail.com | ĐT: 0123.456.789</p>
+        </div>
+    </div>
+
+    <script>
+        // Hiển thị ngày hiện tại
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('current-date').textContent = now.toLocaleDateString('vi-VN', options);
+        
+        // Hàm parse tham số URL
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const dataParam = params.get('data');
+            
+            if (dataParam) {
+                try {
+                    // Giải mã URL và parse JSON
+                    return JSON.parse(decodeURIComponent(dataParam));
+                } catch (e) {
+                    console.error('Lỗi parse dữ liệu:', e);
+                    return null;
+                }
+            }
+            return null;
+        }
+        
+        // Hàm hiển thị dữ liệu
+        function renderData(waterData) {
+            if (!waterData || !Array.isArray(waterData) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').textContent = 'Không có dữ liệu hoặc dữ liệu không hợp lệ';
+                document.getElementById('error').style.display = 'block';
+                return;
+            }
+            
+            // Ẩn loading và hiển thị bảng
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('water-data-table').style.display = 'table';
+            document.getElementById('summary-card').style.display = 'block';
+            document.getElementById('summary-grid').style.display = 'grid';
+            document.getElementById('analysis-section').style.display = 'block';
+            
+            // Hiển thị dữ liệu vào bảng
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = '';
+            
+            waterData.forEach(data => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${data.time || '-'}</td>
+                    <td>${data.currentLevel ? data.currentLevel.toFixed(2) : '-'}</td>
+                    <td>${data.currentCapacity ? data.currentCapacity.toFixed(1) : '-'}</td>
+                    <td>${data.rain ? data.rain.toFixed(1) : '-'}</td>
+                    <td>${data.van ? data.van.toFixed(2) : '-'}</td>
+                    <td>${data.hnkc ? data.hnkc.toFixed(2) : '-'}</td>
+                    <td>${data.deadLevel ? data.deadLevel.toFixed(2) : '-'}</td>
+                    <td>${data.deadCapacity ? data.deadCapacity.toFixed(1) : '-'}</td>
+                    <td>${data.designLevel ? data.designLevel.toFixed(2) : '-'}</td>
+                    <td>${data.designCapacity ? data.designCapacity.toFixed(1) : '-'}</td>
+                    <td>${data.percentage ? data.percentage.toFixed(1) : '-'}</td>
+                    <td>${data.samePeriodLevel ? data.samePeriodLevel.toFixed(2) : '-'}</td>
+                    <td><span class="status status-${data.rainStatus === 'Có mưa' ? 'rain' : 'norain'}">${data.rainStatus || 'Không có dữ liệu'}</span></td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Tính toán các thống kê
+            calculateStatistics(waterData);
+        }
+        
+        // Tính toán các thống kê tổng quan
+        function calculateStatistics(waterData) {
+            let totalRain = 0;
+            let totalCurrentLevel = 0;
+            let totalPercentage = 0;
+            let maxWaterLevel = 0;
+            let maxWaterLocation = "";
+            let validDataCount = 0;
+            
+            waterData.forEach(data => {
+                if (typeof data.rain === 'number') {
+                    totalRain += data.rain;
+                }
+                if (typeof data.currentLevel === 'number') {
+                    totalCurrentLevel += data.currentLevel;
+                    validDataCount++;
+                    
+                    if (data.currentLevel > maxWaterLevel) {
+                        maxWaterLevel = data.currentLevel;
+                        maxWaterLocation = data.time || "Không xác định";
+                    }
+                }
+                if (typeof data.percentage === 'number') {
+                    totalPercentage += data.percentage;
+                }
+            });
+            
+            const avgWaterLevel = validDataCount > 0 ? (totalCurrentLevel / validDataCount).toFixed(2) : 0;
+            const avgPercentage = waterData.length > 0 ? (totalPercentage / waterData.length).toFixed(1) : 0;
+            
+            // Cập nhật DOM với các giá trị tính toán
+            document.getElementById('avg-water-level').textContent = avgWaterLevel;
+            document.getElementById('avg-percentage').textContent = avgPercentage;
+            document.getElementById('avg-percentage-box').textContent = avgPercentage + '%';
+            document.getElementById('max-water-level').textContent = maxWaterLevel.toFixed(2) + ' m';
+            document.getElementById('max-water-location').textContent = maxWaterLocation;
+            document.getElementById('total-rain').textContent = totalRain.toFixed(1) + ' mm';
+            
+            // Thêm các điểm nhận xét
+            const summaryPoints = [];
+            
+            if (waterData.length > 0) {
+                const minLevel = Math.min(...waterData.filter(d => typeof d.currentLevel === 'number').map(d => d.currentLevel));
+                const maxLevel = Math.max(...waterData.filter(d => typeof d.currentLevel === 'number').map(d => d.currentLevel));
+                
+                summaryPoints.push(`Mực nước các hồ dao động từ ${minLevel.toFixed(2)}m đến ${maxLevel.toFixed(2)}m`);
+                summaryPoints.push(`Tỷ lệ dung tích trung bình đạt ${avgPercentage}% so với thiết kế`);
+                summaryPoints.push(`Tổng lượng mưa toàn hệ thống: ${totalRain.toFixed(1)}mm`);
+                
+                const samePeriodDiffs = waterData
+                    .filter(d => typeof d.currentLevel === 'number' && typeof d.samePeriodLevel === 'number')
+                    .map(d => d.currentLevel - d.samePeriodLevel);
+                
+                if (samePeriodDiffs.length > 0) {
+                    const minDiff = Math.min(...samePeriodDiffs);
+                    const maxDiff = Math.max(...samePeriodDiffs);
+                    summaryPoints.push(`Mực nước hiện tại ${minDiff >= 0 ? 'cao hơn' : 'thấp hơn'} cùng kỳ năm trước từ ${Math.abs(minDiff).toFixed(2)}m đến ${Math.abs(maxDiff).toFixed(2)}m`);
+                }
+            }
+            
+            const summaryList = document.getElementById('summary-points');
+            summaryList.innerHTML = '';
+            summaryPoints.forEach(point => {
+                const li = document.createElement('li');
+                li.textContent = point;
+                summaryList.appendChild(li);
+            });
+        }
+
+        // Lấy dữ liệu từ URL và hiển thị
+        const urlData = getUrlParams();
+        if (urlData) {
+            renderData(urlData);
+        } else {
+            // Nếu không có dữ liệu từ URL, có thể load dữ liệu mặc định hoặc thông báo lỗi
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').textContent = 'Không tìm thấy dữ liệu trong URL. Vui lòng cung cấp dữ liệu qua tham số "data"';
+            document.getElementById('error').style.display = 'block';
+            
+            // Hoặc có thể load dữ liệu mẫu
+            // const sampleData = [...]; // Dữ liệu mẫu
+            // renderData(sampleData);
+        }
+    </script>
+</body>
+</html>
