@@ -3,84 +3,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bảng Dữ Liệu Tối Ưu với Bộ Lọc</title>
+  <title>Bảng Dữ Liệu Thông Minh</title>
   <style>
-    /* ----- General Styles ----- */
+    /* ----- General Styles & Fonts ----- */
+    :root {
+      --primary-color: #0d6efd;
+      --light-gray: #f8f9fa;
+      --medium-gray: #dee2e6;
+      --dark-gray: #6c757d;
+      --text-color: #212529;
+      --border-radius: 8px;
+      --shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background-color: #f7f8fa;
       margin: 0;
-      padding: 20px;
-      color: #333;
+      padding: 24px;
+      color: var(--text-color);
     }
     .container {
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
       background: #ffffff;
-      padding: 25px 30px;
-      border-radius: 12px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+      padding: 24px 32px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
     }
     h2 {
       text-align: center;
-      color: #0d6efd;
+      color: var(--primary-color);
       margin-top: 0;
-      margin-bottom: 25px;
+      margin-bottom: 32px;
       font-weight: 600;
     }
 
-    /* ----- Filters UI ----- */
+    /* ----- Modern Filters UI ----- */
     .filters-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      margin-bottom: 25px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #dee2e6;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--medium-gray);
     }
     .filter-group {
-      display: flex;
-      flex-direction: column;
-      flex: 1 1 200px; /* Responsive flexbox */
+      position: relative;
     }
     .filter-group label {
       font-size: 13px;
       font-weight: 500;
-      color: #555;
-      margin-bottom: 6px;
+      color: var(--dark-gray);
+      margin-bottom: 8px;
+      display: block;
     }
     .filter-group select, .filter-group input {
-      padding: 9px 12px;
-      border-radius: 6px;
-      border: 1px solid #ced4da;
+      width: 100%;
+      padding: 10px 12px 10px 38px; /* Padding for icon */
+      border-radius: var(--border-radius);
+      border: 1px solid var(--medium-gray);
       font-size: 15px;
       background-color: #fff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none; /* Removes default safari styling */
+      -moz-appearance: none;
+      appearance: none;
     }
     .filter-group select:focus, .filter-group input:focus {
       outline: none;
-      border-color: #86b7fe;
-      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
     }
+    /* Icons for filters */
+    .filter-group::before {
+      content: '';
+      position: absolute;
+      left: 12px;
+      top: 38px;
+      width: 16px;
+      height: 16px;
+      background-repeat: no-repeat;
+      background-size: contain;
+      opacity: 0.5;
+    }
+    #filter-lake-group::before { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="%236c757d"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/></svg>');}
+    #filter-year-group::before { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="%236c757d"><path d="M4.684 11.523v-2.3h2.261v-1.61H4.684V5.4h2.508v-1.6h-4.2v9h4.2v-1.6H4.684zm3.296 0h-1.2V4.22h1.2v7.303zm3.386-1.187h-1.629v-1.09h1.629v1.09zm-1.629-2.27h1.629v1.09h-1.629v-1.09z"/></svg>');}
+    #filter-date-group::before { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="%236c757d"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/></svg>');}
     #clear-filters-btn {
-      align-self: flex-end;
-      padding: 9px 20px;
+      grid-column: -1; /* Place in the last column */
+      align-self: end;
+      padding: 10px 20px;
       border: none;
-      background-color: #6c757d;
+      background-color: var(--dark-gray);
       color: white;
-      border-radius: 6px;
+      border-radius: var(--border-radius);
       cursor: pointer;
       font-size: 15px;
       transition: background-color 0.2s;
     }
-    #clear-filters-btn:hover {
-      background-color: #5a6268;
-    }
+    #clear-filters-btn:hover { background-color: #5a6268; }
 
     /* ----- Table Styles ----- */
-    .table-wrapper {
-        overflow-x: auto; /* For responsive tables */
-    }
+    .table-wrapper { overflow-x: auto; }
     table {
       border-collapse: collapse;
       width: 100%;
@@ -89,250 +114,228 @@
     th, td {
       padding: 14px 18px;
       text-align: left;
-      border-bottom: 1px solid #e0e0e0;
-      white-space: nowrap; /* Prevent text wrapping */
+      border-bottom: 1px solid var(--medium-gray);
+      white-space: nowrap;
     }
     thead th {
-      background-color: #f8f9fa;
+      background-color: var(--light-gray);
       color: #343a40;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 12px;
+      text-transform: uppercase;
       letter-spacing: 0.5px;
       position: sticky;
       top: 0;
       z-index: 10;
     }
-    tbody tr:hover {
-      background-color: #f1faff;
-    }
-    tbody tr:last-child td {
-      border-bottom: none;
-    }
+    tbody tr:hover { background-color: #e9f3ff; }
 
-    /* ----- Loader and Messages ----- */
-    .status-message {
-      text-align: center;
-      padding: 50px;
-      color: #6c757d;
-      font-size: 16px;
-    }
+    /* ----- Status Messages & Loader ----- */
+    .status-message { text-align: center; padding: 60px; color: var(--dark-gray); }
     .loader {
       border: 5px solid #f3f3f3;
-      border-top: 5px solid #0d6efd;
+      border-top: 5px solid var(--primary-color);
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 40px; height: 40px;
       animation: spin 1s linear infinite;
       margin: 40px auto;
     }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h2>Bảng Dữ Liệu Tối Ưu</h2>
+    <h2>Bảng Dữ Liệu Thông Minh</h2>
     
-    <!-- Filter Controls -->
-    <div class="filters-container" id="filters">
-      <div class="filter-group">
-        <label for="filter-lake">Lọc theo Tên Hồ</label>
+    <div class="filters-container">
+      <div class="filter-group" id="filter-lake-group">
+        <label for="filter-lake">Lọc theo Tên</label>
         <select id="filter-lake"></select>
       </div>
-      <div class="filter-group">
-        <label for="filter-year">Lọc theo Năm Báo Cáo</label>
+      <div class="filter-group" id="filter-year-group">
+        <label for="filter-year">Lọc theo Năm Sinh</label>
         <select id="filter-year"></select>
       </div>
-      <div class="filter-group">
-        <label for="filter-start-date">Từ Ngày</label>
+      <div class="filter-group" id="filter-date-group">
+        <label for="filter-start-date">Ngày sinh từ</label>
         <input type="date" id="filter-start-date">
       </div>
-      <div class="filter-group">
-        <label for="filter-end-date">Đến Ngày</label>
+      <div class="filter-group" id="filter-date-group">
+        <label for="filter-end-date">Ngày sinh đến</label>
         <input type="date" id="filter-end-date">
       </div>
-      <button id="clear-filters-btn">Xoá bộ lọc</button>
+      <button id="clear-filters-btn">Xoá Lọc</button>
     </div>
 
-    <!-- Table Wrapper and Table -->
     <div class="table-wrapper">
       <table id="data-table">
         <thead id="table-head"></thead>
-        <tbody id="table-body">
-            <tr>
-                <td colspan="100%" class="status-message"><div class="loader"></div>Đang tải dữ liệu...</td>
-            </tr>
-        </tbody>
+        <tbody id="table-body"></tbody>
       </table>
     </div>
   </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // --- CONFIGURATION ---
-      const API_URL = 'https://script.google.com/macros/s/AKfycbzSEUNyod3PxFUP_DlSeCT8KVwAeV0oYdxSif0SfeArAv7il53F05vJssWnjUOdpxJR/exec';
-      const LAKE_COLUMN = 'Họ và tên'; // Đổi 'Tên hồ' thành 'Họ và tên' cho khớp dữ liệu
-      const DATE_COLUMN = 'Ngày sinh'; // Đổi 'Ngày báo cáo' thành 'Ngày sinh'
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- CONFIGURATION ---
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzSEUNyod3PxFUP_DlSeCT8KVwAeV0oYdxSif0SfeArAv7il53F05vJssWnjUOdpxJR/exec';
+    const LAKE_COLUMN = 'Họ và tên';
+    const DATE_COLUMN = 'Ngày sinh';
+    const COLUMNS_TO_HIDE = ['Tencot', 'id']; // Add column names to hide here
 
-      // --- DOM ELEMENTS ---
-      const tableHead = document.getElementById('table-head');
-      const tableBody = document.getElementById('table-body');
-      const filterLake = document.getElementById('filter-lake');
-      const filterYear = document.getElementById('filter-year');
-      const filterStartDate = document.getElementById('filter-start-date');
-      const filterEndDate = document.getElementById('filter-end-date');
-      const clearFiltersBtn = document.getElementById('clear-filters-btn');
+    // --- DOM ELEMENTS ---
+    const tableHead = document.getElementById('table-head');
+    const tableBody = document.getElementById('table-body');
+    const filterLake = document.getElementById('filter-lake');
+    const filterYear = document.getElementById('filter-year');
+    const filterStartDate = document.getElementById('filter-start-date');
+    const filterEndDate = document.getElementById('filter-end-date');
+    const clearFiltersBtn = document.getElementById('clear-filters-btn');
+    const container = document.querySelector('.container');
 
-      // --- STATE ---
-      let allData = []; // Cache for all data fetched from the API
-      let headers = [];
+    // --- STATE ---
+    let allData = [];
+    let headers = [];
 
-      // --- UTILITY FUNCTIONS ---
+    // --- UTILITY FUNCTIONS ---
 
-      /**
-       * Formats cell content. Formats decimal numbers to 3 decimal places.
-       * @param {*} value - The value to format.
-       * @returns {string} The formatted value.
-       */
-      const formatCellContent = (value) => {
-        if (value === null || value === undefined) return '';
-        if (typeof value === 'number' && value % 1 !== 0) {
-          return value.toFixed(3);
-        }
-        return value;
-      };
-
-      /**
-       * Renders the table with the provided data.
-       * @param {Array<Object>} dataToRender - The array of data rows to display.
-       */
-      const renderTable = (dataToRender) => {
+    /**
+     * Parses a date string (like "20/11/2023 7:00:00") into a JavaScript Date object.
+     * @param {string} dateString - The date string from Google Sheets.
+     * @returns {Date|null} A Date object or null if parsing fails.
+     */
+    const parseDate = (dateString) => {
+        if (!dateString || typeof dateString !== 'string') return null;
+        const parts = dateString.split(' ')[0].split('/');
+        if (parts.length !== 3) return null;
+        // Format: dd/mm/yyyy -> yyyy-mm-dd for robust parsing
+        const [day, month, year] = parts;
+        const isoDateString = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        const date = new Date(isoDateString);
+        return isNaN(date.getTime()) ? null : date;
+    };
+    
+    /**
+     * Renders the table with the provided data.
+     * @param {Array<Object>} dataToRender - The array of data rows to display.
+     */
+    const renderTable = (dataToRender) => {
+        if (!headers.length) return;
         if (dataToRender.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="${headers.length}" class="status-message">Không tìm thấy kết quả phù hợp.</td></tr>`;
-          return;
+            tableBody.innerHTML = `<tr><td colspan="${headers.length}" class="status-message">Không tìm thấy kết quả phù hợp.</td></tr>`;
+            return;
         }
-
-        const tableBodyHTML = dataToRender.map(row => {
-          const cells = headers.map(header => `<td>${formatCellContent(row[header])}</td>`).join('');
-          return `<tr>${cells}</tr>`;
-        }).join('');
-        
+        const tableBodyHTML = dataToRender.map(row =>
+            `<tr>${headers.map(header => `<td>${row[header] ?? ''}</td>`).join('')}</tr>`
+        ).join('');
         tableBody.innerHTML = tableBodyHTML;
-      };
+    };
 
-      /**
-       * Populates the filter dropdowns based on the fetched data.
-       */
-      const populateFilters = () => {
+    /**
+     * Populates the filter dropdowns based on unique values in the data.
+     */
+    const populateFilters = () => {
         const lakes = new Set();
         const years = new Set();
-
         allData.forEach(row => {
-          if (row[LAKE_COLUMN]) lakes.add(row[LAKE_COLUMN]);
-          if (row[DATE_COLUMN]) {
-            try {
-              const date = new Date(row[DATE_COLUMN]);
-              if (!isNaN(date)) {
-                  years.add(date.getFullYear());
-              }
-            } catch(e) { /* ignore invalid dates */ }
-          }
+            if (row[LAKE_COLUMN]) lakes.add(row[LAKE_COLUMN]);
+            const date = parseDate(row[DATE_COLUMN]);
+            if (date) years.add(date.getFullYear());
         });
 
-        const sortedLakes = [...lakes].sort();
-        const sortedYears = [...years].sort((a, b) => b - a); // Newest first
+        const sortedLakes = [...lakes].sort((a, b) => a.localeCompare(b, 'vi'));
+        const sortedYears = [...years].sort((a, b) => b - a);
 
-        filterLake.innerHTML = '<option value="">Tất cả Hồ</option>' + sortedLakes.map(lake => `<option value="${lake}">${lake}</option>`).join('');
-        filterYear.innerHTML = '<option value="">Tất cả Năm</option>' + sortedYears.map(year => `<option value="${year}">${year}</option>`).join('');
-      };
+        filterLake.innerHTML = '<option value="">Tất cả</option>' + sortedLakes.map(l => `<option value="${l}">${l}</option>`).join('');
+        filterYear.innerHTML = '<option value="">Tất cả</option>' + sortedYears.map(y => `<option value="${y}">${y}</option>`).join('');
+    };
 
-      /**
-       * Applies all active filters to the data and re-renders the table.
-       */
-      const applyFiltersAndRender = () => {
+    /**
+     * Applies all active filters and re-renders the table.
+     */
+    const applyFiltersAndRender = () => {
         const selectedLake = filterLake.value;
         const selectedYear = filterYear.value;
-        const startDate = filterStartDate.value ? new Date(filterStartDate.value) : null;
-        const endDate = filterEndDate.value ? new Date(filterEndDate.value) : null;
-        
-        // Normalize time for date-only comparison
-        if (startDate) startDate.setHours(0, 0, 0, 0);
-        if (endDate) endDate.setHours(23, 59, 59, 999);
+        const startDateString = filterStartDate.value;
+        const endDateString = filterEndDate.value;
 
         const filteredData = allData.filter(row => {
-          // Lake filter
-          if (selectedLake && row[LAKE_COLUMN] !== selectedLake) return false;
+            // Lake filter
+            if (selectedLake && row[LAKE_COLUMN] !== selectedLake) return false;
 
-          // Date based filters
-          const rowDate = row[DATE_COLUMN] ? new Date(row[DATE_COLUMN]) : null;
-          if (rowDate && !isNaN(rowDate)) {
-             // Year filter
+            // Date-based filters
+            const rowDate = parseDate(row[DATE_COLUMN]);
+            if (!rowDate) {
+                // If a date filter is active, exclude rows without a valid date
+                return !(selectedYear || startDateString || endDateString);
+            }
+
+            // Year filter
             if (selectedYear && rowDate.getFullYear() != selectedYear) return false;
-            // Start date filter
-            if (startDate && rowDate < startDate) return false;
-            // End date filter
-            if (endDate && rowDate > endDate) return false;
-          } else {
-             // If a date filter is set, rows without a valid date should be excluded
-             if (selectedYear || startDate || endDate) return false;
-          }
-
-          return true; // Row passes all filters
+            
+            // Date range filter
+            if (startDateString) {
+                const startDate = new Date(startDateString);
+                if (rowDate < startDate) return false;
+            }
+            if (endDateString) {
+                const endDate = new Date(endDateString);
+                // Add one day to include the selected end date
+                endDate.setDate(endDate.getDate() + 1);
+                if (rowDate >= endDate) return false;
+            }
+            
+            return true;
         });
-
         renderTable(filteredData);
-      };
+    };
 
-      // --- INITIALIZATION ---
-
-      /**
-       * Main function to fetch data and initialize the application.
-       */
-      const initialize = async () => {
+    /**
+     * Main function to fetch data and initialize the application.
+     */
+    const initialize = async () => {
+        tableBody.innerHTML = `<tr><td colspan="1" class="status-message"><div class="loader"></div>Đang tải dữ liệu...</td></tr>`;
         try {
-          const response = await fetch(API_URL);
-          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-          
-          const data = await response.json();
-          if (!data || data.length === 0) {
-             tableBody.innerHTML = `<tr><td colspan="1" class="status-message">Không có dữ liệu từ API.</td></tr>`;
-             return;
-          }
+            const response = await fetch(API_URL);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const data = await response.json();
+            if (!data || data.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="1" class="status-message">Không có dữ liệu từ API.</td></tr>`;
+                return;
+            }
 
-          allData = data;
-          headers = Object.keys(allData[0]);
+            allData = data;
+            // Filter out hidden columns from the headers array
+            headers = Object.keys(allData[0]).filter(h => !COLUMNS_TO_HIDE.includes(h));
 
-          // Render headers
-          tableHead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
-          
-          populateFilters();
-          renderTable(allData);
+            tableHead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+            
+            populateFilters();
+            renderTable(allData);
 
-          // Add event listeners AFTER data is loaded
-          filterLake.addEventListener('change', applyFiltersAndRender);
-          filterYear.addEventListener('change', applyFiltersAndRender);
-          filterStartDate.addEventListener('input', applyFiltersAndRender);
-          filterEndDate.addEventListener('input', applyFiltersAndRender);
-          clearFiltersBtn.addEventListener('click', () => {
-              filterLake.value = '';
-              filterYear.value = '';
-              filterStartDate.value = '';
-              filterEndDate.value = '';
-              applyFiltersAndRender();
-          });
+            // Add event listeners
+            [filterLake, filterYear, filterStartDate, filterEndDate].forEach(el => {
+                el.addEventListener('change', applyFiltersAndRender);
+            });
+
+            clearFiltersBtn.addEventListener('click', () => {
+                filterLake.value = '';
+                filterYear.value = '';
+                filterStartDate.value = '';
+                filterEndDate.value = '';
+                applyFiltersAndRender();
+            });
 
         } catch (error) {
-          console.error('Initialization failed:', error);
-          tableBody.innerHTML = `<tr><td colspan="1" class="status-message">Lỗi tải dữ liệu. Vui lòng thử lại.</td></tr>`;
+            console.error('Initialization failed:', error);
+            container.innerHTML = `<div class="status-message">Lỗi nghiêm trọng khi tải dữ liệu. Vui lòng kiểm tra lại đường link API và kết nối mạng.</div>`;
         }
-      };
+    };
 
-      initialize();
-    });
-  </script>
-
+    initialize();
+});
+</script>
 </body>
 </html>
