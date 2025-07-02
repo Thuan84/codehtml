@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TRA CỨU MỰC NƯỚC CÁC HỒ</title>
+  <title>TRA CỨU MỰC NƯỚC CÁC HỒ DO TRẠM THỦY NÔNG NINH HẢI QUẢN LÝ</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     /* ----- General Styles ----- */
@@ -36,6 +36,8 @@
       padding: 25px 30px;
       border-radius: 12px;
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+      position: relative;
+      min-height: 300px;
     }
     h2 {
       text-align: center;
@@ -44,6 +46,32 @@
       margin-bottom: 25px;
       font-weight: 600;
       font-size: 28px;
+    }
+
+    /* ----- Loading Overlay ----- */
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      border-radius: 12px;
+      transition: opacity 0.3s ease;
+    }
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .loading-text {
+      margin-top: 15px;
+      font-size: 16px;
+      color: var(--gray-color);
     }
 
     /* ----- Filters UI ----- */
@@ -155,6 +183,7 @@
       border-radius: 8px;
       border: 1px solid var(--border-color);
       position: relative;
+      min-height: 200px;
     }
     table {
       border-collapse: collapse;
@@ -187,12 +216,25 @@
       display: none;
     }
 
-    /* ----- Loader and Messages ----- */
+    /* ----- Status Messages ----- */
     .status-message {
       text-align: center;
       padding: 50px;
       color: var(--gray-color);
       font-size: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .status-message i {
+      font-size: 24px;
+    }
+    .error-message {
+      color: var(--error-color);
+    }
+    .success-message {
+      color: var(--success-color);
     }
     .loader {
       border: 5px solid #f3f3f3;
@@ -201,7 +243,7 @@
       width: 40px;
       height: 40px;
       animation: spin 1s linear infinite;
-      margin: 40px auto;
+      margin: 0 auto;
     }
     @keyframes spin {
       0% { transform: rotate(0deg); }
@@ -231,6 +273,12 @@
 
   <div class="container">
     <h2>Bảng Dữ Liệu Tối Ưu</h2>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="loader"></div>
+      <div class="loading-text">Đang tải dữ liệu...</div>
+    </div>
     
     <!-- Filter Controls -->
     <div class="filters-container" id="filters">
@@ -277,7 +325,10 @@
         </thead>
         <tbody id="table-body">
           <tr>
-            <td colspan="100%" class="status-message"><div class="loader"></div>Đang tải dữ liệu...</td>
+            <td colspan="100%" class="status-message">
+              <div class="loader"></div>
+              <div>Đang tải dữ liệu...</div>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -288,11 +339,14 @@
     document.addEventListener('DOMContentLoaded', () => {
       // --- CONFIGURATION ---
       const API_URL = 'https://script.google.com/macros/s/AKfycbzSEUNyod3PxFUP_DlSeCT8KVwAeV0oYdxSif0SfeArAv7il53F05vJssWnjUOdpxJR/exec';
-      const LAKE_COLUMN = 'Họ và tên'; // Đổi 'Tên hồ' thành 'Họ và tên' cho khớp dữ liệu
-      const DATE_COLUMN = 'Ngày sinh'; // Đổi 'Ngày báo cáo' thành 'Ngày sinh'
-      const HIDDEN_COLUMNS = ['Tencot', 'id']; // Các cột cần ẩn
+      const LAKE_COLUMN = 'Họ và tên';
+      const DATE_COLUMN = 'Ngày sinh';
+      const HIDDEN_COLUMNS = ['Tencot', 'id'];
+      const CACHE_KEY = 'lake_data_cache';
+      const CACHE_EXPIRY_DAYS = 1; // Số ngày lưu cache
 
       // --- DOM ELEMENTS ---
+      const loadingOverlay = document.getElementById('loading-overlay');
       const tableHead = document.getElementById('table-head');
       const tableBody = document.getElementById('table-body');
       const filterLake = document.getElementById('filter-lake');
@@ -305,17 +359,34 @@
       const applyFiltersBtn = document.getElementById('apply-filters-btn');
 
       // --- STATE ---
-      let allData = []; // Cache for all data fetched from the API
+      let allData = [];
       let headers = [];
       let filteredLakes = [];
 
       // --- UTILITY FUNCTIONS ---
 
-      /**
-       * Formats cell content. Formats decimal numbers to 3 decimal places.
-       * @param {*} value - The value to format.
-       * @returns {string} The formatted value.
-       */
+      // Kiểm tra và lấy dữ liệu từ cache nếu còn hiệu lực
+      const getCachedData = () => {
+        const cachedData = localStorage.getItem(CACHE_KEY);
+        if (!cachedData) return null;
+        
+        const { data, timestamp } = JSON.parse(cachedData);
+        const expiryDate = new Date(timestamp);
+        expiryDate.setDate(expiryDate.getDate() + CACHE_EXPIRY_DAYS);
+        
+        return new Date() <= expiryDate ? data : null;
+      };
+
+      // Lưu dữ liệu vào cache
+      const saveDataToCache = (data) => {
+        const cacheData = {
+          data: data,
+          timestamp: new Date().toISOString()
+        };
+        localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+      };
+
+      // Format cell content
       const formatCellContent = (value) => {
         if (value === null || value === undefined) return '';
         if (typeof value === 'number' && value % 1 !== 0) {
@@ -324,13 +395,16 @@
         return value;
       };
 
-      /**
-       * Renders the table with the provided data.
-       * @param {Array<Object>} dataToRender - The array of data rows to display.
-       */
+      // Render table
       const renderTable = (dataToRender) => {
         if (dataToRender.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="${headers.length}" class="status-message"><i class="fas fa-info-circle" style="margin-right: 8px;"></i>Không tìm thấy kết quả phù hợp.</td></tr>`;
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="${headers.length}" class="status-message">
+                <i class="fas fa-info-circle"></i>
+                <div>Không tìm thấy kết quả phù hợp.</div>
+              </td>
+            </tr>`;
           return;
         }
 
@@ -345,9 +419,7 @@
         tableBody.innerHTML = tableBodyHTML;
       };
 
-      /**
-       * Populates the filter dropdowns based on the fetched data.
-       */
+      // Populate filters
       const populateFilters = () => {
         const lakes = new Set();
         const years = new Set();
@@ -365,8 +437,8 @@
         });
 
         const sortedLakes = [...lakes].sort();
-        filteredLakes = sortedLakes; // Lưu danh sách hồ để tìm kiếm
-        const sortedYears = [...years].sort((a, b) => b - a); // Newest first
+        filteredLakes = sortedLakes;
+        const sortedYears = [...years].sort((a, b) => b - a);
 
         filterLake.innerHTML = '<option value="">Tất cả Hồ</option>' + 
           sortedLakes.map(lake => `<option value="${lake}">${lake}</option>`).join('');
@@ -380,9 +452,7 @@
         filterEndDate.value = `${currentYear}-12-31`;
       };
 
-      /**
-       * Applies all active filters to the data and re-renders the table.
-       */
+      // Apply filters
       const applyFilters = () => {
         const selectedLake = filterLake.value;
         const searchLakeText = filterLakeSearch.value.toLowerCase();
@@ -390,7 +460,6 @@
         const startDate = filterStartDate.value ? new Date(filterStartDate.value) : null;
         const endDate = filterEndDate.value ? new Date(filterEndDate.value) : null;
         
-        // Normalize time for date-only comparison
         if (startDate) startDate.setHours(0, 0, 0, 0);
         if (endDate) endDate.setHours(23, 59, 59, 999);
 
@@ -414,11 +483,10 @@
             // End date filter
             if (endDate && rowDate > endDate) return false;
           } else {
-             // If a date filter is set, rows without a valid date should be excluded
              if (selectedYear || startDate || endDate) return false;
           }
 
-          return true; // Row passes all filters
+          return true;
         });
 
         renderTable(filteredData);
@@ -441,58 +509,93 @@
           filtered.map(lake => `<option value="${lake}">${lake}</option>`).join('');
       };
 
-      // --- INITIALIZATION ---
-
-      /**
-       * Main function to fetch data and initialize the application.
-       */
-      const initialize = async () => {
+      // --- DATA FETCHING ---
+      const fetchData = async () => {
         try {
+          // Hiển thị loading
+          loadingOverlay.classList.remove('hidden');
+          
+          // Kiểm tra cache trước
+          const cachedData = getCachedData();
+          if (cachedData) {
+            allData = cachedData;
+            headers = Object.keys(allData[0]);
+            initializeUI();
+            return;
+          }
+
+          // Nếu không có cache, fetch từ API
           const response = await fetch(API_URL);
           if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
           
           const data = await response.json();
           if (!data || data.length === 0) {
-             tableBody.innerHTML = `<tr><td colspan="1" class="status-message"><i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>Không có dữ liệu từ API.</td></tr>`;
-             return;
+            throw new Error('Không có dữ liệu từ API');
           }
 
           allData = data;
           headers = Object.keys(allData[0]);
-
-          // Render headers with hidden columns
-          tableHead.innerHTML = `<tr>${headers.map(h => 
-            `<th class="${HIDDEN_COLUMNS.includes(h) ? 'hidden-column' : ''}">${h}</th>`
-          ).join('')}</tr>`;
           
-          populateFilters();
-          applyFilters();
-
-          // Add event listeners
-          filterLake.addEventListener('change', applyFilters);
-          filterYear.addEventListener('change', applyFilters);
-          filterStartDate.addEventListener('input', applyFilters);
-          filterEndDate.addEventListener('input', applyFilters);
-          filterLakeSearch.addEventListener('input', searchLake);
-          searchLakeBtn.addEventListener('click', searchLake);
-          clearFiltersBtn.addEventListener('click', () => {
-              filterLake.value = '';
-              filterLakeSearch.value = '';
-              filterYear.value = '';
-              filterStartDate.value = '';
-              filterEndDate.value = '';
-              applyFilters();
-              searchLake(); // Reset lake search
-          });
-          applyFiltersBtn.addEventListener('click', applyFilters);
-
+          // Lưu vào cache
+          saveDataToCache(data);
+          
+          initializeUI();
+          
         } catch (error) {
-          console.error('Initialization failed:', error);
-          tableBody.innerHTML = `<tr><td colspan="1" class="status-message"><i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i>Lỗi tải dữ liệu. Vui lòng thử lại.</td></tr>`;
+          console.error('Error fetching data:', error);
+          showError('Lỗi tải dữ liệu. Vui lòng thử lại.');
+        } finally {
+          loadingOverlay.classList.add('hidden');
         }
       };
 
-      initialize();
+      // Hiển thị thông báo lỗi
+      const showError = (message) => {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="100%" class="status-message error-message">
+              <i class="fas fa-exclamation-triangle"></i>
+              <div>${message}</div>
+              <button id="retry-btn" style="margin-top: 15px; padding: 8px 16px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                <i class="fas fa-sync-alt"></i> Thử lại
+              </button>
+            </td>
+          </tr>`;
+        
+        document.getElementById('retry-btn')?.addEventListener('click', fetchData);
+      };
+
+      // Khởi tạo UI sau khi có dữ liệu
+      const initializeUI = () => {
+        // Render headers with hidden columns
+        tableHead.innerHTML = `<tr>${headers.map(h => 
+          `<th class="${HIDDEN_COLUMNS.includes(h) ? 'hidden-column' : ''}">${h}</th>`
+        ).join('')}</tr>`;
+        
+        populateFilters();
+        applyFilters();
+
+        // Add event listeners
+        filterLake.addEventListener('change', applyFilters);
+        filterYear.addEventListener('change', applyFilters);
+        filterStartDate.addEventListener('input', applyFilters);
+        filterEndDate.addEventListener('input', applyFilters);
+        filterLakeSearch.addEventListener('input', searchLake);
+        searchLakeBtn.addEventListener('click', searchLake);
+        clearFiltersBtn.addEventListener('click', () => {
+            filterLake.value = '';
+            filterLakeSearch.value = '';
+            filterYear.value = '';
+            filterStartDate.value = '';
+            filterEndDate.value = '';
+            applyFilters();
+            searchLake();
+        });
+        applyFiltersBtn.addEventListener('click', applyFilters);
+      };
+
+      // Bắt đầu tải dữ liệu
+      fetchData();
     });
   </script>
 
