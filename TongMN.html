@@ -2,49 +2,83 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Hiển thị dữ liệu từ Google Sheets</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bảng Dữ Liệu Hiện Đại</title>
   <style>
+    /* ----- General Body & Font Styles ----- */
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f7f8fa;
+      margin: 0;
       padding: 20px;
       color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
+
+    /* ----- Container for better layout ----- */
+    .container {
+      width: 100%;
+      max-width: 1000px; /* Adjust max-width as needed */
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+    }
+    
     h2 {
       text-align: center;
-      color: #1976d2;
+      color: #1a73e8; /* A modern blue */
+      margin-top: 0;
+      margin-bottom: 25px;
+      font-weight: 600;
     }
+
+    /* ----- Modern Table Styles ----- */
     table {
       border-collapse: collapse;
       width: 100%;
-      background: #fff;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      border-radius: 8px;
-      overflow: hidden; /* Important for border-radius on table */
+      font-size: 15px;
     }
+
     th, td {
-      border: 1px solid #ddd;
-      padding: 12px 15px; /* Increased padding */
+      padding: 14px 18px; /* More spacious cells */
       text-align: left;
+      border-bottom: 1px solid #e0e0e0; /* Subtle row separators */
     }
-    th {
-      background: #1976d2;
-      color: white;
-      text-transform: uppercase; /* Make headers stand out */
-      font-size: 14px;
+
+    /* Table Header */
+    thead th {
+      background-color: #f1f3f4; /* Light gray header */
+      color: #3c4043;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      border-top: 1px solid #e0e0e0;
     }
-    tr {
-      border-bottom: 1px solid #ddd;
+
+    /* Table Body */
+    tbody tr:hover {
+      background-color: #f5faff; /* Subtle hover effect */
     }
-    tr:nth-child(even) {
-      background: #f9f9f9;
+    
+    tbody td {
+        color: #5f6368;
     }
-    tr:hover {
-      background: #f1f1f1; /* Add a hover effect for rows */
+
+    tbody tr:last-child td {
+      border-bottom: none; /* Remove border for the last row */
     }
-    .container {
-        max-width: 900px;
-        margin: auto;
+
+    /* ----- Handling Error Messages ----- */
+    .error-message {
+        text-align: center;
+        padding: 40px;
+        color: #d93025;
+        font-size: 16px;
     }
   </style>
 </head>
@@ -59,25 +93,48 @@
   </div>
 
   <script>
-    // URL của Google Apps Script bạn đã cung cấp
     const url = 'https://script.google.com/macros/s/AKfycbzSEUNyod3PxFUP_DlSeCT8KVwAeV0oYdxSif0SfeArAv7il53F05vJssWnjUOdpxJR/exec';
 
+    /**
+     * Hàm định dạng nội dung cho ô.
+     * - Nếu là số thập phân, định dạng thành 3 chữ số sau dấu phẩy.
+     * - Nếu là số nguyên hoặc văn bản, giữ nguyên.
+     * @param {*} value - Giá trị cần định dạng.
+     * @returns {string} - Giá trị đã được định dạng.
+     */
+    function formatCellContent(value) {
+      if (value === null || value === undefined) {
+        return '';
+      }
+      // Kiểm tra nếu là số
+      if (typeof value === 'number') {
+        // Chỉ định dạng nếu nó là số thập phân (không phải số nguyên)
+        if (value % 1 !== 0) {
+          return value.toFixed(3);
+        }
+      }
+      return value;
+    }
+
     fetch(url)
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
       .then(data => {
-        // Kiểm tra nếu không có dữ liệu hoặc dữ liệu rỗng
         if (!data || data.length === 0) {
           const table = document.getElementById('data-table');
-          table.innerHTML = '<tr><td style="text-align:center;">Không có dữ liệu để hiển thị.</td></tr>';
+          table.innerHTML = '<tr><td class="error-message">Không có dữ liệu để hiển thị.</td></tr>';
           return;
         }
 
-        // Tự động lấy tên các cột (biến) từ dòng dữ liệu đầu tiên
         const headers = Object.keys(data[0]);
         const thead = document.getElementById('table-head');
         const tbody = document.getElementById('table-body');
 
-        // 1. Tạo hàng tiêu đề (header) của bảng
+        // Tạo header
         let headerRowHTML = '<tr>';
         headers.forEach(headerText => {
           headerRowHTML += `<th>${headerText}</th>`;
@@ -85,22 +142,24 @@
         headerRowHTML += '</tr>';
         thead.innerHTML = headerRowHTML;
 
-        // 2. Tạo các hàng dữ liệu cho thân bảng (body)
+        // Tạo body và áp dụng định dạng
         let tableBodyHTML = '';
         data.forEach(rowObject => {
           tableBodyHTML += '<tr>';
           headers.forEach(header => {
-            // Dùng ?? '' để nếu giá trị là null/undefined thì hiển thị ô trống
-            tableBodyHTML += `<td>${rowObject[header] ?? ''}</td>`;
+            const cellValue = rowObject[header];
+            // Sử dụng hàm định dạng mới
+            const formattedValue = formatCellContent(cellValue);
+            tableBodyHTML += `<td>${formattedValue}</td>`;
           });
           tableBodyHTML += '</tr>';
         });
         tbody.innerHTML = tableBodyHTML;
       })
       .catch(error => {
-        // Xử lý lỗi nếu không thể tải dữ liệu
         console.error('Lỗi khi tải dữ liệu:', error);
-        document.body.innerHTML = '<p style="color: red; text-align: center;">Đã xảy ra lỗi khi cố gắng tải dữ liệu. Vui lòng thử lại sau.</p>';
+        const container = document.querySelector('.container');
+        container.innerHTML = `<div class="error-message">Đã xảy ra lỗi khi tải dữ liệu. Vui lòng kiểm tra lại đường link hoặc thử lại sau.</div>`;
       });
   </script>
 
