@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Hiển thị dữ liệu từ Google Sheets</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+      color: #333;
+    }
+    h2 {
+      text-align: center;
+      color: #1976d2;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: #fff;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden; /* Important for border-radius on table */
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px 15px; /* Increased padding */
+      text-align: left;
+    }
+    th {
+      background: #1976d2;
+      color: white;
+      text-transform: uppercase; /* Make headers stand out */
+      font-size: 14px;
+    }
+    tr {
+      border-bottom: 1px solid #ddd;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    tr:hover {
+      background: #f1f1f1; /* Add a hover effect for rows */
+    }
+    .container {
+        max-width: 900px;
+        margin: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Dữ liệu từ Google Sheets</h2>
+    <table id="data-table">
+      <thead id="table-head"></thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+  <script>
+    // URL của Google Apps Script bạn đã cung cấp
+    const url = 'https://script.google.com/macros/s/AKfycbzSEUNyod3PxFUP_DlSeCT8KVwAeV0oYdxSif0SfeArAv7il53F05vJssWnjUOdpxJR/exec';
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        // Kiểm tra nếu không có dữ liệu hoặc dữ liệu rỗng
+        if (!data || data.length === 0) {
+          const table = document.getElementById('data-table');
+          table.innerHTML = '<tr><td style="text-align:center;">Không có dữ liệu để hiển thị.</td></tr>';
+          return;
+        }
+
+        // Tự động lấy tên các cột (biến) từ dòng dữ liệu đầu tiên
+        const headers = Object.keys(data[0]);
+        const thead = document.getElementById('table-head');
+        const tbody = document.getElementById('table-body');
+
+        // 1. Tạo hàng tiêu đề (header) của bảng
+        let headerRowHTML = '<tr>';
+        headers.forEach(headerText => {
+          headerRowHTML += `<th>${headerText}</th>`;
+        });
+        headerRowHTML += '</tr>';
+        thead.innerHTML = headerRowHTML;
+
+        // 2. Tạo các hàng dữ liệu cho thân bảng (body)
+        let tableBodyHTML = '';
+        data.forEach(rowObject => {
+          tableBodyHTML += '<tr>';
+          headers.forEach(header => {
+            // Dùng ?? '' để nếu giá trị là null/undefined thì hiển thị ô trống
+            tableBodyHTML += `<td>${rowObject[header] ?? ''}</td>`;
+          });
+          tableBodyHTML += '</tr>';
+        });
+        tbody.innerHTML = tableBodyHTML;
+      })
+      .catch(error => {
+        // Xử lý lỗi nếu không thể tải dữ liệu
+        console.error('Lỗi khi tải dữ liệu:', error);
+        document.body.innerHTML = '<p style="color: red; text-align: center;">Đã xảy ra lỗi khi cố gắng tải dữ liệu. Vui lòng thử lại sau.</p>';
+      });
+  </script>
+
+</body>
+</html>
