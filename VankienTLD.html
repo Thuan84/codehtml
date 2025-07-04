@@ -3,504 +3,611 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ thống Quản lý Văn Kiện TLD</title>
+    <title>Quản Lý Văn Kiện TLD</title>
     
-    <!-- Libraries -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.2/css/responsive.bootstrap5.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         :root {
-            --bs-primary: #0d6efd;
-            --bs-primary-rgb: 13, 110, 253;
-            --bs-secondary: #6c757d;
-            --bs-success: #198754;
-            --bs-info: #0dcaf0;
-            --bs-warning: #ffc107;
-            --bs-danger: #dc3545;
-            --bs-light: #f8f9fa;
-            --bs-dark: #212529;
-            --bs-body-font-family: 'Be Vietnam Pro', sans-serif;
-            --bs-body-bg: #f0f2f5;
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-bg: #f8f9fa;
         }
-
+        
         body {
-            background-color: var(--bs-body-bg);
-            color: #495057;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            color: #333;
         }
         
-        .main-header {
-            background: linear-gradient(135deg, var(--bs-primary) 0%, #0056b3 100%);
+        .app-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 8px 25px -10px rgba(var(--bs-primary-rgb), 0.5);
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
-        .main-header h1 {
-            font-weight: 700;
+        .stats-card {
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s;
+            height: 100%;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stats-icon {
+            font-size: 1.75rem;
+            opacity: 0.8;
         }
         
         .main-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             border: none;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.1);
-            overflow: hidden; /* Important for border-radius on table */
         }
         
-        .card-header {
-            background-color: #fff;
-            border-bottom: 1px solid #dee2e6;
-            padding: 1rem 1.5rem;
+        .data-table {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
         }
         
-        .card-title {
-            font-weight: 600;
-            color: var(--bs-dark);
-        }
-
-        .table-controls {
-            gap: 0.75rem;
-        }
-        
-        #dataTable {
-            border-collapse: collapse !important; /* Override DataTables style */
-        }
-
-        #dataTable thead th {
+        .table thead th {
             background-color: #f8f9fa;
             font-weight: 600;
-            color: var(--bs-dark);
-            vertical-align: middle;
-        }
-
-        #dataTable tbody td {
-            vertical-align: middle;
         }
         
         .loading-container {
-            min-height: 400px;
-        }
-        
-        .spinner-border {
-            width: 3rem;
-            height: 3rem;
-            border-width: 0.3em;
-        }
-        
-        .attachment-badge {
-            font-weight: 500;
-            padding: 0.4em 0.7em;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .attachment-badge:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px -2px rgba(var(--bs-primary-rgb), 0.4);
-        }
-
-        .btn {
-            font-weight: 500;
-            border-radius: 0.375rem;
-        }
-
-        .btn-action {
-            width: 38px;
-            height: 38px;
-            display: inline-flex;
+            height: 300px;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
         }
         
-        .modal-header {
-            background-color: var(--bs-primary);
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 0.3em solid rgba(52, 152, 219, 0.3);
+            border-top-color: var(--secondary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error-card {
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .attachment-badge {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .attachment-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .detail-modal .modal-header {
+            background-color: var(--primary-color);
             color: white;
         }
         
-        .modal-header .btn-close {
-            filter: invert(1) grayscale(100%) brightness(200%);
-        }
-
-        .modal-title {
-            font-weight: 600;
+        .date-badge {
+            white-space: nowrap;
+            font-family: monospace;
         }
         
-        .detail-group h6 {
-            font-weight: 600;
-            color: var(--bs-primary);
-            border-bottom: 2px solid #e9ecef;
-            padding-bottom: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .detail-label {
-            font-weight: 500;
-            color: #6c757d;
-        }
-
-        .detail-value {
-            color: var(--bs-dark);
-        }
-        
-        /* DataTables Customization */
-        .dataTables_wrapper .dataTables_filter {
-            display: none; /* We use a custom search input */
-        }
-        
-        .dataTables_wrapper .dataTables_paginate .page-link {
-             border-radius: 0.375rem !important;
-             margin: 0 2px;
+        @media (max-width: 768px) {
+            .app-header {
+                padding: 1rem 0;
+            }
+            
+            .table-responsive {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container-fluid mt-4 mb-4">
-        <header class="main-header text-center">
-            <h1><i class="fa-solid fa-folder-open me-2"></i>Hệ thống Quản lý Văn Kiện</h1>
-            <p class="lead mb-0">Tra cứu, quản lý và lưu trữ tài liệu điện tử</p>
-        </header>
-        
-        <main class="container">
-            <div class="card main-card">
-                <div class="card-header">
-                    <div class="d-flex flex-wrap justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">
-                            <i class="fa-solid fa-list-ul me-2"></i>Danh sách văn bản
-                        </h5>
-                        <div class="d-flex flex-grow-1 flex-md-grow-0 justify-content-end align-items-center table-controls mt-2 mt-md-0">
-                            <div class="input-group" style="max-width: 300px;">
-                                <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-                                <input type="search" id="searchInput" class="form-control" placeholder="Tìm kiếm mọi thông tin...">
-                            </div>
-                            <button id="refreshBtn" class="btn btn-primary d-flex align-items-center" title="Làm mới dữ liệu">
-                                <i class="fa-solid fa-arrows-rotate me-1"></i>
-                                <span class="d-none d-sm-inline">Làm mới</span>
-                            </button>
-                        </div>
-                    </div>
+    <!-- Header Section -->
+    <header class="app-header mb-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-1"><i class="fas fa-file-alt me-2"></i>QUẢN LÝ VĂN KIỆN TLD</h1>
+                    <p class="mb-0 opacity-75">Hệ thống quản lý văn bản điện tử - Tổng Liên Đoàn Lao Động Việt Nam</p>
                 </div>
-                
-                <div class="card-body p-0">
-                    <div id="loadingContainer" class="d-flex flex-column justify-content-center align-items-center py-5 loading-container">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="mt-3 fs-5 text-muted">Đang tải dữ liệu, vui lòng chờ...</p>
-                    </div>
-                    
-                    <div id="errorContainer" class="alert alert-danger rounded-0 m-4 d-none" role="alert"></div>
-                    
-                    <div id="dataContainer" class="p-3 d-none">
-                        <table id="dataTable" class="table table-hover" style="width:100%">
-                            <thead>
-                                <tr>
-                                    <th>STT</th>
-                                    <th>Trích yếu</th>
-                                    <th>Loại VB</th>
-                                    <th>Số hiệu</th>
-                                    <th>Ngày ban hành</th>
-                                    <th>Cơ quan ban hành</th>
-                                    <th>Tệp đính kèm</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <div class="d-inline-block bg-white text-dark px-3 py-1 rounded-pill">
+                        <i class="fas fa-calendar-day me-2 text-primary"></i>
+                        <span id="current-date"></span>
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
-    
-    <!-- Modal for document details -->
-    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Stats Cards -->
+        <div class="row mb-4 g-3">
+            <div class="col-md-4">
+                <div class="stats-card p-3 bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Tổng số văn bản</h6>
+                            <h3 class="mb-0" id="total-docs">--</h3>
+                        </div>
+                        <div class="text-primary">
+                            <i class="fas fa-file-alt stats-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="stats-card p-3 bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Văn bản mới nhất</h6>
+                            <h3 class="mb-0" id="latest-doc-date">--</h3>
+                        </div>
+                        <div class="text-success">
+                            <i class="fas fa-calendar-check stats-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="stats-card p-3 bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Cập nhật lần cuối</h6>
+                            <h3 class="mb-0" id="last-updated">--</h3>
+                        </div>
+                        <div class="text-info">
+                            <i class="fas fa-sync-alt stats-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="main-card card border-0">
+            <div class="card-body">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+                    <h5 class="card-title mb-3 mb-md-0">
+                        <i class="fas fa-list-ul me-2"></i>Danh sách văn bản
+                    </h5>
+                    
+                    <div class="d-flex flex-column flex-sm-row gap-2">
+                        <div class="input-group" style="width: 250px;">
+                            <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                            <input type="text" id="search-input" class="form-control" placeholder="Tìm kiếm...">
+                        </div>
+                        <button id="refresh-btn" class="btn btn-primary">
+                            <i class="fas fa-sync-alt me-1"></i> Làm mới
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div id="loading-indicator" class="loading-container">
+                    <div class="spinner"></div>
+                    <p class="mt-3 text-muted">Đang tải dữ liệu...</p>
+                </div>
+
+                <!-- Error Alert -->
+                <div id="error-alert" class="alert alert-danger d-none error-card" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="error-message"></span>
+                    <button type="button" class="btn btn-sm btn-outline-danger ms-3" id="retry-btn">
+                        <i class="fas fa-redo me-1"></i> Thử lại
+                    </button>
+                </div>
+
+                <!-- Data Table -->
+                <div id="data-container" class="data-table d-none">
+                    <table id="data-table" class="table table-hover w-100">
+                        <thead>
+                            <tr>
+                                <th width="5%">STT</th>
+                                <th width="25%">Trích yếu</th>
+                                <th width="15%">Loại văn bản</th>
+                                <th width="10%">Số hiệu</th>
+                                <th width="10%">Ngày BH</th>
+                                <th width="15%">Cơ quan BH</th>
+                                <th width="10%">Người ký</th>
+                                <th width="5%">Đính kèm</th>
+                                <th width="5%">Chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Document Detail Modal -->
+    <div class="modal fade detail-modal" id="detailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle"><i class="fa-solid fa-file-lines me-2"></i>Chi tiết văn bản</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-alt me-2"></i>Chi tiết văn bản
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4 bg-light">
-                    <div class="row g-4">
-                        <div class="col-lg-12">
-                            <div class="detail-group bg-white p-3 rounded shadow-sm">
-                                <h6><i class="fa-solid fa-circle-info me-2"></i>Thông tin chính</h6>
-                                <dl class="row mb-0">
-                                    <dt class="col-sm-3 col-md-2 detail-label">Trích yếu</dt>
-                                    <dd class="col-sm-9 col-md-10 detail-value" id="modalTrichYeu"></dd>
-
-                                    <dt class="col-sm-3 col-md-2 detail-label">Số hiệu</dt>
-                                    <dd class="col-sm-9 col-md-4 detail-value" id="modalSoHieu"></dd>
-                                    
-                                    <dt class="col-sm-3 col-md-2 detail-label">Loại văn bản</dt>
-                                    <dd class="col-sm-9 col-md-4 detail-value" id="modalLoaiVanBan"></dd>
-                                </dl>
+                <div class="modal-body" id="modal-body-content">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="border-bottom pb-2 mb-3">Thông tin cơ bản</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <tbody id="basic-info"></tbody>
+                                </table>
                             </div>
                         </div>
-
-                        <div class="col-lg-6">
-                            <div class="detail-group bg-white p-3 rounded shadow-sm h-100">
-                                <h6><i class="fa-solid fa-building-user me-2"></i>Ban hành & Tác giả</h6>
-                                <dl class="row mb-0">
-                                    <dt class="col-sm-4 detail-label">Cơ quan ban hành</dt>
-                                    <dd class="col-sm-8 detail-value" id="modalCoQuanBanHanh"></dd>
-                                    
-                                    <dt class="col-sm-4 detail-label">Ngày ban hành</dt>
-                                    <dd class="col-sm-8 detail-value" id="modalNgayBanHanh"></dd>
-                                    
-                                    <dt class="col-sm-4 detail-label">Người ký</dt>
-                                    <dd class="col-sm-8 detail-value" id="modalNguoiKy"></dd>
-
-                                    <dt class="col-sm-4 detail-label">Người thảo</dt>
-                                    <dd class="col-sm-8 detail-value" id="modalNguoiThao"></dd>
-                                </dl>
+                        <div class="col-md-6">
+                            <h6 class="border-bottom pb-2 mb-3">Thông tin bổ sung</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <tbody id="additional-info"></tbody>
+                                </table>
                             </div>
                         </div>
-
-                        <div class="col-lg-6">
-                            <div class="detail-group bg-white p-3 rounded shadow-sm h-100">
-                                <h6><i class="fa-solid fa-paperclip me-2"></i>Tài liệu & Lưu trữ</h6>
-                                <dl class="row mb-0">
-                                    <dt class="col-sm-4 detail-label">Tệp đính kèm</dt>
-                                    <dd class="col-sm-8 detail-value" id="modalDinhKem"></dd>
-
-                                    <dt class="col-sm-4 detail-label">Ghi chú</dt>
-                                    <dd class="col-sm-8 detail-value" id="modalGhiChu"></dd>
-                                </dl>
-                            </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h6 class="border-bottom pb-2 mb-3">Tệp đính kèm</h6>
+                            <div id="attachments-container" class="d-flex flex-wrap gap-2"></div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fa-solid fa-xmark me-1"></i>Đóng
+                        <i class="fas fa-times me-1"></i> Đóng
                     </button>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
-    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.js"></script>
-    <script src="https://cdn.datatables.net/responsive/3.0.2/js/dataTables.responsive.js"></script>
-    <script src="https://cdn.datatables.net/responsive/3.0.2/js/responsive.bootstrap5.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     
     <script>
-        // --- CONFIGURATION ---
+        // Configuration
         const CONFIG = {
-            // !!! QUAN TRỌNG: Dán URL Web App của bạn vào đây
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycby2lXhZMCQ6gyTMCvbcC20K4eW4iLLqL9L89uFPowzTau6ualedUx9nOJ--CXjPE0BQ/exec',
-            DATATABLES_LANG_URL: 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/vi.json'
+            API_URL: 'https://script.google.com/macros/s/AKfycby2lXhZMCQ6gyTMCvbcC20K4eW4iLLqL9L89uFPowzTau6ualedUx9nOJ--CXjPE0BQ/exec',
+            AUTO_REFRESH: 5 * 60 * 1000, // 5 phút
+            DATE_FORMAT_OPTIONS: {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            }
         };
-
-        // --- GLOBAL VARIABLES ---
+        
+        // Global variables
         let dataTable;
         let allData = [];
-        const detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
-
-        // --- CORE FUNCTIONS ---
+        let lastFetchTime = null;
         
-        /**
-         * Initializes the DataTable instance with configurations.
-         */
+        // Initialize when DOM is loaded
+        $(document).ready(function() {
+            // Set current date
+            updateCurrentDate();
+            
+            // Initialize DataTable
+            initializeDataTable();
+            
+            // Load initial data
+            loadData();
+            
+            // Setup event listeners
+            $('#refresh-btn, #retry-btn').click(loadData);
+            $('#search-input').on('keyup', function() {
+                dataTable.search(this.value).draw();
+            });
+            
+            // Set up auto refresh
+            if (CONFIG.AUTO_REFRESH) {
+                setInterval(loadData, CONFIG.AUTO_REFRESH);
+            }
+        });
+        
+        // Update current date display
+        function updateCurrentDate() {
+            const now = new Date();
+            $('#current-date').text(
+                now.toLocaleDateString('vi-VN', {
+                    weekday: 'long',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                })
+            );
+        }
+        
+        // Initialize DataTable
         function initializeDataTable() {
-            dataTable = $('#dataTable').DataTable({
+            dataTable = $('#data-table').DataTable({
+                dom: '<"top"f>rt<"bottom"lip><"clear">',
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json'
+                },
                 responsive: true,
-                language: { url: CONFIG.DATATABLES_LANG_URL },
-                columns: [
-                    { data: 'stt', className: 'text-center', width: '5%' },
-                    { data: 'trichYeu', width: '35%' },
-                    { data: 'loaiVanBan', width: '15%' },
-                    { data: 'soHieu', className: 'text-center', width: '10%' },
+                columnDefs: [
                     { 
-                        data: 'ngayBanHanh',
-                        className: 'text-center',
-                        width: '10%',
-                        render: data => data ? formatDate(data) : 'N/A'
+                        targets: [0, 7, 8], 
+                        orderable: false, 
+                        className: 'text-center align-middle' 
                     },
-                    { data: 'coQuanBanHanh', width: '15%' },
                     { 
-                        data: 'dinhKem',
-                        className: 'text-center',
-                        width: '5%',
-                        orderable: false,
-                        render: data => {
-                            if (!data) return '';
-                            const count = data.split(',').filter(Boolean).length;
-                            return count > 0 ? `<span class="badge bg-primary attachment-badge">${count} tệp</span>` : '';
-                        }
-                    },
-                    {
-                        data: null,
-                        className: 'text-center',
-                        width: '5%',
-                        orderable: false,
-                        render: (data, type, row) => 
-                            `<button class="btn btn-sm btn-outline-primary btn-action view-detail" data-stt="${row.stt}" title="Xem chi tiết">
-                                <i class="fas fa-eye"></i>
-                            </button>`
+                        targets: 4,
+                        render: function(data) {
+                            return formatDateForDisplay(data);
+                        },
+                        className: 'date-badge'
                     }
                 ],
-                order: [[0, 'asc']], // Sort by STT by default
-                autoWidth: false,
-                drawCallback: function () {
-                    // Re-add event listener after table draw
-                    $('.view-detail').off('click').on('click', function() {
-                        const stt = $(this).data('stt');
-                        showDocumentDetail(stt);
-                    });
-                }
+                order: [[4, 'desc']], // Sort by issue date descending
+                pageLength: 25
             });
         }
         
-        /**
-         * Fetches data from the Google Apps Script endpoint.
-         */
+        // Load data from API
         function loadData() {
-            setUIState('loading');
+            showLoading();
             
-            // Add cache buster to URL to ensure fresh data
-            const url = `${CONFIG.SCRIPT_URL}?t=${new Date().getTime()}`;
+            const startTime = new Date();
             
             $.ajax({
-                url: url,
+                url: CONFIG.API_URL + '?t=' + new Date().getTime(), // Cache buster
                 method: 'GET',
                 dataType: 'json',
-                success: response => {
+                success: function(response) {
+                    // Check for error response
                     if (response.status === 'error') {
-                        setUIState('error', response.message);
+                        showError(response.message || 'Lỗi không xác định từ máy chủ');
                         return;
                     }
-                    allData = response.data || [];
-                    renderData(allData);
-                    setUIState('success');
+                    
+                    // Process the data
+                    processData(response.data || response);
+                    
+                    // Update last fetch time
+                    lastFetchTime = new Date();
+                    $('#last-updated').text(
+                        lastFetchTime.toLocaleTimeString('vi-VN', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })
+                    );
+                    
+                    // Log performance
+                    console.log(`Data loaded in ${new Date() - startTime}ms`);
                 },
-                error: (xhr, status, error) => {
-                    const errorMessage = xhr.responseJSON?.message || `Lỗi không xác định: ${error}`;
-                    setUIState('error', errorMessage);
+                error: function(xhr, status, error) {
+                    let errorMessage = `Lỗi khi tải dữ liệu: ${error}`;
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    showError(errorMessage);
                 }
             });
         }
         
-        /**
-         * Renders the fetched data into the DataTable.
-         * @param {Array} data - The array of document objects.
-         */
-        function renderData(data) {
-            if (dataTable) {
-                dataTable.clear();
-                dataTable.rows.add(data);
-                dataTable.draw();
-            }
-        }
-        
-        /**
-         * Displays the details of a selected document in a modal.
-         * @param {string|number} stt - The STT (ID) of the document.
-         */
-        function showDocumentDetail(stt) {
-            const doc = allData.find(item => item.stt == stt);
-            if (!doc) {
-                alert('Không tìm thấy dữ liệu cho văn bản này.');
+        // Process the received data
+        function processData(data) {
+            if (!Array.isArray(data)) {
+                showError('Dữ liệu nhận được không hợp lệ');
                 return;
             }
             
-            // Populate modal with data
-            $('#modalTrichYeu').text(doc.trichYeu || '---');
-            $('#modalSoHieu').text(doc.soHieu || '---');
-            $('#modalLoaiVanBan').text(doc.loaiVanBan || '---');
-            $('#modalCoQuanBanHanh').text(doc.coQuanBanHanh || '---');
-            $('#modalNgayBanHanh').text(formatDate(doc.ngayBanHanh) || '---');
-            $('#modalNguoiKy').text(doc.nguoiKy || '---');
-            $('#modalNguoiThao').text(doc.nguoiThaoVanBan || '---');
-            $('#modalGhiChu').text(doc.ghiChu || '---');
-
-            // Handle attachments
-            const attachmentContainer = $('#modalDinhKem').empty();
-            if (doc.dinhKem) {
-                doc.dinhKem.split(',').forEach(url => {
-                    const trimmedUrl = url.trim();
-                    if(trimmedUrl) {
-                        // Extract filename from URL for better display
-                        const fileName = trimmedUrl.split('/').pop().split('?')[0];
-                        const link = $(`<a href="${trimmedUrl}" target="_blank" class="btn btn-outline-primary btn-sm me-2 mb-2"></a>`);
-                        link.append($('<i class="fa-solid fa-link me-2"></i>'));
-                        link.append($('<span></span>').text(decodeURIComponent(fileName)));
-                        attachmentContainer.append(link);
-                    }
-                });
-            } else {
-                attachmentContainer.text('Không có');
-            }
+            allData = data;
             
-            detailModal.show();
+            // Update statistics
+            updateStatistics(allData);
+            
+            // Render data table
+            renderDataTable(allData);
+            
+            // Show data container
+            $('#loading-indicator').addClass('d-none');
+            $('#error-alert').addClass('d-none');
+            $('#data-container').removeClass('d-none');
         }
-
-        // --- UI & HELPER FUNCTIONS ---
-
-        /**
-         * Manages the visibility of UI elements based on the application state.
-         * @param {'loading'|'error'|'success'} state - The current state.
-         * @param {string} [message] - An optional error message.
-         */
-        function setUIState(state, message = '') {
-            $('#loadingContainer').toggleClass('d-none', state !== 'loading');
-            $('#dataContainer').toggleClass('d-none', state !== 'success');
-            $('#errorContainer').toggleClass('d-none', state !== 'error');
-
-            if (state === 'error') {
-                $('#errorContainer').html(`
-                    <h5 class="alert-heading"><i class="fa-solid fa-circle-exclamation me-2"></i>Đã xảy ra lỗi!</h5>
-                    <p>${message}</p>
-                    <hr>
-                    <p class="mb-0">Vui lòng thử lại hoặc liên hệ quản trị viên.</p>
-                `);
+        
+        // Update statistics cards
+        function updateStatistics(data) {
+            $('#total-docs').text(data.length.toLocaleString('vi-VN'));
+            
+            if (data.length > 0) {
+                // Find the latest document by issue date
+                const latestDoc = data.reduce((latest, current) => {
+                    const latestDate = new Date(latest.ngayBanHanh || 0).getTime();
+                    const currentDate = new Date(current.ngayBanHanh || 0).getTime();
+                    return currentDate > latestDate ? current : latest;
+                });
+                
+                $('#latest-doc-date').text(
+                    latestDoc.ngayBanHanh 
+                        ? formatDateForDisplay(latestDoc.ngayBanHanh)
+                        : '---'
+                );
+            } else {
+                $('#latest-doc-date').text('---');
             }
         }
         
-        /**
-         * Formats an ISO date string into a readable 'dd/mm/yyyy' format.
-         * @param {string} dateString - The ISO date string.
-         * @returns {string} The formatted date or the original string if invalid.
-         */
-        function formatDate(dateString) {
-            if (!dateString) return '';
-            try {
-                const date = new Date(dateString);
-                if (isNaN(date.getTime())) return dateString; // Return original if invalid
-                return date.toLocaleDateString('vi-VN', {
-                    day: '2-digit', month: '2-digit', year: 'numeric'
-                });
-            } catch (e) {
-                return dateString; // Fallback
-            }
+        // Render data to DataTable
+        function renderDataTable(data) {
+            // Clear existing data
+            dataTable.clear();
+            
+            // Add new data
+            data.forEach(item => {
+                dataTable.row.add([
+                    item.stt || '',
+                    item.trichYeu || '',
+                    item.loaiVanBan || '',
+                    item.soHieu || '',
+                    item.ngayBanHanh || '',
+                    item.coQuanBanHanh || '',
+                    item.nguoiKy || '',
+                    formatAttachments(item.dinhKem),
+                    `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${item.stt}">
+                        <i class="fas fa-eye"></i>
+                    </button>`
+                ]);
+            });
+            
+            // Redraw table
+            dataTable.draw();
+            
+            // Add click handlers for detail buttons
+            $('.view-detail').off('click').on('click', function() {
+                const stt = $(this).data('id');
+                   // Show document detail in modal
+    function showDocumentDetail(stt) {
+        const doc = allData.find(item => item.stt == stt);
+        if (!doc) {
+            alert('Không tìm thấy thông tin văn bản');
+            return;
         }
 
-        // --- EVENT LISTENERS ---
-        $(document).ready(function() {
-            initializeDataTable();
-            loadData();
+        // Format basic info
+        const basicInfoHtml = `
+            <tr>
+                <th width="40%">Số hiệu:</th>
+                <td>${doc.soHieu || '---'}</td>
+            </tr>
+            <tr>
+                <th>Trích yếu:</th>
+                <td>${doc.trichYeu || '---'}</td>
+            </tr>
+            <tr>
+                <th>Loại văn bản:</th>
+                <td>${doc.loaiVanBan || '---'}</td>
+            </tr>
+            <tr>
+                <th>Ngày ban hành:</th>
+                <td>${formatDateForDisplay(doc.ngayBanHanh) || '---'}</td>
+            </tr>
+            <tr>
+                <th>Cơ quan ban hành:</th>
+                <td>${doc.coQuanBanHanh || '---'}</td>
+            </tr>
+        `;
+        $('#basic-info').html(basicInfoHtml);
+
+        // Format additional info
+        const additionalInfoHtml = `
+            <tr>
+                <th width="40%">Người ký:</th>
+                <td>${doc.nguoiKy || '---'}</td>
+            </tr>
+            <tr>
+                <th>Người thảo:</th>
+                <td>${doc.nguoiThaoVB || '---'}</td>
+            </tr>
+            <tr>
+                <th>Ngày tạo:</th>
+                <td>${formatDateForDisplay(doc.thoiGianTao) || '---'}</td>
+            </tr>
+            <tr>
+                <th>Ngày cập nhật:</th>
+                <td>${formatDateForDisplay(doc.thoiGianCapNhat) || '---'}</td>
+            </tr>
+            <tr>
+                <th>Ghi chú:</th>
+                <td>${doc.ghiChu || '---'}</td>
+            </tr>
+        `;
+        $('#additional-info').html(additionalInfoHtml);
+
+        // Format attachments
+        let attachmentsHtml = '<p class="text-muted mb-0">Không có tệp đính kèm</p>';
+        if (doc.dinhKem) {
+            const attachments = doc.dinhKem.split(',').filter(item => item.trim());
+            if (attachments.length > 0) {
+                attachmentsHtml = attachments.map(item => `
+                    <a href="${item.trim()}" target="_blank" class="text-decoration-none me-2 mb-2 d-inline-block">
+                        <span class="badge bg-primary attachment-badge">
+                            <i class="fas fa-paperclip me-1"></i> ${item.trim().split('/').pop()}
+                        </span>
+                    </a>
+                `).join('');
+            }
+        }
+        $('#attachments-container').html(attachmentsHtml);
+
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+        modal.show();
+    }
+
+    // Format date for display
+    function formatDateForDisplay(dateString) {
+        if (!dateString) return '';
+        
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString;
             
-            $('#refreshBtn').on('click', loadData);
-            
-            $('#searchInput').on('keyup', function() {
-                dataTable.search(this.value).draw();
-            });
-        });
-    </script>
-</body>
-</html>
+            return date.toLocaleDateString('vi-VN', CONFIG.DATE_FORMAT_OPTIONS);
+        } catch (e) {
+            console.error('Error formatting date:', e);
+            return dateString;
+        }
+    }
+
+    // Format attachments for table display
+    function formatAttachments(attachments) {
+        if (!attachments) return '';
+        
+        const count = attachments.split(',').filter(item => item.trim()).length;
+        return count > 0 
+            ? `<span class="badge bg-primary rounded-pill">${count} tệp</span>`
+            : '';
+    }
+
+    // Show loading state
+    function showLoading() {
+        $('#data-container').addClass('d-none');
+        $('#error-alert').addClass('d-none');
+        $('#loading-indicator').removeClass('d-none');
+    }
+
+    // Show error message
+    function showError(message) {
+        $('#data-container').addClass('d-none');
+        $('#loading-indicator').addClass('d-none');
+        
+        $('#error-message').text(message);
+        $('#error-alert').removeClass('d-none');
+    }
+</script>
