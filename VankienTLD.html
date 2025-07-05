@@ -195,17 +195,15 @@
 
     // --- DATA HANDLING FUNCTIONS ---
 
-    function loadData(forceRefresh = false) {
+        function loadData(forceRefresh = false) {
         showLoading();
         let url = CONFIG.API_URL;
-        if(forceRefresh) {
-            url += (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime(); // Cache buster
-        }
+        // Với JSONP, jQuery tự động thêm tham số callback, không cần cache buster thủ công
         
         $.ajax({
             url: url,
             method: 'GET',
-            dataType: 'json',
+            dataType: 'jsonp', // <-- THAY ĐỔI QUAN TRỌNG Ở ĐÂY
             success: function(response) {
                 if (response.status === 'error') {
                     showError(response.message || 'Lỗi không xác định từ máy chủ.');
@@ -217,7 +215,7 @@
                 updateTimestamp();
             },
             error: function(xhr, status, error) {
-                const errorMsg = `Lỗi tải dữ liệu: ${status} - ${error}. Vui lòng kiểm tra lại URL API và đảm bảo Web App đã được Deploy với quyền truy cập "Anyone".`;
+                const errorMsg = `Lỗi tải dữ liệu: ${status} - ${error}. Vui lòng thử lại.`;
                 showError(errorMsg);
             }
         });
