@@ -5,14 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Văn Kiện TLD</title>
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Libraries CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     
     <style>
         :root {
@@ -21,120 +17,32 @@
             --accent-color: #e74c3c;
             --light-bg: #f8f9fa;
         }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--light-bg);
-            color: #333;
-        }
-        
-        .app-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 1.5rem 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .stats-card {
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s;
-            height: 100%;
-        }
-        
-        .stats-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .stats-icon {
-            font-size: 1.75rem;
-            opacity: 0.8;
-        }
-        
-        .main-card {
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            border: none;
-        }
-        
-        .data-table {
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .table thead th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-        }
-        
-        .loading-container {
-            height: 300px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .spinner {
-            width: 3rem;
-            height: 3rem;
-            border: 0.3em solid rgba(52, 152, 219, 0.3);
-            border-top-color: var(--secondary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .error-card {
-            border-left: 4px solid var(--accent-color);
-        }
-        
-        .attachment-badge {
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .attachment-badge:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        .detail-modal .modal-header {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .date-badge {
-            white-space: nowrap;
-            font-family: monospace;
-        }
-        
-        @media (max-width: 768px) {
-            .app-header {
-                padding: 1rem 0;
-            }
-            
-            .table-responsive {
-                font-size: 14px;
-            }
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--light-bg); }
+        .app-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 1.5rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .stats-card { border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: transform 0.3s; height: 100%; }
+        .stats-card:hover { transform: translateY(-5px); }
+        .stats-icon { font-size: 1.75rem; opacity: 0.8; }
+        .main-card { border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: none; }
+        .loading-container { min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 3rem; height: 3rem; border: 0.3em solid rgba(52, 152, 219, 0.3); border-top-color: var(--secondary-color); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error-card { border-left: 4px solid var(--accent-color); }
+        .attachment-badge { cursor: pointer; transition: all 0.2s; }
+        .attachment-badge:hover { transform: scale(1.05); }
+        .detail-modal .modal-header { background-color: var(--primary-color); color: white; }
     </style>
 </head>
 <body>
-    <!-- Header Section -->
+    <!-- Header -->
     <header class="app-header mb-4">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="mb-1"><i class="fas fa-file-alt me-2"></i>QUẢN LÝ VĂN KIỆN TLD</h1>
-                    <p class="mb-0 opacity-75">Hệ thống quản lý văn bản điện tử - Tổng Liên Đoàn Lao Động Việt Nam</p>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-1 h3"><i class="fas fa-file-alt me-2"></i>QUẢN LÝ VĂN KIỆN TLD</h1>
+                    <p class="mb-0 opacity-75 small">Hệ thống quản lý văn bản điện tử</p>
                 </div>
-                <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                    <div class="d-inline-block bg-white text-dark px-3 py-1 rounded-pill">
+                <div class="mt-3 mt-md-0">
+                    <div class="d-inline-block bg-white text-dark px-3 py-1 rounded-pill shadow-sm">
                         <i class="fas fa-calendar-day me-2 text-primary"></i>
                         <span id="current-date"></span>
                     </div>
@@ -146,468 +54,294 @@
     <!-- Main Content -->
     <main class="container">
         <!-- Stats Cards -->
-        <div class="row mb-4 g-3">
-            <div class="col-md-4">
-                <div class="stats-card p-3 bg-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-2">Tổng số văn bản</h6>
-                            <h3 class="mb-0" id="total-docs">--</h3>
-                        </div>
-                        <div class="text-primary">
-                            <i class="fas fa-file-alt stats-icon"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="stats-card p-3 bg-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-2">Văn bản mới nhất</h6>
-                            <h3 class="mb-0" id="latest-doc-date">--</h3>
-                        </div>
-                        <div class="text-success">
-                            <i class="fas fa-calendar-check stats-icon"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="stats-card p-3 bg-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-2">Cập nhật lần cuối</h6>
-                            <h3 class="mb-0" id="last-updated">--</h3>
-                        </div>
-                        <div class="text-info">
-                            <i class="fas fa-sync-alt stats-icon"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <section class="row mb-4 g-3">
+            <div class="col-md-4"><div class="stats-card p-3 bg-white"><div class="d-flex justify-content-between align-items-center"><div><h6 class="text-muted mb-2">Tổng số văn bản</h6><h3 class="mb-0" id="total-docs">--</h3></div><div class="text-primary"><i class="fas fa-file-alt stats-icon"></i></div></div></div></div>
+            <div class="col-md-4"><div class="stats-card p-3 bg-white"><div class="d-flex justify-content-between align-items-center"><div><h6 class="text-muted mb-2">Mới nhất</h6><h3 class="mb-0 small" id="latest-doc-date">--</h3></div><div class="text-success"><i class="fas fa-calendar-check stats-icon"></i></div></div></div></div>
+            <div class="col-md-4"><div class="stats-card p-3 bg-white"><div class="d-flex justify-content-between align-items-center"><div><h6 class="text-muted mb-2">Cập nhật lúc</h6><h3 class="mb-0" id="last-updated">--</h3></div><div class="text-info"><i class="fas fa-sync-alt stats-icon"></i></div></div></div></div>
+        </section>
 
-        <!-- Main Card -->
-        <div class="main-card card border-0">
+        <!-- Main Card with Table -->
+        <section class="main-card card">
             <div class="card-body">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-                    <h5 class="card-title mb-3 mb-md-0">
-                        <i class="fas fa-list-ul me-2"></i>Danh sách văn bản
-                    </h5>
-                    
-                    <div class="d-flex flex-column flex-sm-row gap-2">
-                        <div class="input-group" style="width: 250px;">
-                            <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
-                            <input type="text" id="search-input" class="form-control" placeholder="Tìm kiếm...">
-                        </div>
-                        <button id="refresh-btn" class="btn btn-primary">
-                            <i class="fas fa-sync-alt me-1"></i> Làm mới
-                        </button>
+                    <h5 class="card-title mb-3 mb-md-0"><i class="fas fa-list-ul me-2"></i>Danh sách văn bản</h5>
+                    <div class="d-flex gap-2">
+                        <input type="text" id="search-input" class="form-control" placeholder="Tìm kiếm nhanh..." style="width: 250px;">
+                        <button id="refresh-btn" class="btn btn-primary" title="Làm mới dữ liệu"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
 
-                <!-- Loading Indicator -->
-                <div id="loading-indicator" class="loading-container">
-                    <div class="spinner"></div>
-                    <p class="mt-3 text-muted">Đang tải dữ liệu...</p>
-                </div>
-
-                <!-- Error Alert -->
-                <div id="error-alert" class="alert alert-danger d-none error-card" role="alert">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <span id="error-message"></span>
-                    <button type="button" class="btn btn-sm btn-outline-danger ms-3" id="retry-btn">
-                        <i class="fas fa-redo me-1"></i> Thử lại
-                    </button>
-                </div>
-
-                <!-- Data Table -->
-                <div id="data-container" class="data-table d-none">
+                <div id="loading-indicator" class="loading-container"><div class="spinner"></div><p class="mt-3 text-muted">Đang tải dữ liệu...</p></div>
+                <div id="error-alert" class="alert alert-danger d-none error-card" role="alert"><i class="fas fa-exclamation-triangle me-2"></i><span id="error-message"></span><button type="button" class="btn btn-sm btn-outline-danger ms-3" id="retry-btn"><i class="fas fa-redo me-1"></i> Thử lại</button></div>
+                
+                <div id="data-container" class="table-responsive d-none">
                     <table id="data-table" class="table table-hover w-100">
                         <thead>
                             <tr>
-                                <th width="5%">STT</th>
-                                <th width="25%">Trích yếu</th>
-                                <th width="15%">Loại văn bản</th>
-                                <th width="10%">Số hiệu</th>
-                                <th width="10%">Ngày BH</th>
-                                <th width="15%">Cơ quan BH</th>
-                                <th width="10%">Người ký</th>
-                                <th width="5%">Đính kèm</th>
-                                <th width="5%">Chi tiết</th>
+                                <th>STT</th>
+                                <th>Trích yếu</th>
+                                <th>Loại văn bản</th>
+                                <th>Số hiệu</th>
+                                <th>Ngày BH</th>
+                                <th>Cơ quan BH</th>
+                                <th class="text-center">Đính kèm</th>
+                                <th class="text-center">Chi tiết</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
                     </table>
                 </div>
             </div>
-        </div>
+        </section>
     </main>
 
     <!-- Document Detail Modal -->
     <div class="modal fade detail-modal" id="detailModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-file-alt me-2"></i>Chi tiết văn bản
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
+                <div class="modal-header"><h5 class="modal-title"><i class="fas fa-file-invoice me-2"></i>Chi tiết văn bản</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body" id="modal-body-content">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="border-bottom pb-2 mb-3">Thông tin cơ bản</h6>
-                            <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <tbody id="basic-info"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="border-bottom pb-2 mb-3">Thông tin bổ sung</h6>
-                            <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <tbody id="additional-info"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <h6 class="border-bottom pb-2 mb-3">Tệp đính kèm</h6>
-                            <div id="attachments-container" class="d-flex flex-wrap gap-2"></div>
-                        </div>
-                    </div>
+                    <!-- Content will be injected by JavaScript -->
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-1"></i> Đóng
-                    </button>
-                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button></div>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <!-- Libraries JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     
+    <!-- Application Script -->
     <script>
-        // Configuration
-        const CONFIG = {
-            API_URL: 'https://script.google.com/macros/s/AKfycby2lXhZMCQ6gyTMCvbcC20K4eW4iLLqL9L89uFPowzTau6ualedUx9nOJ--CXjPE0BQ/exec',
-            AUTO_REFRESH: 5 * 60 * 1000, // 5 phút
-            DATE_FORMAT_OPTIONS: {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            }
-        };
+    // ===== START: Cấu trúc code đã được sửa và tối ưu =====
+
+    const CONFIG = {
+        // !!! QUAN TRỌNG: Dán URL Web App MỚI của bạn vào đây sau khi Deploy lại GS !!!
+        API_URL: 'https://script.google.com/macros/s/AKfycby2lXhZMCQ6gyTMCvbcC20K4eW4iLLqL9L89uFPowzTau6ualedUx9nOJ--CXjPE0BQ/exec',
+        DATE_FORMAT_OPTIONS: { day: '2-digit', month: '2-digit', year: 'numeric' }
+    };
+
+    let dataTable;
+    let allData = [];
+
+    // --- MAIN EXECUTION ---
+    $(document).ready(function() {
+        updateCurrentDate();
+        initializeDataTable();
+        loadData();
+        setupEventListeners();
+    });
+
+    // --- SETUP FUNCTIONS ---
+
+    function setupEventListeners() {
+        $('#refresh-btn, #retry-btn').on('click', () => loadData(true));
+        $('#search-input').on('keyup', function() {
+            dataTable.search(this.value).draw();
+        });
+        // Sử dụng event delegation cho các nút chi tiết
+        $('#data-table tbody').on('click', 'button.view-detail', function() {
+            const stt = $(this).data('id');
+            showDocumentDetail(stt);
+        });
+    }
+
+    function initializeDataTable() {
+        dataTable = $('#data-table').DataTable({
+            // Tối ưu hóa: Khai báo cột và render ngay khi khởi tạo
+            data: [], // Dữ liệu sẽ được nạp sau
+            columns: [
+                { data: 'stt', width: '5%' },
+                { data: 'trichYeu', width: '30%' },
+                { data: 'loaiVanBan', width: '15%' },
+                { data: 'soHieu', width: '10%' },
+                { data: 'ngayBanHanh', width: '10%' },
+                { data: 'coQuanBanHanh', width: '15%' },
+                { data: 'dinhKem', width: '5%' },
+                { data: 'stt', width: '5%' } // Cột cho nút chi tiết
+            ],
+            columnDefs: [
+                {
+                    targets: 4, // Cột Ngày ban hành
+                    render: (data) => formatDateForDisplay(data),
+                    className: 'text-nowrap'
+                },
+                {
+                    targets: 6, // Cột Đính kèm
+                    render: (data) => formatAttachments(data),
+                    className: 'text-center'
+                },
+                {
+                    targets: 7, // Cột Chi tiết
+                    render: (data) => `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${data}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`,
+                    className: 'text-center'
+                },
+                { 
+                    targets: [0, 6, 7], // Các cột không cần sắp xếp
+                    orderable: false 
+                }
+            ],
+            // Cấu hình khác
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' },
+            responsive: true,
+            order: [[4, 'desc']], // Sắp xếp mặc định theo ngày ban hành giảm dần
+            pageLength: 25,
+            dom: 'rt<"d-flex justify-content-between align-items-center mt-3"ip<"ms-3"l>>' // Bỏ search box mặc định của datatable
+        });
+    }
+
+    // --- DATA HANDLING FUNCTIONS ---
+
+    function loadData(forceRefresh = false) {
+        showLoading();
+        let url = CONFIG.API_URL;
+        if(forceRefresh) {
+            url += (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime(); // Cache buster
+        }
         
-        // Global variables
-        let dataTable;
-        let allData = [];
-        let lastFetchTime = null;
-        
-        // Initialize when DOM is loaded
-        $(document).ready(function() {
-            // Set current date
-            updateCurrentDate();
-            
-            // Initialize DataTable
-            initializeDataTable();
-            
-            // Load initial data
-            loadData();
-            
-            // Setup event listeners
-            $('#refresh-btn, #retry-btn').click(loadData);
-            $('#search-input').on('keyup', function() {
-                dataTable.search(this.value).draw();
-            });
-            
-            // Set up auto refresh
-            if (CONFIG.AUTO_REFRESH) {
-                setInterval(loadData, CONFIG.AUTO_REFRESH);
+        $.ajax({
+            url: url,
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'error') {
+                    showError(response.message || 'Lỗi không xác định từ máy chủ.');
+                    return;
+                }
+                allData = response.data || [];
+                renderData(allData);
+                updateStatistics(allData);
+                updateTimestamp();
+            },
+            error: function(xhr, status, error) {
+                const errorMsg = `Lỗi tải dữ liệu: ${status} - ${error}. Vui lòng kiểm tra lại URL API và đảm bảo Web App đã được Deploy với quyền truy cập "Anyone".`;
+                showError(errorMsg);
             }
         });
-        
-        // Update current date display
-        function updateCurrentDate() {
-            const now = new Date();
-            $('#current-date').text(
-                now.toLocaleDateString('vi-VN', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                })
-            );
+    }
+
+    function renderData(data) {
+        // Tối ưu hóa: Nạp dữ liệu một lần thay vì lặp
+        dataTable.clear().rows.add(data).draw();
+        showDataContainer();
+    }
+
+    // --- UI UPDATE FUNCTIONS ---
+
+    function showLoading() {
+        $('#loading-indicator').removeClass('d-none');
+        $('#error-alert').addClass('d-none');
+        $('#data-container').addClass('d-none');
+    }
+
+    function showError(message) {
+        $('#loading-indicator').addClass('d-none');
+        $('#error-message').text(message);
+        $('#error-alert').removeClass('d-none');
+    }
+    
+    function showDataContainer() {
+        $('#loading-indicator').addClass('d-none');
+        $('#error-alert').addClass('d-none');
+        $('#data-container').removeClass('d-none');
+    }
+
+    function updateCurrentDate() {
+        const now = new Date();
+        $('#current-date').text(now.toLocaleDateString('vi-VN', { weekday: 'long', ...CONFIG.DATE_FORMAT_OPTIONS }));
+    }
+
+    function updateTimestamp() {
+        const now = new Date();
+        $('#last-updated').text(now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }));
+    }
+
+    function updateStatistics(data) {
+        $('#total-docs').text(data.length.toLocaleString('vi-VN'));
+        if (data.length > 0) {
+            const latestDoc = data.reduce((latest, current) => new Date(current.ngayBanHanh) > new Date(latest.ngayBanHanh) ? current : latest);
+            $('#latest-doc-date').text(formatDateForDisplay(latestDoc.ngayBanHanh) || '---');
+        } else {
+            $('#latest-doc-date').text('---');
         }
-        
-        // Initialize DataTable
-        function initializeDataTable() {
-            dataTable = $('#data-table').DataTable({
-                dom: '<"top"f>rt<"bottom"lip><"clear">',
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json'
-                },
-                responsive: true,
-                columnDefs: [
-                    { 
-                        targets: [0, 7, 8], 
-                        orderable: false, 
-                        className: 'text-center align-middle' 
-                    },
-                    { 
-                        targets: 4,
-                        render: function(data) {
-                            return formatDateForDisplay(data);
-                        },
-                        className: 'date-badge'
-                    }
-                ],
-                order: [[4, 'desc']], // Sort by issue date descending
-                pageLength: 25
-            });
-        }
-        
-        // Load data from API
-        function loadData() {
-            showLoading();
-            
-            const startTime = new Date();
-            
-            $.ajax({
-                url: CONFIG.API_URL + '?t=' + new Date().getTime(), // Cache buster
-                method: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    // Check for error response
-                    if (response.status === 'error') {
-                        showError(response.message || 'Lỗi không xác định từ máy chủ');
-                        return;
-                    }
-                    
-                    // Process the data
-                    processData(response.data || response);
-                    
-                    // Update last fetch time
-                    lastFetchTime = new Date();
-                    $('#last-updated').text(
-                        lastFetchTime.toLocaleTimeString('vi-VN', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        })
-                    );
-                    
-                    // Log performance
-                    console.log(`Data loaded in ${new Date() - startTime}ms`);
-                },
-                error: function(xhr, status, error) {
-                    let errorMessage = `Lỗi khi tải dữ liệu: ${error}`;
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMessage = xhr.responseJSON.message;
-                    }
-                    showError(errorMessage);
-                }
-            });
-        }
-        
-        // Process the received data
-        function processData(data) {
-            if (!Array.isArray(data)) {
-                showError('Dữ liệu nhận được không hợp lệ');
-                return;
-            }
-            
-            allData = data;
-            
-            // Update statistics
-            updateStatistics(allData);
-            
-            // Render data table
-            renderDataTable(allData);
-            
-            // Show data container
-            $('#loading-indicator').addClass('d-none');
-            $('#error-alert').addClass('d-none');
-            $('#data-container').removeClass('d-none');
-        }
-        
-        // Update statistics cards
-        function updateStatistics(data) {
-            $('#total-docs').text(data.length.toLocaleString('vi-VN'));
-            
-            if (data.length > 0) {
-                // Find the latest document by issue date
-                const latestDoc = data.reduce((latest, current) => {
-                    const latestDate = new Date(latest.ngayBanHanh || 0).getTime();
-                    const currentDate = new Date(current.ngayBanHanh || 0).getTime();
-                    return currentDate > latestDate ? current : latest;
-                });
-                
-                $('#latest-doc-date').text(
-                    latestDoc.ngayBanHanh 
-                        ? formatDateForDisplay(latestDoc.ngayBanHanh)
-                        : '---'
-                );
-            } else {
-                $('#latest-doc-date').text('---');
-            }
-        }
-        
-        // Render data to DataTable
-        function renderDataTable(data) {
-            // Clear existing data
-            dataTable.clear();
-            
-            // Add new data
-            data.forEach(item => {
-                dataTable.row.add([
-                    item.stt || '',
-                    item.trichYeu || '',
-                    item.loaiVanBan || '',
-                    item.soHieu || '',
-                    item.ngayBanHanh || '',
-                    item.coQuanBanHanh || '',
-                    item.nguoiKy || '',
-                    formatAttachments(item.dinhKem),
-                    `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${item.stt}">
-                        <i class="fas fa-eye"></i>
-                    </button>`
-                ]);
-            });
-            
-            // Redraw table
-            dataTable.draw();
-            
-            // Add click handlers for detail buttons
-            $('.view-detail').off('click').on('click', function() {
-                const stt = $(this).data('id');
-                   // Show document detail in modal
+    }
+
     function showDocumentDetail(stt) {
         const doc = allData.find(item => item.stt == stt);
         if (!doc) {
-            alert('Không tìm thấy thông tin văn bản');
+            alert('Lỗi: Không tìm thấy thông tin văn bản!');
             return;
         }
 
-        // Format basic info
-        const basicInfoHtml = `
-            <tr>
-                <th width="40%">Số hiệu:</th>
-                <td>${doc.soHieu || '---'}</td>
-            </tr>
-            <tr>
-                <th>Trích yếu:</th>
-                <td>${doc.trichYeu || '---'}</td>
-            </tr>
-            <tr>
-                <th>Loại văn bản:</th>
-                <td>${doc.loaiVanBan || '---'}</td>
-            </tr>
-            <tr>
-                <th>Ngày ban hành:</th>
-                <td>${formatDateForDisplay(doc.ngayBanHanh) || '---'}</td>
-            </tr>
-            <tr>
-                <th>Cơ quan ban hành:</th>
-                <td>${doc.coQuanBanHanh || '---'}</td>
-            </tr>
-        `;
-        $('#basic-info').html(basicInfoHtml);
-
-        // Format additional info
-        const additionalInfoHtml = `
-            <tr>
-                <th width="40%">Người ký:</th>
-                <td>${doc.nguoiKy || '---'}</td>
-            </tr>
-            <tr>
-                <th>Người thảo:</th>
-                <td>${doc.nguoiThaoVB || '---'}</td>
-            </tr>
-            <tr>
-                <th>Ngày tạo:</th>
-                <td>${formatDateForDisplay(doc.thoiGianTao) || '---'}</td>
-            </tr>
-            <tr>
-                <th>Ngày cập nhật:</th>
-                <td>${formatDateForDisplay(doc.thoiGianCapNhat) || '---'}</td>
-            </tr>
-            <tr>
-                <th>Ghi chú:</th>
-                <td>${doc.ghiChu || '---'}</td>
-            </tr>
-        `;
-        $('#additional-info').html(additionalInfoHtml);
+        const createRow = (label, value) => `<tr><th scope="row" class="w-25">${label}:</th><td>${value || '---'}</td></tr>`;
 
         // Format attachments
-        let attachmentsHtml = '<p class="text-muted mb-0">Không có tệp đính kèm</p>';
+        let attachmentsHtml = '<p class="text-muted fst-italic">Không có tệp đính kèm.</p>';
         if (doc.dinhKem) {
-            const attachments = doc.dinhKem.split(',').filter(item => item.trim());
-            if (attachments.length > 0) {
-                attachmentsHtml = attachments.map(item => `
-                    <a href="${item.trim()}" target="_blank" class="text-decoration-none me-2 mb-2 d-inline-block">
-                        <span class="badge bg-primary attachment-badge">
-                            <i class="fas fa-paperclip me-1"></i> ${item.trim().split('/').pop()}
-                        </span>
+            const files = doc.dinhKem.split(',').filter(item => item.trim());
+            if (files.length > 0) {
+                attachmentsHtml = files.map(url => `
+                    <a href="${url.trim()}" target="_blank" class="btn btn-sm btn-outline-primary attachment-badge me-2 mb-2">
+                        <i class="fas fa-paperclip me-1"></i> ${decodeURIComponent(url.trim().split('/').pop())}
                     </a>
                 `).join('');
             }
         }
-        $('#attachments-container').html(attachmentsHtml);
 
-        // Show modal
-        const modal = new bootstrap.Modal(document.getElementById('detailModal'));
-        modal.show();
+        const modalBodyHtml = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="border-bottom pb-2 mb-3">Thông tin cơ bản</h6>
+                    <table class="table table-sm table-borderless"><tbody>
+                        ${createRow('Số hiệu', doc.soHieu)}
+                        ${createRow('Trích yếu', doc.trichYeu)}
+                        ${createRow('Loại VB', doc.loaiVanBan)}
+                        ${createRow('Ngày BH', formatDateForDisplay(doc.ngayBanHanh))}
+                        ${createRow('Cơ quan BH', doc.coQuanBanHanh)}
+                    </tbody></table>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="border-bottom pb-2 mb-3">Thông tin bổ sung</h6>
+                    <table class="table table-sm table-borderless"><tbody>
+                        ${createRow('Người ký', doc.nguoiKy)}
+                        ${createRow('Người thảo', doc.nguoiThaoVanBan)}
+                        ${createRow('Ngày tạo', formatDateForDisplay(doc.thoiGianTao))}
+                        ${createRow('Cập nhật', formatDateForDisplay(doc.thoiGianCapNhat))}
+                        ${createRow('Ghi chú', doc.ghiChu)}
+                    </tbody></table>
+                </div>
+            </div>
+            <hr>
+            <h6 class="mb-3">Tệp đính kèm</h6>
+            <div>${attachmentsHtml}</div>
+        `;
+
+        $('#modal-body-content').html(modalBodyHtml);
+        new bootstrap.Modal(document.getElementById('detailModal')).show();
     }
 
-    // Format date for display
+    // --- UTILITY FUNCTIONS ---
+
     function formatDateForDisplay(dateString) {
         if (!dateString) return '';
-        
         try {
             const date = new Date(dateString);
-            if (isNaN(date.getTime())) return dateString;
-            
-            return date.toLocaleDateString('vi-VN', CONFIG.DATE_FORMAT_OPTIONS);
+            return isNaN(date.getTime()) ? dateString : date.toLocaleDateString('vi-VN', CONFIG.DATE_FORMAT_OPTIONS);
         } catch (e) {
-            console.error('Error formatting date:', e);
             return dateString;
         }
     }
 
-    // Format attachments for table display
     function formatAttachments(attachments) {
         if (!attachments) return '';
-        
         const count = attachments.split(',').filter(item => item.trim()).length;
-        return count > 0 
-            ? `<span class="badge bg-primary rounded-pill">${count} tệp</span>`
-            : '';
+        return count > 0 ? `<span class="badge bg-primary rounded-pill">${count}</span>` : '';
     }
+    // ===== END: Cấu trúc code đã được sửa và tối ưu =====
+    </script>
 
-    // Show loading state
-    function showLoading() {
-        $('#data-container').addClass('d-none');
-        $('#error-alert').addClass('d-none');
-        $('#loading-indicator').removeClass('d-none');
-    }
-
-    // Show error message
-    function showError(message) {
-        $('#data-container').addClass('d-none');
-        $('#loading-indicator').addClass('d-none');
-        
-        $('#error-message').text(message);
-        $('#error-alert').removeClass('d-none');
-    }
-</script>
+</body>
+</html>
