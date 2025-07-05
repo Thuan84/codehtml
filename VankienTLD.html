@@ -10,80 +10,37 @@
     <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     
-    <!-- CSS TÙY CHỈNH CHO GIAO DIỆN HIỆN ĐẠI -->
     <style>
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
+            --accent-color: #e74c3c;
             --light-bg: #f8f9fa;
-            --border-color: #dee2e6;
         }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--light-bg); }
         .app-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 2rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .stats-card { border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: transform 0.3s; height: 100%; border: none; }
+        .stats-card { border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: transform 0.3s; height: 100%; }
         .stats-card:hover { transform: translateY(-5px); }
-        .main-card { border-radius: 12px; box-shadow: 0 4px 25px rgba(0,0,0,0.1); border: none; }
+        .stats-icon { font-size: 1.75rem; opacity: 0.8; }
+        .main-card { border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: none; }
         .loading-container { min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .spinner { width: 3rem; height: 3rem; border: 0.3em solid rgba(52, 152, 219, 0.3); border-top-color: var(--secondary-color); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .error-card { border-left: 4px solid var(--accent-color); }
+        .attachment-badge:hover { transform: scale(1.05); }
+        .detail-modal .modal-header { background-color: var(--primary-color); color: white; }
         .filter-section { background-color: #f1f3f5; border-radius: 8px; }
-
-        /* === NÂNG CẤP GIAO DIỆN BẢNG === */
-        #data-table {
-            border-collapse: separate;
-            border-spacing: 0;
-            width: 100% !important;
-        }
-        #data-table thead th {
-            background-color: #f8f9fa;
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--secondary-color);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 0.5px;
-        }
-        #data-table tbody tr {
-            border-bottom: 1px solid var(--border-color);
-        }
-        #data-table tbody tr:last-of-type {
-            border-bottom: none;
-        }
-        #data-table tbody tr:nth-of-type(odd) {
-            background-color: rgba(0, 0, 0, 0.02);
-        }
-        #data-table tbody tr:hover {
-            background-color: rgba(52, 152, 219, 0.1);
-            transform: scale(1.01);
-            transition: background-color 0.2s, transform 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            z-index: 10;
-            position: relative;
-        }
-        #data-table td, #data-table th {
-            padding: 1rem 0.9rem;
-            vertical-align: middle;
-        }
-        .so-hieu-col {
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-        .btn-view-detail {
-            border-radius: 50px;
-            width: 38px;
-            height: 38px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
     </style>
 </head>
 <body>
-    <!-- Header đã được tùy chỉnh -->
+    <!-- HEADER ĐÃ SỬA -->
     <header class="app-header mb-4">
         <div class="container text-center">
+            <!-- Tiêu đề đã được sửa text, tăng size và căn giữa -->
             <h1 class="mb-2 display-5 fw-bold">QUẢN LÝ VĂN KIỆN TÀI LIỆU ĐẢNG</h1>
+            <!-- Phụ đề đã được sửa text và tăng size -->
             <p class="mb-3 opacity-75 fs-5">Trạm thủy nông Ninh Hải</p>
+            <!-- Ngày tháng được đặt bên dưới -->
             <div class="d-inline-block bg-white text-dark px-3 py-1 rounded-pill shadow-sm">
                 <i class="fas fa-calendar-day me-2 text-primary"></i>
                 <span id="current-date"></span>
@@ -101,8 +58,8 @@
         </section>
 
         <!-- Main Card with Table -->
-        <section class="main-card card overflow-hidden">
-            <div class="card-body p-lg-4">
+        <section class="main-card card">
+            <div class="card-body">
                 <!-- Toolbar -->
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
                     <h5 class="card-title mb-3 mb-md-0"><i class="fas fa-list-ul me-2"></i>Danh sách văn bản</h5>
@@ -115,42 +72,24 @@
                 <!-- Filter Section -->
                 <section class="filter-section p-3 mb-4">
                     <div class="row g-3 align-items-end">
-                        <div class="col-lg-3 col-md-6"><label for="filter-doc-type" class="form-label fw-bold small">Loại văn bản</label><select id="filter-doc-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
-                        <div class="col-lg-3 col-md-6"><label for="filter-agency" class="form-label fw-bold small">Cơ quan ban hành</label><select id="filter-agency" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
-                        <div class="col-lg-2 col-md-6"><label for="filter-year" class="form-label fw-bold small">Năm ban hành</label><select id="filter-year" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
-                        <div class="col-lg-3 col-md-6"><label class="form-label fw-bold small">Ngày ban hành (Từ - Đến)</label><div class="input-group input-group-sm"><input type="date" id="filter-start-date" class="form-control"><input type="date" id="filter-end-date" class="form-control"></div></div>
-                        <div class="col-lg-1 col-md-12"><button id="reset-filter-btn" class="btn btn-sm btn-outline-secondary w-100" title="Xóa bộ lọc"><i class="fas fa-times me-1 me-lg-0"></i><span class="d-lg-none ms-1"> Đặt lại</span></button></div>
+                        <div class="col-md-3"><label for="filter-doc-type" class="form-label fw-bold small">Loại văn bản</label><select id="filter-doc-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
+                        <div class="col-md-3"><label for="filter-agency" class="form-label fw-bold small">Cơ quan ban hành</label><select id="filter-agency" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
+                        <div class="col-md-2"><label for="filter-year" class="form-label fw-bold small">Năm ban hành</label><select id="filter-year" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
+                        <div class="col-md-3"><label class="form-label fw-bold small">Ngày ban hành (Từ - Đến)</label><div class="input-group input-group-sm"><input type="date" id="filter-start-date" class="form-control"><input type="date" id="filter-end-date" class="form-control"></div></div>
+                        <div class="col-md-1"><label class="form-label d-block"> </label><button id="reset-filter-btn" class="btn btn-sm btn-outline-secondary w-100" title="Xóa bộ lọc"><i class="fas fa-times"></i> Đặt lại</button></div>
                     </div>
                 </section>
 
                 <div id="loading-indicator" class="loading-container"><div class="spinner"></div><p class="mt-3 text-muted">Đang tải dữ liệu...</p></div>
                 <div id="error-alert" class="alert alert-danger d-none error-card" role="alert"><i class="fas fa-exclamation-triangle me-2"></i><span id="error-message"></span><button type="button" class="btn btn-sm btn-outline-danger ms-3" id="retry-btn"><i class="fas fa-redo me-1"></i> Thử lại</button></div>
                 
-                <div id="data-container" class="table-responsive d-none">
-                    <table id="data-table" class="table">
-                        <!-- THAY ĐỔI: Sắp xếp lại tiêu đề bảng -->
-                        <thead>
-                            <tr>
-                                <th>Số hiệu</th>
-                                <th>Trích yếu</th>
-                                <th>Loại văn bản</th>
-                                <th>Ngày BH</th>
-                                <th>Cơ quan BH</th>
-                                <th class="text-center">Đính kèm</th>
-                                <th class="text-center">Chi tiết</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                <div id="data-container" class="table-responsive d-none"><table id="data-table" class="table table-hover w-100"><thead><tr><th>STT</th><th>Trích yếu</th><th>Loại văn bản</th><th>Số hiệu</th><th>Ngày BH</th><th>Cơ quan BH</th><th class="text-center">Đính kèm</th><th class="text-center">Chi tiết</th></tr></thead><tbody></tbody></table></div>
             </div>
         </section>
     </main>
 
     <!-- Document Detail Modal -->
-    <div class="modal fade detail-modal" id="detailModal" tabindex="-1" aria-hidden="true">
-        <!-- Nội dung modal giữ nguyên -->
-    </div>
+    <div class="modal fade detail-modal" id="detailModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"><i class="fas fa-file-invoice me-2"></i>Chi tiết văn bản</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="modal-body-content"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button></div></div></div></div>
 
     <!-- Libraries JS -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -158,15 +97,17 @@
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     
+    <!-- Application Script -->
     <script>
     const CONFIG = {
-        API_URL: 'https://script.google.com/macros/s/AKfycby2lXhZMCQ6gyTMCvbcC20K4eW4iLLqL9L89uFPowzTau6ualedUx9nOJ--CXjPE0BQ/exec', // !!! VẪN PHẢI ĐẢM BẢO URL NÀY ĐÚNG !!!
+        API_URL: 'https://script.google.com/macros/s/AKfycby2lXhZMCQ6gyTMCvbcC20K4eW4iLLqL9L89uFPowzTau6ualedUx9nOJ--CXjPE0BQ/exec', // !!! THAY THẾ BẰNG URL MỚI CỦA BẠN !!!
         DATE_FORMAT_OPTIONS: { day: '2-digit', month: '2-digit', year: 'numeric' }
     };
 
     let dataTable;
     let allData = [];
 
+    // --- MAIN EXECUTION ---
     $(document).ready(function() {
         updateCurrentDate();
         initializeDataTable();
@@ -174,6 +115,7 @@
         setupEventListeners();
     });
 
+    // --- SETUP FUNCTIONS ---
     function setupEventListeners() {
         $('#refresh-btn, #retry-btn').on('click', () => loadData(true));
         $('#search-input').on('keyup', function() { dataTable.search(this.value).draw(); });
@@ -185,52 +127,26 @@
     function initializeDataTable() {
         dataTable = $('#data-table').DataTable({
             data: [],
-            // THAY ĐỔI: Cấu trúc cột mới
             columns: [
-                { data: 'soHieu', width: '12%' },
-                { data: 'trichYeu', width: '33%' },
-                { data: 'loaiVanBan', width: '15%' },
-                { data: 'ngayBanHanh', width: '10%' },
-                { data: 'coQuanBanHanh', width: '15%' },
-                { data: 'dinhKem', width: '5%' },
-                { data: 'stt', width: '5%' } // Vẫn dùng stt làm data-id cho nút
+                { data: 'stt', width: '5%' }, { data: 'trichYeu', width: '30%' },
+                { data: 'loaiVanBan', width: '15%' }, { data: 'soHieu', width: '10%' },
+                { data: 'ngayBanHanh', width: '10%' }, { data: 'coQuanBanHanh', width: '15%' },
+                { data: 'dinhKem', width: '5%' }, { data: 'stt', width: '5%' }
             ],
-            // THAY ĐỔI: Cấu hình hiển thị cột mới
             columnDefs: [
-                { 
-                    targets: 0, // Cột "Số hiệu"
-                    className: 'so-hieu-col'
-                },
-                { 
-                    targets: 3, // Cột "Ngày ban hành"
-                    render: (d) => formatDateForDisplay(d), 
-                    className: 'text-nowrap' 
-                },
-                { 
-                    targets: 5, // Cột "Đính kèm"
-                    render: (d) => formatAttachments(d), 
-                    className: 'text-center' 
-                },
-                { 
-                    targets: 6, // Cột "Chi tiết"
-                    render: (d) => `<button class="btn btn-sm btn-outline-primary btn-view-detail view-detail" data-id="${d}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`, 
-                    className: 'text-center' 
-                },
-                { 
-                    targets: [5, 6], // Các cột không cần sắp xếp
-                    orderable: false 
-                }
+                { targets: 4, render: (d) => formatDateForDisplay(d), className: 'text-nowrap' },
+                { targets: 6, render: (d) => formatAttachments(d), className: 'text-center' },
+                { targets: 7, render: (d) => `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${d}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`, className: 'text-center' },
+                { targets: [0, 6, 7], orderable: false }
             ],
-            // THAY ĐỔI: Sắp xếp mặc định theo cột Ngày ban hành (index 3) giảm dần
-            order: [[3, 'desc']],
             language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' },
+            order: [[4, 'desc']],
             pageLength: 25,
             dom: 'rt<"d-flex justify-content-between align-items-center mt-3"ip<"ms-3"l>>'
         });
     }
 
-    // --- CÁC HÀM CÒN LẠI GIỮ NGUYÊN ---
-    
+    // --- DATA HANDLING & FILTERING ---
     function loadData(forceRefresh = false) {
         showLoading();
         let url = CONFIG.API_URL;
@@ -301,8 +217,9 @@
         options.forEach(opt => select.append(`<option value="${opt}">${opt}</option>`));
     }
 
+    // --- UI & UTILITY FUNCTIONS ---
     function showLoading() { $('#loading-indicator').removeClass('d-none'); $('#error-alert, #data-container').addClass('d-none'); }
-    function showError(msg) { $('#loading-indicator, #data-container').addClass('d-none'); $('#error-message').text(msg); $('#error-alert').removeClass('d-none'); }
+    function showError(msg) { $('#loading-indicator, #data-container').addClass('d-none'); $('#error-message').text(msg); $('#error-alert').removeClass('d--none'); }
     function showDataContainer() { $('#loading-indicator, #error-alert').addClass('d-none'); $('#data-container').removeClass('d-none'); }
     function updateCurrentDate() { $('#current-date').text(new Date().toLocaleDateString('vi-VN', { weekday: 'long', ...CONFIG.DATE_FORMAT_OPTIONS })); }
     function updateTimestamp() { $('#last-updated').text(new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })); }
@@ -311,7 +228,18 @@
     function formatAttachments(a) { if (!a) return ''; const count = a.split(',').filter(i => i.trim()).length; return count > 0 ? `<span class="badge bg-primary rounded-pill">${count}</span>` : ''; }
 
     function showDocumentDetail(stt) {
-        // Hàm này giữ nguyên, không cần thay đổi
+        const doc = allData.find(item => item.stt == stt);
+        if (!doc) { alert('Lỗi: Không tìm thấy văn bản!'); return; }
+        const createRow = (label, val) => `<tr><th scope="row" class="w-25">${label}:</th><td>${val || '---'}</td></tr>`;
+        let filesHtml = '<p class="text-muted fst-italic">Không có tệp.</p>';
+        if (doc.dinhKem) {
+            const files = doc.dinhKem.split(',').filter(i => i.trim());
+            if (files.length > 0) {
+                filesHtml = files.map(url => `<a href="${url.trim()}" target="_blank" class="btn btn-sm btn-outline-primary me-2 mb-2"><i class="fas fa-paperclip me-1"></i> ${decodeURIComponent(url.trim().split('/').pop())}</a>`).join('');
+            }
+        }
+        $('#modal-body-content').html(`<div class="row"><div class="col-md-6"><h6 class="border-bottom pb-2 mb-3">Thông tin cơ bản</h6><table class="table table-sm table-borderless"><tbody>${createRow('Số hiệu',doc.soHieu)}${createRow('Trích yếu',doc.trichYeu)}${createRow('Loại VB',doc.loaiVanBan)}${createRow('Ngày BH',formatDateForDisplay(doc.ngayBanHanh))}${createRow('Cơ quan BH',doc.coQuanBanHanh)}</tbody></table></div><div class="col-md-6"><h6 class="border-bottom pb-2 mb-3">Thông tin bổ sung</h6><table class="table table-sm table-borderless"><tbody>${createRow('Người ký',doc.nguoiKy)}${createRow('Người thảo',doc.nguoiThaoVanBan)}${createRow('Ngày tạo',formatDateForDisplay(doc.thoiGianTao))}${createRow('Cập nhật',formatDateForDisplay(doc.thoiGianCapNhat))}${createRow('Ghi chú',doc.ghiChu)}</tbody></table></div></div><hr><h6 class="mb-3">Tệp đính kèm</h6><div>${filesHtml}</div>`);
+        new bootstrap.Modal('#detailModal').show();
     }
     </script>
 </body>
