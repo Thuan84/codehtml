@@ -27,7 +27,6 @@
         .spinner { width: 3rem; height: 3rem; border: 0.3em solid rgba(52, 152, 219, 0.3); border-top-color: var(--secondary-color); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .error-card { border-left: 4px solid var(--accent-color); }
-        .attachment-badge { cursor: pointer; transition: all 0.2s; }
         .attachment-badge:hover { transform: scale(1.05); }
         .detail-modal .modal-header { background-color: var(--primary-color); color: white; }
         .filter-section { background-color: #f1f3f5; border-radius: 8px; }
@@ -39,15 +38,10 @@
         <div class="container">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
                 <div>
-                    <h1 class="mb-1 h3"><i class="fas fa-file-alt me-2"></i>QUẢN LÝ VĂN BẢN, VĂN KIỆN TÀI LIỆU ĐẢNG</h1>
-                    <p class="mb-0 opacity-75 small">Trạm thủy nông Ninh Hải</p>
+                    <h1 class="mb-1 h3"><i class="fas fa-file-alt me-2"></i>QUẢN LÝ VĂN KIỆN TLD</h1>
+                    <p class="mb-0 opacity-75 small">Hệ thống quản lý văn bản điện tử</p>
                 </div>
-                <div class="mt-3 mt-md-0">
-                    <div class="d-inline-block bg-white text-dark px-3 py-1 rounded-pill shadow-sm">
-                        <i class="fas fa-calendar-day me-2 text-primary"></i>
-                        <span id="current-date"></span>
-                    </div>
-                </div>
+                <div class="mt-3 mt-md-0"><div class="d-inline-block bg-white text-dark px-3 py-1 rounded-pill shadow-sm"><i class="fas fa-calendar-day me-2 text-primary"></i><span id="current-date"></span></div></div>
             </div>
         </div>
     </header>
@@ -57,14 +51,14 @@
         <!-- Stats Cards -->
         <section class="row mb-4 g-3">
             <div class="col-md-4"><div class="stats-card p-3 bg-white"><div class="d-flex justify-content-between align-items-center"><div><h6 class="text-muted mb-2">Tổng số văn bản</h6><h3 class="mb-0" id="total-docs">--</h3></div><div class="text-primary"><i class="fas fa-file-alt stats-icon"></i></div></div></div></div>
-            <div class="col-md-4"><div class="stats-card p-3 bg-white"><div class="d-flex justify-content-between align-items-center"><div><h6 class="text-muted mb-2">Hiển thị</h6><h3 class="mb-0" id="filtered-docs-count">--</h3></div><div class="text-success"><i class="fas fa-filter stats-icon"></i></div></div></div></div>
+            <div class="col-md-4"><div class="stats-card p-3 bg-white"><div class="d-flex justify-content-between align-items-center"><div><h6 class="text-muted mb-2">Đang hiển thị</h6><h3 class="mb-0" id="filtered-docs-count">--</h3></div><div class="text-success"><i class="fas fa-filter stats-icon"></i></div></div></div></div>
             <div class="col-md-4"><div class="stats-card p-3 bg-white"><div class="d-flex justify-content-between align-items-center"><div><h6 class="text-muted mb-2">Cập nhật lúc</h6><h3 class="mb-0" id="last-updated">--</h3></div><div class="text-info"><i class="fas fa-sync-alt stats-icon"></i></div></div></div></div>
         </section>
 
         <!-- Main Card with Table -->
         <section class="main-card card">
             <div class="card-body">
-                <!-- Toolbar: Search and Refresh -->
+                <!-- Toolbar -->
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
                     <h5 class="card-title mb-3 mb-md-0"><i class="fas fa-list-ul me-2"></i>Danh sách văn bản</h5>
                     <div class="d-flex gap-2">
@@ -73,76 +67,27 @@
                     </div>
                 </div>
 
-                <!-- NEW: Filter Section -->
+                <!-- Filter Section -->
                 <section class="filter-section p-3 mb-4">
                     <div class="row g-3 align-items-end">
-                        <div class="col-md-3">
-                            <label for="filter-doc-type" class="form-label fw-bold small">Loại văn bản</label>
-                            <select id="filter-doc-type" class="form-select form-select-sm">
-                                <option value="" selected>Tất cả</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="filter-agency" class="form-label fw-bold small">Cơ quan ban hành</label>
-                            <select id="filter-agency" class="form-select form-select-sm">
-                                <option value="" selected>Tất cả</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="filter-year" class="form-label fw-bold small">Năm ban hành</label>
-                            <select id="filter-year" class="form-select form-select-sm">
-                                <option value="" selected>Tất cả</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold small">Ngày ban hành (Từ - Đến)</label>
-                            <div class="input-group input-group-sm">
-                                <input type="date" id="filter-start-date" class="form-control">
-                                <input type="date" id="filter-end-date" class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-1">
-                            <button id="reset-filter-btn" class="btn btn-sm btn-outline-secondary w-100" title="Xóa bộ lọc">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
+                        <div class="col-md-3"><label for="filter-doc-type" class="form-label fw-bold small">Loại văn bản</label><select id="filter-doc-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
+                        <div class="col-md-3"><label for="filter-agency" class="form-label fw-bold small">Cơ quan ban hành</label><select id="filter-agency" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
+                        <div class="col-md-2"><label for="filter-year" class="form-label fw-bold small">Năm ban hành</label><select id="filter-year" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
+                        <div class="col-md-3"><label class="form-label fw-bold small">Ngày ban hành (Từ - Đến)</label><div class="input-group input-group-sm"><input type="date" id="filter-start-date" class="form-control"><input type="date" id="filter-end-date" class="form-control"></div></div>
+                        <div class="col-md-1"><label class="form-label d-block"> </label><button id="reset-filter-btn" class="btn btn-sm btn-outline-secondary w-100" title="Xóa bộ lọc"><i class="fas fa-times"></i> Đặt lại</button></div>
                     </div>
                 </section>
 
                 <div id="loading-indicator" class="loading-container"><div class="spinner"></div><p class="mt-3 text-muted">Đang tải dữ liệu...</p></div>
                 <div id="error-alert" class="alert alert-danger d-none error-card" role="alert"><i class="fas fa-exclamation-triangle me-2"></i><span id="error-message"></span><button type="button" class="btn btn-sm btn-outline-danger ms-3" id="retry-btn"><i class="fas fa-redo me-1"></i> Thử lại</button></div>
                 
-                <div id="data-container" class="table-responsive d-none">
-                    <table id="data-table" class="table table-hover w-100">
-                        <thead>
-                            <tr>
-                                <th>STT</th>
-                                <th>Trích yếu</th>
-                                <th>Loại văn bản</th>
-                                <th>Số hiệu</th>
-                                <th>Ngày BH</th>
-                                <th>Cơ quan BH</th>
-                                <th class="text-center">Đính kèm</th>
-                                <th class="text-center">Chi tiết</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                <div id="data-container" class="table-responsive d-none"><table id="data-table" class="table table-hover w-100"><thead><tr><th>STT</th><th>Trích yếu</th><th>Loại văn bản</th><th>Số hiệu</th><th>Ngày BH</th><th>Cơ quan BH</th><th class="text-center">Đính kèm</th><th class="text-center">Chi tiết</th></tr></thead><tbody></tbody></table></div>
             </div>
         </section>
     </main>
 
-    <!-- Modals and other hidden elements... -->
-    <div class="modal fade detail-modal" id="detailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header"><h5 class="modal-title"><i class="fas fa-file-invoice me-2"></i>Chi tiết văn bản</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
-                <div class="modal-body" id="modal-body-content"></div>
-                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button></div>
-            </div>
-        </div>
-    </div>
+    <!-- Document Detail Modal -->
+    <div class="modal fade detail-modal" id="detailModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"><i class="fas fa-file-invoice me-2"></i>Chi tiết văn bản</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="modal-body-content"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button></div></div></div></div>
 
     <!-- Libraries JS -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -150,18 +95,10 @@
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     
-    <!-- Application Script is in the next section -->
+    <!-- Application Script -->
     <script>
-        // Code JavaScript sẽ được dán vào đây
-    </script>
-</body>
-</html>
-
-    // ===== START: Cấu trúc code đã được sửa và tối ưu =====
-
     const CONFIG = {
-        // !!! QUAN TRỌNG: Dán URL Web App MỚI của bạn vào đây sau khi Deploy lại GS !!!
-        API_URL: 'https://script.google.com/macros/s/AKfycby2lXhZMCQ6gyTMCvbcC20K4eW4iLLqL9L89uFPowzTau6ualedUx9nOJ--CXjPE0BQ/exec',
+        API_URL: 'YOUR_NEW_WEB_APP_URL_HERE', // !!! THAY THẾ BẰNG URL MỚI CỦA BẠN !!!
         DATE_FORMAT_OPTIONS: { day: '2-digit', month: '2-digit', year: 'numeric' }
     };
 
@@ -177,24 +114,12 @@
     });
 
     // --- SETUP FUNCTIONS ---
-
     function setupEventListeners() {
-        // Toolbar buttons
         $('#refresh-btn, #retry-btn').on('click', () => loadData(true));
-        $('#search-input').on('keyup', function() {
-            dataTable.search(this.value).draw();
-        });
-        
-        // Filter controls
-        $('#filter-doc-type, #filter-agency, #filter-year').on('change', applyFilters);
-        $('#filter-start-date, #filter-end-date').on('change', applyFilters);
+        $('#search-input').on('keyup', function() { dataTable.search(this.value).draw(); });
+        $('#filter-doc-type, #filter-agency, #filter-year, #filter-start-date, #filter-end-date').on('change', applyFilters);
         $('#reset-filter-btn').on('click', resetFilters);
-
-        // Event delegation for detail buttons
-        $('#data-table tbody').on('click', 'button.view-detail', function() {
-            const stt = $(this).data('id');
-            showDocumentDetail(stt);
-        });
+        $('#data-table tbody').on('click', 'button.view-detail', function() { showDocumentDetail($(this).data('id')); });
     }
 
     function initializeDataTable() {
@@ -207,13 +132,12 @@
                 { data: 'dinhKem', width: '5%' }, { data: 'stt', width: '5%' }
             ],
             columnDefs: [
-                { targets: 4, render: (data) => formatDateForDisplay(data), className: 'text-nowrap' },
-                { targets: 6, render: (data) => formatAttachments(data), className: 'text-center' },
-                { targets: 7, render: (data) => `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${data}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`, className: 'text-center' },
+                { targets: 4, render: (d) => formatDateForDisplay(d), className: 'text-nowrap' },
+                { targets: 6, render: (d) => formatAttachments(d), className: 'text-center' },
+                { targets: 7, render: (d) => `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${d}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`, className: 'text-center' },
                 { targets: [0, 6, 7], orderable: false }
             ],
             language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' },
-            responsive: true,
             order: [[4, 'desc']],
             pageLength: 25,
             dom: 'rt<"d-flex justify-content-between align-items-center mt-3"ip<"ms-3"l>>'
@@ -221,22 +145,19 @@
     }
 
     // --- DATA HANDLING & FILTERING ---
-
     function loadData(forceRefresh = false) {
         showLoading();
         let url = CONFIG.API_URL;
+        if(forceRefresh) {
+             url += (url.includes('?') ? '&' : '?') + 'cache_bust=' + new Date().getTime();
+        }
         $.ajax({
-            url: url,
-            method: 'GET',
-            dataType: 'jsonp',
+            url: url, method: 'GET', dataType: 'jsonp',
             success: function(response) {
-                if (response.status === 'error') {
-                    showError(response.message || 'Lỗi không xác định.');
-                    return;
-                }
+                if (response.status === 'error') { showError(response.message || 'Lỗi không xác định.'); return; }
                 allData = response.data || [];
                 populateFilters(allData);
-                renderData(allData);
+                resetFilters();
                 updateStatistics(allData);
                 updateTimestamp();
             },
@@ -251,176 +172,75 @@
     }
     
     function applyFilters() {
-        const docTypeFilter = $('#filter-doc-type').val();
-        const agencyFilter = $('#filter-agency').val();
-        const yearFilter = $('#filter-year').val();
-        const startDateFilter = $('#filter-start-date').val();
-        const endDateFilter = $('#filter-end-date').val();
+        const docType = $('#filter-doc-type').val();
+        const agency = $('#filter-agency').val();
+        const year = $('#filter-year').val();
+        const startDate = $('#filter-start-date').val() ? new Date($('#filter-start-date').val()) : null;
+        const endDate = $('#filter-end-date').val() ? new Date($('#filter-end-date').val()) : null;
+
+        if (startDate) startDate.setHours(0, 0, 0, 0);
+        if (endDate) endDate.setHours(23, 59, 59, 999);
 
         const filteredData = allData.filter(item => {
             const itemDate = item.ngayBanHanh ? new Date(item.ngayBanHanh) : null;
-            
-            // Check Loại văn bản
-            if (docTypeFilter && item.loaiVanBan !== docTypeFilter) return false;
-            // Check Cơ quan ban hành
-            if (agencyFilter && item.coQuanBanHanh !== agencyFilter) return false;
-            // Check Năm ban hành
-            if (yearFilter && itemDate && itemDate.getFullYear().toString() !== yearFilter) return false;
-            
-            // Check khoảng ngày
-            if (startDateFilter) {
-                if (!itemDate || itemDate < new Date(startDateFilter)) return false;
-            }
-            if (endDateFilter) {
-                if (!itemDate || itemDate > new Date(endDateFilter)) return false;
-            }
-            
+            if (docType && item.loaiVanBan !== docType) return false;
+            if (agency && item.coQuanBanHanh !== agency) return false;
+            if (year && itemDate && itemDate.getFullYear().toString() !== year) return false;
+            if (startDate && (!itemDate || itemDate < startDate)) return false;
+            if (endDate && (!itemDate || itemDate > endDate)) return false;
             return true;
         });
-
         renderData(filteredData);
     }
     
     function resetFilters() {
-        $('#filter-doc-type').val('');
-        $('#filter-agency').val('');
-        $('#filter-year').val('');
-        $('#filter-start-date').val('');
-        $('#filter-end-date').val('');
-        renderData(allData); // Hiển thị lại toàn bộ dữ liệu
+        $('#filter-doc-type, #filter-agency, #filter-year, #filter-start-date, #filter-end-date').val('');
+        dataTable.search('').draw(); // Xóa cả ô tìm kiếm nhanh
+        renderData(allData);
     }
 
     function populateFilters(data) {
-        const docTypes = new Set();
-        const agencies = new Set();
-        const years = new Set();
-
+        const docTypes = new Set(), agencies = new Set(), years = new Set();
         data.forEach(item => {
             if (item.loaiVanBan) docTypes.add(item.loaiVanBan);
             if (item.coQuanBanHanh) agencies.add(item.coQuanBanHanh);
-            if (item.ngayBanHanh) {
-                try {
-                    years.add(new Date(item.ngayBanHanh).getFullYear());
-                } catch(e) {}
-            }
+            if (item.ngayBanHanh) try { years.add(new Date(item.ngayBanHanh).getFullYear()); } catch(e) {}
         });
-
         populateSelect('#filter-doc-type', [...docTypes].sort());
         populateSelect('#filter-agency', [...agencies].sort());
-        populateSelect('#filter-year', [...years].sort((a, b) => b - a)); // Sắp xếp năm giảm dần
+        populateSelect('#filter-year', [...years].sort((a, b) => b - a));
     }
 
     function populateSelect(selector, options) {
         const select = $(selector);
-        select.find('option:not(:first)').remove(); // Xóa các option cũ, giữ lại option "Tất cả"
-        options.forEach(option => {
-            select.append(`<option value="${option}">${option}</option>`);
-        });
+        select.find('option:not(:first)').remove();
+        options.forEach(opt => select.append(`<option value="${opt}">${opt}</option>`));
     }
 
-    // --- UI UPDATE FUNCTIONS ---
-
-    function showLoading() {
-        $('#loading-indicator').removeClass('d-none');
-        $('#error-alert').addClass('d-none');
-        $('#data-container').addClass('d-none');
-    }
-
-    function showError(message) {
-        $('#loading-indicator').addClass('d-none');
-        $('#error-message').text(message);
-        $('#error-alert').removeClass('d-none');
-    }
-    
-    function showDataContainer() {
-        $('#loading-indicator').addClass('d-none');
-        $('#error-alert').addClass('d-none');
-        $('#data-container').removeClass('d-none');
-    }
-
-    function updateCurrentDate() {
-        const now = new Date();
-        $('#current-date').text(now.toLocaleDateString('vi-VN', { weekday: 'long', ...CONFIG.DATE_FORMAT_OPTIONS }));
-    }
-
-    function updateTimestamp() {
-        const now = new Date();
-        $('#last-updated').text(now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }));
-    }
-
-    function updateStatistics(data) {
-        $('#total-docs').text(data.length.toLocaleString('vi-VN'));
-        // Số lượng lọc sẽ được cập nhật trong hàm renderData
-    }
+    // --- UI & UTILITY FUNCTIONS ---
+    function showLoading() { $('#loading-indicator, #data-container').toggleClass('d-none', false); $('#error-alert').addClass('d-none'); }
+    function showError(msg) { $('#loading-indicator, #data-container').addClass('d-none'); $('#error-message').text(msg); $('#error-alert').removeClass('d-none'); }
+    function showDataContainer() { $('#loading-indicator, #error-alert').addClass('d-none'); $('#data-container').removeClass('d-none'); }
+    function updateCurrentDate() { $('#current-date').text(new Date().toLocaleDateString('vi-VN', { weekday: 'long', ...CONFIG.DATE_FORMAT_OPTIONS })); }
+    function updateTimestamp() { $('#last-updated').text(new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })); }
+    function updateStatistics(data) { $('#total-docs').text(data.length.toLocaleString('vi-VN')); }
+    function formatDateForDisplay(d) { if (!d) return ''; try { const dt = new Date(d); return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('vi-VN', CONFIG.DATE_FORMAT_OPTIONS); } catch (e) { return d; } }
+    function formatAttachments(a) { if (!a) return ''; const count = a.split(',').filter(i => i.trim()).length; return count > 0 ? `<span class="badge bg-primary rounded-pill">${count}</span>` : ''; }
 
     function showDocumentDetail(stt) {
         const doc = allData.find(item => item.stt == stt);
-        if (!doc) {
-            alert('Lỗi: Không tìm thấy thông tin văn bản!');
-            return;
-        }
-
-        const createRow = (label, value) => `<tr><th scope="row" class="w-25">${label}:</th><td>${value || '---'}</td></tr>`;
-
-        let attachmentsHtml = '<p class="text-muted fst-italic">Không có tệp đính kèm.</p>';
+        if (!doc) { alert('Lỗi: Không tìm thấy văn bản!'); return; }
+        const createRow = (label, val) => `<tr><th scope="row" class="w-25">${label}:</th><td>${val || '---'}</td></tr>`;
+        let filesHtml = '<p class="text-muted fst-italic">Không có tệp.</p>';
         if (doc.dinhKem) {
-            const files = doc.dinhKem.split(',').filter(item => item.trim());
+            const files = doc.dinhKem.split(',').filter(i => i.trim());
             if (files.length > 0) {
-                attachmentsHtml = files.map(url => `
-                    <a href="${url.trim()}" target="_blank" class="btn btn-sm btn-outline-primary attachment-badge me-2 mb-2">
-                        <i class="fas fa-paperclip me-1"></i> ${decodeURIComponent(url.trim().split('/').pop())}
-                    </a>
-                `).join('');
+                filesHtml = files.map(url => `<a href="${url.trim()}" target="_blank" class="btn btn-sm btn-outline-primary me-2 mb-2"><i class="fas fa-paperclip me-1"></i> ${decodeURIComponent(url.trim().split('/').pop())}</a>`).join('');
             }
         }
-
-        const modalBodyHtml = `
-            <div class="row">
-                <div class="col-md-6">
-                    <h6 class="border-bottom pb-2 mb-3">Thông tin cơ bản</h6>
-                    <table class="table table-sm table-borderless"><tbody>
-                        ${createRow('Số hiệu', doc.soHieu)}
-                        ${createRow('Trích yếu', doc.trichYeu)}
-                        ${createRow('Loại VB', doc.loaiVanBan)}
-                        ${createRow('Ngày BH', formatDateForDisplay(doc.ngayBanHanh))}
-                        ${createRow('Cơ quan BH', doc.coQuanBanHanh)}
-                    </tbody></table>
-                </div>
-                <div class="col-md-6">
-                    <h6 class="border-bottom pb-2 mb-3">Thông tin bổ sung</h6>
-                    <table class="table table-sm table-borderless"><tbody>
-                        ${createRow('Người ký', doc.nguoiKy)}
-                        ${createRow('Người thảo', doc.nguoiThaoVanBan)}
-                        ${createRow('Ngày tạo', formatDateForDisplay(doc.thoiGianTao))}
-                        ${createRow('Cập nhật', formatDateForDisplay(doc.thoiGianCapNhat))}
-                        ${createRow('Ghi chú', doc.ghiChu)}
-                    </tbody></table>
-                </div>
-            </div>
-            <hr>
-            <h6 class="mb-3">Tệp đính kèm</h6>
-            <div>${attachmentsHtml}</div>
-        `;
-
-        $('#modal-body-content').html(modalBodyHtml);
-        new bootstrap.Modal(document.getElementById('detailModal')).show();
+        $('#modal-body-content').html(`<div class="row"><div class="col-md-6"><h6 class="border-bottom pb-2 mb-3">Thông tin cơ bản</h6><table class="table table-sm table-borderless"><tbody>${createRow('Số hiệu',doc.soHieu)}${createRow('Trích yếu',doc.trichYeu)}${createRow('Loại VB',doc.loaiVanBan)}${createRow('Ngày BH',formatDateForDisplay(doc.ngayBanHanh))}${createRow('Cơ quan BH',doc.coQuanBanHanh)}</tbody></table></div><div class="col-md-6"><h6 class="border-bottom pb-2 mb-3">Thông tin bổ sung</h6><table class="table table-sm table-borderless"><tbody>${createRow('Người ký',doc.nguoiKy)}${createRow('Người thảo',doc.nguoiThaoVanBan)}${createRow('Ngày tạo',formatDateForDisplay(doc.thoiGianTao))}${createRow('Cập nhật',formatDateForDisplay(doc.thoiGianCapNhat))}${createRow('Ghi chú',doc.ghiChu)}</tbody></table></div></div><hr><h6 class="mb-3">Tệp đính kèm</h6><div>${filesHtml}</div>`);
+        new bootstrap.Modal('#detailModal').show();
     }
-
-    // --- UTILITY FUNCTIONS ---
-
-    function formatDateForDisplay(dateString) {
-        if (!dateString) return '';
-        try {
-            const date = new Date(dateString);
-            return isNaN(date.getTime()) ? dateString : date.toLocaleDateString('vi-VN', CONFIG.DATE_FORMAT_OPTIONS);
-        } catch (e) {
-            return dateString;
-        }
-    }
-
-    function formatAttachments(attachments) {
-        if (!attachments) return '';
-        const count = attachments.split(',').filter(item => item.trim()).length;
-        return count > 0 ? `<span class="badge bg-primary rounded-pill">${count}</span>` : '';
-    }
-    // ===== END: Cấu trúc code đã được sửa và tối ưu =====
+    </script>
+</body>
+</html>
