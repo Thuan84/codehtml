@@ -30,6 +30,7 @@
         .attachment-badge { cursor: pointer; transition: all 0.2s; }
         .attachment-badge:hover { transform: scale(1.05); }
         .detail-modal .modal-header { background-color: var(--primary-color); color: white; }
+        .filter-section { background-color: #f1f3f5; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -56,20 +57,57 @@
         <!-- Stats Cards -->
         <section class="row mb-4 g-3">
             <div class="col-md-4"><div class="stats-card p-3 bg-white"><div class="d-flex justify-content-between align-items-center"><div><h6 class="text-muted mb-2">Tổng số văn bản</h6><h3 class="mb-0" id="total-docs">--</h3></div><div class="text-primary"><i class="fas fa-file-alt stats-icon"></i></div></div></div></div>
-            <div class="col-md-4"><div class="stats-card p-3 bg-white"><div class="d-flex justify-content-between align-items-center"><div><h6 class="text-muted mb-2">Mới nhất</h6><h3 class="mb-0 small" id="latest-doc-date">--</h3></div><div class="text-success"><i class="fas fa-calendar-check stats-icon"></i></div></div></div></div>
+            <div class="col-md-4"><div class="stats-card p-3 bg-white"><div class="d-flex justify-content-between align-items-center"><div><h6 class="text-muted mb-2">Hiển thị</h6><h3 class="mb-0" id="filtered-docs-count">--</h3></div><div class="text-success"><i class="fas fa-filter stats-icon"></i></div></div></div></div>
             <div class="col-md-4"><div class="stats-card p-3 bg-white"><div class="d-flex justify-content-between align-items-center"><div><h6 class="text-muted mb-2">Cập nhật lúc</h6><h3 class="mb-0" id="last-updated">--</h3></div><div class="text-info"><i class="fas fa-sync-alt stats-icon"></i></div></div></div></div>
         </section>
 
         <!-- Main Card with Table -->
         <section class="main-card card">
             <div class="card-body">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+                <!-- Toolbar: Search and Refresh -->
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
                     <h5 class="card-title mb-3 mb-md-0"><i class="fas fa-list-ul me-2"></i>Danh sách văn bản</h5>
                     <div class="d-flex gap-2">
                         <input type="text" id="search-input" class="form-control" placeholder="Tìm kiếm nhanh..." style="width: 250px;">
                         <button id="refresh-btn" class="btn btn-primary" title="Làm mới dữ liệu"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
+
+                <!-- NEW: Filter Section -->
+                <section class="filter-section p-3 mb-4">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label for="filter-doc-type" class="form-label fw-bold small">Loại văn bản</label>
+                            <select id="filter-doc-type" class="form-select form-select-sm">
+                                <option value="" selected>Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filter-agency" class="form-label fw-bold small">Cơ quan ban hành</label>
+                            <select id="filter-agency" class="form-select form-select-sm">
+                                <option value="" selected>Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="filter-year" class="form-label fw-bold small">Năm ban hành</label>
+                            <select id="filter-year" class="form-select form-select-sm">
+                                <option value="" selected>Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small">Ngày ban hành (Từ - Đến)</label>
+                            <div class="input-group input-group-sm">
+                                <input type="date" id="filter-start-date" class="form-control">
+                                <input type="date" id="filter-end-date" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <button id="reset-filter-btn" class="btn btn-sm btn-outline-secondary w-100" title="Xóa bộ lọc">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
 
                 <div id="loading-indicator" class="loading-container"><div class="spinner"></div><p class="mt-3 text-muted">Đang tải dữ liệu...</p></div>
                 <div id="error-alert" class="alert alert-danger d-none error-card" role="alert"><i class="fas fa-exclamation-triangle me-2"></i><span id="error-message"></span><button type="button" class="btn btn-sm btn-outline-danger ms-3" id="retry-btn"><i class="fas fa-redo me-1"></i> Thử lại</button></div>
@@ -95,14 +133,12 @@
         </section>
     </main>
 
-    <!-- Document Detail Modal -->
+    <!-- Modals and other hidden elements... -->
     <div class="modal fade detail-modal" id="detailModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header"><h5 class="modal-title"><i class="fas fa-file-invoice me-2"></i>Chi tiết văn bản</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
-                <div class="modal-body" id="modal-body-content">
-                    <!-- Content will be injected by JavaScript -->
-                </div>
+                <div class="modal-body" id="modal-body-content"></div>
                 <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button></div>
             </div>
         </div>
@@ -114,8 +150,13 @@
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     
-    <!-- Application Script -->
+    <!-- Application Script is in the next section -->
     <script>
+        // Code JavaScript sẽ được dán vào đây
+    </script>
+</body>
+</html>
+
     // ===== START: Cấu trúc code đã được sửa và tối ưu =====
 
     const CONFIG = {
@@ -138,11 +179,18 @@
     // --- SETUP FUNCTIONS ---
 
     function setupEventListeners() {
+        // Toolbar buttons
         $('#refresh-btn, #retry-btn').on('click', () => loadData(true));
         $('#search-input').on('keyup', function() {
             dataTable.search(this.value).draw();
         });
-        // Sử dụng event delegation cho các nút chi tiết
+        
+        // Filter controls
+        $('#filter-doc-type, #filter-agency, #filter-year').on('change', applyFilters);
+        $('#filter-start-date, #filter-end-date').on('change', applyFilters);
+        $('#reset-filter-btn').on('click', resetFilters);
+
+        // Event delegation for detail buttons
         $('#data-table tbody').on('click', 'button.view-detail', function() {
             const stt = $(this).data('id');
             showDocumentDetail(stt);
@@ -151,80 +199,123 @@
 
     function initializeDataTable() {
         dataTable = $('#data-table').DataTable({
-            // Tối ưu hóa: Khai báo cột và render ngay khi khởi tạo
-            data: [], // Dữ liệu sẽ được nạp sau
+            data: [],
             columns: [
-                { data: 'stt', width: '5%' },
-                { data: 'trichYeu', width: '30%' },
-                { data: 'loaiVanBan', width: '15%' },
-                { data: 'soHieu', width: '10%' },
-                { data: 'ngayBanHanh', width: '10%' },
-                { data: 'coQuanBanHanh', width: '15%' },
-                { data: 'dinhKem', width: '5%' },
-                { data: 'stt', width: '5%' } // Cột cho nút chi tiết
+                { data: 'stt', width: '5%' }, { data: 'trichYeu', width: '30%' },
+                { data: 'loaiVanBan', width: '15%' }, { data: 'soHieu', width: '10%' },
+                { data: 'ngayBanHanh', width: '10%' }, { data: 'coQuanBanHanh', width: '15%' },
+                { data: 'dinhKem', width: '5%' }, { data: 'stt', width: '5%' }
             ],
             columnDefs: [
-                {
-                    targets: 4, // Cột Ngày ban hành
-                    render: (data) => formatDateForDisplay(data),
-                    className: 'text-nowrap'
-                },
-                {
-                    targets: 6, // Cột Đính kèm
-                    render: (data) => formatAttachments(data),
-                    className: 'text-center'
-                },
-                {
-                    targets: 7, // Cột Chi tiết
-                    render: (data) => `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${data}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`,
-                    className: 'text-center'
-                },
-                { 
-                    targets: [0, 6, 7], // Các cột không cần sắp xếp
-                    orderable: false 
-                }
+                { targets: 4, render: (data) => formatDateForDisplay(data), className: 'text-nowrap' },
+                { targets: 6, render: (data) => formatAttachments(data), className: 'text-center' },
+                { targets: 7, render: (data) => `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${data}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`, className: 'text-center' },
+                { targets: [0, 6, 7], orderable: false }
             ],
-            // Cấu hình khác
             language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' },
             responsive: true,
-            order: [[4, 'desc']], // Sắp xếp mặc định theo ngày ban hành giảm dần
+            order: [[4, 'desc']],
             pageLength: 25,
-            dom: 'rt<"d-flex justify-content-between align-items-center mt-3"ip<"ms-3"l>>' // Bỏ search box mặc định của datatable
+            dom: 'rt<"d-flex justify-content-between align-items-center mt-3"ip<"ms-3"l>>'
         });
     }
 
-    // --- DATA HANDLING FUNCTIONS ---
+    // --- DATA HANDLING & FILTERING ---
 
-        function loadData(forceRefresh = false) {
+    function loadData(forceRefresh = false) {
         showLoading();
         let url = CONFIG.API_URL;
-        // Với JSONP, jQuery tự động thêm tham số callback, không cần cache buster thủ công
-        
         $.ajax({
             url: url,
             method: 'GET',
-            dataType: 'jsonp', // <-- THAY ĐỔI QUAN TRỌNG Ở ĐÂY
+            dataType: 'jsonp',
             success: function(response) {
                 if (response.status === 'error') {
-                    showError(response.message || 'Lỗi không xác định từ máy chủ.');
+                    showError(response.message || 'Lỗi không xác định.');
                     return;
                 }
                 allData = response.data || [];
+                populateFilters(allData);
                 renderData(allData);
                 updateStatistics(allData);
                 updateTimestamp();
             },
-            error: function(xhr, status, error) {
-                const errorMsg = `Lỗi tải dữ liệu: ${status} - ${error}. Vui lòng thử lại.`;
-                showError(errorMsg);
-            }
+            error: (xhr, status, error) => showError(`Lỗi tải dữ liệu: ${status}. Vui lòng thử lại.`)
         });
     }
 
     function renderData(data) {
-        // Tối ưu hóa: Nạp dữ liệu một lần thay vì lặp
         dataTable.clear().rows.add(data).draw();
+        $('#filtered-docs-count').text(data.length.toLocaleString('vi-VN'));
         showDataContainer();
+    }
+    
+    function applyFilters() {
+        const docTypeFilter = $('#filter-doc-type').val();
+        const agencyFilter = $('#filter-agency').val();
+        const yearFilter = $('#filter-year').val();
+        const startDateFilter = $('#filter-start-date').val();
+        const endDateFilter = $('#filter-end-date').val();
+
+        const filteredData = allData.filter(item => {
+            const itemDate = item.ngayBanHanh ? new Date(item.ngayBanHanh) : null;
+            
+            // Check Loại văn bản
+            if (docTypeFilter && item.loaiVanBan !== docTypeFilter) return false;
+            // Check Cơ quan ban hành
+            if (agencyFilter && item.coQuanBanHanh !== agencyFilter) return false;
+            // Check Năm ban hành
+            if (yearFilter && itemDate && itemDate.getFullYear().toString() !== yearFilter) return false;
+            
+            // Check khoảng ngày
+            if (startDateFilter) {
+                if (!itemDate || itemDate < new Date(startDateFilter)) return false;
+            }
+            if (endDateFilter) {
+                if (!itemDate || itemDate > new Date(endDateFilter)) return false;
+            }
+            
+            return true;
+        });
+
+        renderData(filteredData);
+    }
+    
+    function resetFilters() {
+        $('#filter-doc-type').val('');
+        $('#filter-agency').val('');
+        $('#filter-year').val('');
+        $('#filter-start-date').val('');
+        $('#filter-end-date').val('');
+        renderData(allData); // Hiển thị lại toàn bộ dữ liệu
+    }
+
+    function populateFilters(data) {
+        const docTypes = new Set();
+        const agencies = new Set();
+        const years = new Set();
+
+        data.forEach(item => {
+            if (item.loaiVanBan) docTypes.add(item.loaiVanBan);
+            if (item.coQuanBanHanh) agencies.add(item.coQuanBanHanh);
+            if (item.ngayBanHanh) {
+                try {
+                    years.add(new Date(item.ngayBanHanh).getFullYear());
+                } catch(e) {}
+            }
+        });
+
+        populateSelect('#filter-doc-type', [...docTypes].sort());
+        populateSelect('#filter-agency', [...agencies].sort());
+        populateSelect('#filter-year', [...years].sort((a, b) => b - a)); // Sắp xếp năm giảm dần
+    }
+
+    function populateSelect(selector, options) {
+        const select = $(selector);
+        select.find('option:not(:first)').remove(); // Xóa các option cũ, giữ lại option "Tất cả"
+        options.forEach(option => {
+            select.append(`<option value="${option}">${option}</option>`);
+        });
     }
 
     // --- UI UPDATE FUNCTIONS ---
@@ -259,12 +350,7 @@
 
     function updateStatistics(data) {
         $('#total-docs').text(data.length.toLocaleString('vi-VN'));
-        if (data.length > 0) {
-            const latestDoc = data.reduce((latest, current) => new Date(current.ngayBanHanh) > new Date(latest.ngayBanHanh) ? current : latest);
-            $('#latest-doc-date').text(formatDateForDisplay(latestDoc.ngayBanHanh) || '---');
-        } else {
-            $('#latest-doc-date').text('---');
-        }
+        // Số lượng lọc sẽ được cập nhật trong hàm renderData
     }
 
     function showDocumentDetail(stt) {
@@ -276,7 +362,6 @@
 
         const createRow = (label, value) => `<tr><th scope="row" class="w-25">${label}:</th><td>${value || '---'}</td></tr>`;
 
-        // Format attachments
         let attachmentsHtml = '<p class="text-muted fst-italic">Không có tệp đính kèm.</p>';
         if (doc.dinhKem) {
             const files = doc.dinhKem.split(',').filter(item => item.trim());
@@ -339,7 +424,3 @@
         return count > 0 ? `<span class="badge bg-primary rounded-pill">${count}</span>` : '';
     }
     // ===== END: Cấu trúc code đã được sửa và tối ưu =====
-    </script>
-
-</body>
-</html>
