@@ -44,12 +44,12 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
     box-shadow: 0 6px 12px rgba(0,0,0,0.08);
 }
 .stat-card-item .icon {
-    font-size: 1.75rem; /* Giảm kích thước icon một chút */
+    font-size: 1.75rem;
     padding: 1rem;
     border-radius: 50%;
     color: #fff;
     margin-right: 1rem;
-    width: 50px; /* Cố định kích thước */
+    width: 50px;
     height: 50px;
     display: flex;
     align-items: center;
@@ -80,9 +80,8 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 <main class="container">
 <section class="main-card card overflow-hidden">
 <div class="card-body p-lg-4">
-<!-- BỔ SUNG/THAY ĐỔI: Khu vực thống kê động -->
+<!-- Khu vực thống kê động -->
 <section id="statistics-section" class="mb-4">
-    <!-- Vùng chứa này sẽ được điền dữ liệu bằng JavaScript -->
     <div id="stats-container" class="row g-3"></div>
 </section>
 
@@ -120,7 +119,37 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 
 <!-- Modals -->
 <div class="modal fade detail-modal" id="detailModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"><i class="fas fa-file-invoice me-2"></i>Chi tiết văn bản</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="modal-body-content"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button></div></div></div></div>
-<div class="modal fade" id="doc-form-modal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><form id="document-form"><div class="modal-header"><h5 class="modal-title" id="modalLabel">Thêm văn bản mới</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><input type="hidden" id="form-stt"><div class="row g-3"><div class="col-md-6"><label for="form-soHieu" class="form-label">Số hiệu (*)</label><input type="text" class="form-control" id="form-soHieu" required></div><div class="col-md-6"><label for="form-ngayBanHanh" class="form-label">Ngày ban hành</label><input type="date" class="form-control" id="form-ngayBanHanh"></div><div class="col-12"><label for="form-trichYeu" class="form-label">Trích yếu (*)</label><textarea class="form-control" id="form-trichYeu" rows="3" required></textarea></div><div class="col-md-6"><label for="form-loaiVanBan" class="form-label">Loại văn bản</label><input type="text" class="form-control" id="form-loaiVanBan"></div><div class="col-md-6"><label for="form-coQuanBanHanh" class="form-label">Cơ quan ban hành</label><input type="text" class="form-control" id="form-coQuanBanHanh"></div><div class="col-md-6"><label for="form-loaiTaiLieu" class="form-label">Loại tài liệu</label><input type="text" class="form-control" id="form-loaiTaiLieu"></div><div class="col-md-6"><label for="form-loaiCongVan" class="form-label">Loại công văn</label><input type="text" class="form-control" id="form-loaiCongVan"></div><div class="col-md-6"><label for="form-nguoiKy" class="form-label">Người ký</label><input type="text" class="form-control" id="form-nguoiKy"></div><div class="col-md-6"><label for="form-dinhKem" class="form-label">Tệp đính kèm (URL)</label><input type="url" class="form-control" id="form-dinhKem" placeholder="https://drive.google.com/uc?id=..."></div><div class="col-12"><label for="form-ghiChu" class="form-label">Ghi chú</label><textarea class="form-control" id="form-ghiChu" rows="2"></textarea></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary" id="form-submit-btn">Lưu thay đổi</button></div></form></div></div></div>
+<div class="modal fade" id="doc-form-modal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><form id="document-form"><div class="modal-header"><h5 class="modal-title" id="modalLabel">Thêm văn bản mới</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><input type="hidden" id="form-stt"><div class="row g-3">
+    <div class="col-md-6"><label for="form-soHieu" class="form-label">Số hiệu (*)</label><input type="text" class="form-control" id="form-soHieu" required></div>
+    <div class="col-md-6"><label for="form-ngayBanHanh" class="form-label">Ngày ban hành</label><input type="date" class="form-control" id="form-ngayBanHanh"></div>
+    <div class="col-12"><label for="form-trichYeu" class="form-label">Trích yếu (*)</label><textarea class="form-control" id="form-trichYeu" rows="3" required></textarea></div>
+    
+    <!-- THAY ĐỔI: Chuyển các input thành datalist -->
+    <div class="col-md-6">
+        <label for="form-loaiVanBan" class="form-label">Loại văn bản</label>
+        <input type="text" class="form-control" id="form-loaiVanBan" list="datalist-loaiVanBan">
+        <datalist id="datalist-loaiVanBan"></datalist>
+    </div>
+    <div class="col-md-6">
+        <label for="form-coQuanBanHanh" class="form-label">Cơ quan ban hành</label>
+        <input type="text" class="form-control" id="form-coQuanBanHanh" list="datalist-coQuanBanHanh">
+        <datalist id="datalist-coQuanBanHanh"></datalist>
+    </div>
+    <div class="col-md-6">
+        <label for="form-loaiTaiLieu" class="form-label">Loại tài liệu</label>
+        <input type="text" class="form-control" id="form-loaiTaiLieu" list="datalist-loaiTaiLieu">
+        <datalist id="datalist-loaiTaiLieu"></datalist>
+    </div>
+    <div class="col-md-6">
+        <label for="form-loaiCongVan" class="form-label">Loại công văn</label>
+        <input type="text" class="form-control" id="form-loaiCongVan" list="datalist-loaiCongVan">
+        <datalist id="datalist-loaiCongVan"></datalist>
+    </div>
+    
+    <div class="col-md-6"><label for="form-nguoiKy" class="form-label">Người ký</label><input type="text" class="form-control" id="form-nguoiKy"></div>
+    <div class="col-md-6"><label for="form-dinhKem" class="form-label">Tệp đính kèm (URL)</label><input type="url" class="form-control" id="form-dinhKem" placeholder="https://drive.google.com/uc?id=..."></div>
+    <div class="col-12"><label for="form-ghiChu" class="form-label">Ghi chú</label><textarea class="form-control" id="form-ghiChu" rows="2"></textarea></div>
+</div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary" id="form-submit-btn">Lưu thay đổi</button></div></form></div></div></div>
 
 <!-- Libraries JS -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -131,11 +160,10 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 
 <script>
 const CONFIG = {
-API_URL: 'https://script.google.com/macros/s/AKfycby2lXhZMCQ6gyTMCvbcC20K4eW4iLLqL9L89uFPowzTau6ualedUx9nOJ--CXjPE0BQ/exec', // !!! THAY THẾ BẰNG URL MỚI CỦA BẠN !!!
+API_URL: 'https://script.google.com/macros/s/AKfycby2lXhZMCQ6gyTMCvbcC20K4eW4iLLqL9L89uFPowzTau6ualedUx9nOJ--CXjPE0BQ/exec',
 DATE_FORMAT_OPTIONS: { day: '2-digit', month: '2-digit', year: 'numeric' }
 };
 
-// BỔ SUNG: Mảng màu sắc và icon cho thống kê động
 const STAT_COLORS = ['primary', 'success', 'danger', 'warning', 'info', 'secondary', 'dark'];
 const STAT_ICONS = ['fa-file-alt', 'fa-file-invoice', 'fa-file-signature', 'fa-gavel', 'fa-bullhorn', 'fa-clipboard-list', 'fa-folder'];
 
@@ -159,7 +187,6 @@ function setupEventListeners() {
     $('#document-form').on('submit', handleFormSubmit);
     $('#data-table tbody').on('click', 'button.view-detail', function() { showDocumentDetail($(this).data('id')); });
     $('#data-table tbody').on('click', 'button.edit-btn', function() { openEditModal($(this).data('id')); });
-    // BỎ: Sự kiện click cho nút xóa
 }
 
 function initializeDataTable() {
@@ -187,7 +214,6 @@ function initializeDataTable() {
             },
             {
                 targets: 4, orderable: false, className: 'text-center action-buttons',
-                // BỎ: Nút xóa đã được loại bỏ khỏi chuỗi render
                 render: (d) => `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${d}" title="Xem chi tiết"><i class="fas fa-eye"></i></button> <button class="btn btn-sm btn-outline-success edit-btn" data-id="${d}" title="Sửa"><i class="fas fa-pencil-alt"></i></button>`
             },
         ],
@@ -210,8 +236,9 @@ function loadData(forceRefresh = false) {
             if (response.status === 'error' || !response.data) { showError(response.message || 'Lỗi không xác định hoặc không có dữ liệu.'); return; }
             allData = response.data;
             populateFilters(allData);
-            updateStatistics(allData); // Gọi hàm thống kê động
-            resetFilters(); // Reset sau khi đã populate và thống kê
+            populateFormDatalists(allData); // BỔ SUNG: Gọi hàm điền dữ liệu cho datalist
+            updateStatistics(allData);
+            resetFilters();
         },
         error: (xhr, status, error) => showError(`Lỗi tải dữ liệu: ${status}. Vui lòng kiểm tra lại URL API và quyền truy cập Web App.`)
     });
@@ -283,6 +310,28 @@ function populateSelect(selector, options) {
     options.forEach(opt => select.append(`<option value="${opt}">${opt}</option>`));
 }
 
+// BỔ SUNG: Hàm mới để điền dữ liệu vào các datalist trong form
+function populateFormDatalists(data) {
+    const docTypes = new Set(), agencies = new Set(), materialTypes = new Set(), dispatchTypes = new Set();
+    data.forEach(item => {
+        if (item.loaiVanBan) docTypes.add(item.loaiVanBan);
+        if (item.coQuanBanHanh) agencies.add(item.coQuanBanHanh);
+        if (item.loaiTaiLieu) materialTypes.add(item.loaiTaiLieu);
+        if (item.loaiCongVan) dispatchTypes.add(item.loaiCongVan);
+    });
+
+    const fillDatalist = (id, options) => {
+        const datalist = $(`#${id}`);
+        datalist.empty(); // Xóa các option cũ
+        options.forEach(opt => datalist.append(`<option value="${opt}">`));
+    };
+
+    fillDatalist('datalist-loaiVanBan', [...docTypes].sort());
+    fillDatalist('datalist-coQuanBanHanh', [...agencies].sort());
+    fillDatalist('datalist-loaiTaiLieu', [...materialTypes].sort());
+    fillDatalist('datalist-loaiCongVan', [...dispatchTypes].sort());
+}
+
 function openAddModal() {
     $('#document-form')[0].reset();
     $('#form-stt').val('');
@@ -322,9 +371,6 @@ function handleFormSubmit(event) {
     };
     submitDataToServer({ action: action, data: formData });
 }
-
-// BỎ: Hàm deleteDocument không còn cần thiết
-// function deleteDocument(stt) { ... }
 
 function submitDataToServer(payload) {
     Swal.fire({ title: 'Đang xử lý...', text: 'Vui lòng chờ trong giây lát.', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
@@ -385,24 +431,17 @@ function showDataContainer() { $('#loading-indicator, #error-alert').addClass('d
 function updateCurrentDate() { $('#current-date').text(new Date().toLocaleDateString('vi-VN', { weekday: 'long', ...CONFIG.DATE_FORMAT_OPTIONS })); }
 function formatDateForDisplay(d) { if (!d) return ''; try { const dt = new Date(d); return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('vi-VN', CONFIG.DATE_FORMAT_OPTIONS); } catch (e) { return d; } }
 
-// BỔ SUNG/THAY ĐỔI: Hàm thống kê động hoàn toàn mới
 function updateStatistics(data) {
     const container = $('#stats-container');
-    container.empty(); // Xóa các card cũ trước khi tạo mới
-
-    // 1. Đếm số lượng cho mỗi loại văn bản
+    container.empty();
     const typeCounts = data.reduce((acc, item) => {
-        if (item.loaiVanBan) { // Chỉ đếm nếu có loại văn bản
+        if (item.loaiVanBan) {
             const type = item.loaiVanBan.trim();
             acc[type] = (acc[type] || 0) + 1;
         }
         return acc;
     }, {});
-
-    // 2. Sắp xếp các loại văn bản theo tên
     const sortedTypes = Object.keys(typeCounts).sort();
-
-    // 3. Tạo card "Tổng cộng" đầu tiên
     const totalHtml = `
         <div class="col-xl-3 col-md-6">
             <div class="stat-card-item" style="border-left: 4px solid #0d6efd;">
@@ -415,11 +454,8 @@ function updateStatistics(data) {
         </div>
     `;
     container.append(totalHtml);
-
-    // 4. Tạo các card cho mỗi loại văn bản
     sortedTypes.forEach((type, index) => {
         const count = typeCounts[type];
-        // Xoay vòng màu và icon
         const color = STAT_COLORS[(index + 1) % STAT_COLORS.length];
         const icon = STAT_ICONS[(index + 1) % STAT_ICONS.length];
         
