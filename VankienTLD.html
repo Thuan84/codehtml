@@ -15,8 +15,6 @@
 :root { --primary-color: #2c3e50; --secondary-color: #3498db; --light-bg: #f8f9fa; --border-color: #e9ecef; --hover-bg: #e2f3ff; }
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--light-bg); }
 .app-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 2rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.stats-card { border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: all 0.2s ease-in-out; height: 100%; border: 1px solid var(--border-color); border-left: 4px solid var(--secondary-color); }
-.stats-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
 .main-card { border-radius: 12px; box-shadow: 0 4px 25px rgba(0,0,0,0.1); border: none; }
 .loading-container { min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .spinner { width: 3rem; height: 3rem; border: 0.3em solid rgba(52, 152, 219, 0.3); border-top-color: var(--secondary-color); border-radius: 50%; animation: spin 1s linear infinite; }
@@ -30,6 +28,37 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 .so-hieu-col { font-weight: 700; color: var(--secondary-color); font-family: 'Courier New', Courier, monospace; font-size: 1.05rem; }
 .action-buttons .btn { margin: 0 3px; border-radius: 50px; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease;}
 .action-buttons .btn:hover { transform: scale(1.1); }
+
+/* BỔ SUNG: CSS cho card thống kê */
+.stat-card-item {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease-in-out;
+}
+.stat-card-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+}
+.stat-card-item .icon {
+    font-size: 2rem;
+    padding: 1rem;
+    border-radius: 50%;
+    color: #fff;
+    margin-right: 1rem;
+}
+.stat-card-item .stat-info .stat-number {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+.stat-card-item .stat-info .stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
 </style>
 </head>
 <body>
@@ -44,9 +73,50 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 
 <!-- Main Content -->
 <main class="container">
-<!-- Stats Cards, Toolbar, Filters -->
 <section class="main-card card overflow-hidden">
 <div class="card-body p-lg-4">
+<!-- BỔ SUNG: Khu vực thống kê -->
+<section id="statistics-section" class="mb-4">
+    <div class="row g-3">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-item" style="border-left: 4px solid #0d6efd;">
+                <div class="icon bg-primary"><i class="fas fa-file-alt fa-fw"></i></div>
+                <div class="stat-info">
+                    <div id="stats-total-docs" class="stat-number">0</div>
+                    <div class="stat-label">Tổng văn bản</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-item" style="border-left: 4px solid #198754;">
+                <div class="icon bg-success"><i class="fas fa-file-invoice fa-fw"></i></div>
+                <div class="stat-info">
+                    <div id="stats-cong-van" class="stat-number">0</div>
+                    <div class="stat-label">Công văn</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-item" style="border-left: 4px solid #ffc107;">
+                <div class="icon bg-warning"><i class="fas fa-file-signature fa-fw"></i></div>
+                <div class="stat-info">
+                    <div id="stats-bao-cao" class="stat-number">0</div>
+                    <div class="stat-label">Báo cáo</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card-item" style="border-left: 4px solid #dc3545;">
+                <div class="icon bg-danger"><i class="fas fa-gavel fa-fw"></i></div>
+                <div class="stat-info">
+                    <div id="stats-quyet-dinh" class="stat-number">0</div>
+                    <div class="stat-label">Quyết định</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Toolbar -->
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
 <h5 class="card-title mb-3 mb-md-0"><i class="fas fa-list-ul me-2"></i>Danh sách văn bản</h5>
@@ -65,7 +135,6 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-material-type" class="form-label fw-bold small">Loại tài liệu</label><select id="filter-material-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
 <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-dispatch-type" class="form-label fw-bold small">Loại công văn</label><select id="filter-dispatch-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
 <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-agency" class="form-label fw-bold small">Cơ quan BH</label><select id="filter-agency" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
-<!-- BỔ SUNG: Bộ lọc năm ban hành -->
 <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-year" class="form-label fw-bold small">Năm ban hành</label><select id="filter-year" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
 <div class="col-xl-3 col-lg-6 col-md-6"><label class="form-label fw-bold small">Ngày ban hành (Từ - Đến)</label><div class="input-group input-group-sm"><input type="date" id="filter-start-date" class="form-control"><input type="date" id="filter-end-date" class="form-control"></div></div>
 <div class="col-xl-1 col-lg-2 col-md-12"><button id="reset-filter-btn" class="btn btn-sm btn-outline-secondary w-100" title="Xóa bộ lọc"><i class="fas fa-times me-1 me-lg-0"></i><span class="d-lg-none ms-1"> Đặt lại</span></button></div>
@@ -110,7 +179,6 @@ setupEventListeners();
 function setupEventListeners() {
 $('#refresh-btn, #retry-btn').on('click', () => loadData(true));
 $('#search-input').on('keyup', function() { dataTable.search(this.value).draw(); });
-// BỔ SUNG: Thêm #filter-year vào danh sách các bộ lọc cần theo dõi
 $('#filter-doc-type, #filter-agency, #filter-material-type, #filter-dispatch-type, #filter-year, #filter-start-date, #filter-end-date').on('change', applyFilters);
 $('#reset-filter-btn').on('click', resetFilters);
 $('#add-btn').on('click', openAddModal);
@@ -132,14 +200,28 @@ columns: [
 ],
 columnDefs: [
 { targets: 0, className: 'so-hieu-col' },
-{ targets: 3, render: (d) => formatDateForDisplay(d), className: 'text-nowrap' },
 {
-targets: 4, orderable: false, className: 'text-center action-buttons',
-render: (d) => `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${d}" title="Xem chi tiết"><i class="fas fa-eye"></i></button> <button class="btn btn-sm btn-outline-success edit-btn" data-id="${d}" title="Sửa"><i class="fas fa-pencil-alt"></i></button> <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${d}" title="Xóa"><i class="fas fa-trash"></i></button>`
+    // BỔ SUNG: Cải thiện việc sắp xếp ngày tháng
+    targets: 3, 
+    className: 'text-nowrap',
+    render: function(data, type, row) {
+        // Nếu là để sắp xếp (sort), trả về giá trị số (timestamp) để so sánh chính xác
+        if (type === 'sort' || type === 'type') {
+            if (!data) return 0;
+            const date = new Date(data);
+            // Nếu ngày không hợp lệ, trả về 0 để nó ở cuối khi sắp xếp tăng dần
+            return isNaN(date.getTime()) ? 0 : date.getTime();
+        }
+        // Nếu là để hiển thị (display), trả về ngày đã định dạng
+        return formatDateForDisplay(data);
+    }
+},
+{
+    targets: 4, orderable: false, className: 'text-center action-buttons',
+    render: (d) => `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${d}" title="Xem chi tiết"><i class="fas fa-eye"></i></button> <button class="btn btn-sm btn-outline-success edit-btn" data-id="${d}" title="Sửa"><i class="fas fa-pencil-alt"></i></button> <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${d}" title="Xóa"><i class="fas fa-trash"></i></button>`
 },
 ],
-// Sắp xếp mặc định theo cột Ngày ban hành (chỉ số 3) giảm dần (desc)
-order: [[3, 'desc']],
+order: [[3, 'desc']], // Sắp xếp mặc định theo cột Ngày ban hành (chỉ số 3) giảm dần
 language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' },
 pageLength: 25,
 dom: 'rt<"d-flex justify-content-between align-items-center mt-3"ip<"ms-3"l>>'
@@ -159,8 +241,7 @@ if (response.status === 'error' || !response.data) { showError(response.message 
 allData = response.data;
 populateFilters(allData);
 resetFilters();
-updateStatistics(allData);
-updateTimestamp();
+updateStatistics(allData); // BỔ SUNG: Gọi hàm thống kê
 },
 error: (xhr, status, error) => showError(`Lỗi tải dữ liệu: ${status}. Vui lòng kiểm tra lại URL API và quyền truy cập Web App.`)
 });
@@ -168,7 +249,6 @@ error: (xhr, status, error) => showError(`Lỗi tải dữ liệu: ${status}. Vu
 
 function renderData(data) {
 dataTable.clear().rows.add(data).draw();
-$('#filtered-docs-count').text(data.length.toLocaleString('vi-VN'));
 showDataContainer();
 }
 
@@ -177,7 +257,6 @@ const docType = $('#filter-doc-type').val();
 const agency = $('#filter-agency').val();
 const materialType = $('#filter-material-type').val();
 const dispatchType = $('#filter-dispatch-type').val();
-// BỔ SUNG: Lấy giá trị từ bộ lọc năm
 const selectedYear = $('#filter-year').val();
 const startDate = $('#filter-start-date').val() ? new Date($('#filter-start-date').val()) : null;
 const endDate = $('#filter-end-date').val() ? new Date($('#filter-end-date').val()) : null;
@@ -190,12 +269,7 @@ if (docType && item.loaiVanBan !== docType) return false;
 if (agency && item.coQuanBanHanh !== agency) return false;
 if (materialType && item.loaiTaiLieu !== materialType) return false;
 if (dispatchType && item.loaiCongVan !== dispatchType) return false;
-
-// BỔ SUNG: Áp dụng điều kiện lọc theo năm
-if (selectedYear && (!itemDate || itemDate.getFullYear().toString() !== selectedYear)) {
-    return false;
-}
-
+if (selectedYear && (!itemDate || itemDate.getFullYear().toString() !== selectedYear)) return false;
 if (startDate && (!itemDate || itemDate < startDate)) return false;
 if (endDate && (!itemDate || itemDate > endDate)) return false;
 return true;
@@ -204,7 +278,6 @@ renderData(filteredData);
 }
 
 function resetFilters() {
-// Lưu ý: Bộ lọc năm mới cũng sẽ được reset vì nó là thẻ <select> nằm trong section.filter-section
 $('section.filter-section select, section.filter-section input').val('');
 $('#search-input').val('');
 dataTable.search('').draw();
@@ -212,14 +285,12 @@ renderData(allData);
 }
 
 function populateFilters(data) {
-// BỔ SUNG: Thêm `years` để lưu trữ các năm
 const docTypes = new Set(), agencies = new Set(), materialTypes = new Set(), dispatchTypes = new Set(), years = new Set();
 data.forEach(item => {
 if (item.loaiVanBan) docTypes.add(item.loaiVanBan);
 if (item.coQuanBanHanh) agencies.add(item.coQuanBanHanh);
 if (item.loaiTaiLieu) materialTypes.add(item.loaiTaiLieu);
 if (item.loaiCongVan) dispatchTypes.add(item.loaiCongVan);
-// BỔ SUNG: Trích xuất năm từ ngày ban hành
 if (item.ngayBanHanh) {
     try {
         const date = new Date(item.ngayBanHanh);
@@ -233,7 +304,6 @@ populateSelect('#filter-doc-type', [...docTypes].sort());
 populateSelect('#filter-agency', [...agencies].sort());
 populateSelect('#filter-material-type', [...materialTypes].sort());
 populateSelect('#filter-dispatch-type', [...dispatchTypes].sort());
-// BỔ SUNG: Điền dữ liệu vào bộ lọc năm, sắp xếp giảm dần (năm mới nhất lên đầu)
 populateSelect('#filter-year', [...years].sort((a, b) => b - a));
 }
 
@@ -350,9 +420,29 @@ function showLoading() { $('#loading-indicator').removeClass('d-none'); $('#erro
 function showError(msg) { $('#loading-indicator, #data-container').addClass('d-none'); $('#error-message').text(msg); $('#error-alert').removeClass('d-none'); }
 function showDataContainer() { $('#loading-indicator, #error-alert').addClass('d-none'); $('#data-container').removeClass('d-none'); }
 function updateCurrentDate() { $('#current-date').text(new Date().toLocaleDateString('vi-VN', { weekday: 'long', ...CONFIG.DATE_FORMAT_OPTIONS })); }
-function updateTimestamp() { $('#last-updated').text(new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })); }
-function updateStatistics(data) { $('#total-docs').text(data.length.toLocaleString('vi-VN')); }
 function formatDateForDisplay(d) { if (!d) return ''; try { const dt = new Date(d); return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('vi-VN', CONFIG.DATE_FORMAT_OPTIONS); } catch (e) { return d; } }
+
+// BỔ SUNG: Hàm cập nhật các thẻ thống kê
+function updateStatistics(data) {
+    const counts = data.reduce((acc, item) => {
+        const docType = (item.loaiVanBan || '').toLowerCase();
+        if (docType.includes('công văn')) {
+            acc.congVan++;
+        }
+        if (docType.includes('báo cáo')) {
+            acc.baoCao++;
+        }
+        if (docType.includes('quyết định')) {
+            acc.quyetDinh++;
+        }
+        return acc;
+    }, { congVan: 0, baoCao: 0, quyetDinh: 0 });
+
+    $('#stats-total-docs').text(data.length.toLocaleString('vi-VN'));
+    $('#stats-cong-van').text(counts.congVan.toLocaleString('vi-VN'));
+    $('#stats-bao-cao').text(counts.baoCao.toLocaleString('vi-VN'));
+    $('#stats-quyet-dinh').text(counts.quyetDinh.toLocaleString('vi-VN'));
+}
 </script>
 </body>
 </html>
