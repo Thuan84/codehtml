@@ -30,40 +30,11 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 .action-buttons .btn:hover { transform: scale(1.1); }
 
 /* CSS cho card thống kê */
-.stat-card-item {
-    background-color: #fff;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1.25rem;
-    display: flex;
-    align-items: center;
-    transition: all 0.2s ease-in-out;
-}
-.stat-card-item:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
-}
-.stat-card-item .icon {
-    font-size: 1.75rem;
-    padding: 1rem;
-    border-radius: 50%;
-    color: #fff;
-    margin-right: 1rem;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.stat-card-item .stat-info .stat-number {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--primary-color);
-}
-.stat-card-item .stat-info .stat-label {
-    font-size: 0.9rem;
-    color: #6c757d;
-}
+.stat-card-item { background-color: #fff; border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem; display: flex; align-items: center; transition: all 0.2s ease-in-out; }
+.stat-card-item:hover { transform: translateY(-4px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+.stat-card-item .icon { font-size: 1.75rem; padding: 1rem; border-radius: 50%; color: #fff; margin-right: 1rem; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
+.stat-card-item .stat-info .stat-number { font-size: 1.75rem; font-weight: 700; color: var(--primary-color); }
+.stat-card-item .stat-info .stat-label { font-size: 0.9rem; color: #6c757d; }
 </style>
 </head>
 <body>
@@ -71,7 +42,6 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 <header class="app-header mb-4">
 <div class="container text-center">
 <h1 class="mb-2 display-5 fw-bold">QUẢN LÝ VĂN BẢN CÔNG TÁC ĐẢNG</h1>
-<!-- THAY ĐỔI: Tăng size chữ từ fs-5 thành fs-4 -->
 <p class="mb-3 opacity-75 fs-4">Chi bộ Trạm thủy nông Ninh Hải</p>
 <div class="d-inline-block bg-white text-dark px-3 py-1 rounded-pill shadow-sm"><i class="fas fa-calendar-day me-2 text-primary"></i><span id="current-date"></span></div>
 </div>
@@ -90,7 +60,6 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
 <h5 class="card-title mb-3 mb-md-0"><i class="fas fa-list-ul me-2"></i>Danh sách văn bản</h5>
 <div class="d-flex gap-2 flex-wrap justify-content-center justify-content-md-end">
-<!-- THAY ĐỔI: Đã xóa nút Thêm mới -->
 <button id="print-btn" class="btn btn-info text-white"><i class="fas fa-print me-1"></i> In danh sách</button>
 <input type="text" id="search-input" class="form-control" placeholder="Tìm kiếm nhanh..." style="width: 200px;">
 <button id="refresh-btn" class="btn btn-primary" title="Làm mới dữ liệu"><i class="fas fa-sync-alt"></i></button>
@@ -121,9 +90,10 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
                 <th>Trích yếu</th>
                 <th>Loại văn bản</th>
                 <th>Ngày BH</th>
-                <!-- THAY ĐỔI: Thêm cột số văn bản chi tiết -->
-                <th class="text-center">Số VB Chi Tiết</th>
-                <th class="text-center">Hành động</th>
+                <!-- THAY ĐỔI: Chuyển sang cột Cơ quan ban hành -->
+                <th>Cơ quan BH</th>
+                <!-- THAY ĐỔI: Bỏ chữ, chỉ để icon -->
+                <th class="text-center" title="Hành động"><i class="fas fa-tools"></i></th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -135,8 +105,6 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 
 <!-- Modals -->
 <div class="modal fade detail-modal" id="detailModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"><i class="fas fa-file-invoice me-2"></i>Chi tiết văn bản</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="modal-body-content"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i> Đóng</button></div></div></div></div>
-
-<!-- THAY ĐỔI: Đã xóa Modal thêm/sửa văn bản -->
 
 <!-- Libraries JS -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -171,22 +139,25 @@ function setupEventListeners() {
     $('#reset-filter-btn').on('click', resetFilters);
     $('#print-btn').on('click', printFilteredData);
     $('#data-table tbody').on('click', 'button.view-detail', function() { showDocumentDetail($(this).data('id')); });
-    
-    // THAY ĐỔI: Đã xóa các event listener cho nút Thêm và Sửa
 }
 
 function initializeDataTable() {
     dataTable = $('#data-table').DataTable({
         data: [],
-        // THAY ĐỔI: Cập nhật lại các cột và độ rộng
+        // =========================================================================
+        // === BẮT ĐẦU PHẦN NÂNG CẤP: Thay đổi cột và điều chỉnh chiều rộng      ===
+        // =========================================================================
         columns: [
-            { data: 'soHieu', width: '15%' },
+            { data: 'soHieu', width: '12%' },
             { data: 'trichYeu', width: '45%' },
             { data: 'loaiVanBan', width: '15%' },
             { data: 'ngayBanHanh', width: '10%' },
-            { data: 'dinhKem', width: '5%' }, // Cột số VB chi tiết
-            { data: 'stt', width: '10%' } // Cột hành động
+            { data: 'coQuanBanHanh', width: '13%' }, // THAY ĐỔI: Từ dinhKem sang coQuanBanHanh
+            { data: 'stt', width: '5%' } // THAY ĐỔI: Cột hành động
         ],
+        // =========================================================================
+        // === KẾT THÚC PHẦN NÂNG CẤP ==============================================
+        // =========================================================================
         columnDefs: [
             { targets: 0, className: 'so-hieu-col' },
             {
@@ -201,25 +172,24 @@ function initializeDataTable() {
                     return formatDateForDisplay(data);
                 }
             },
-            // THAY ĐỔI: Thêm định nghĩa cho cột số VB chi tiết
-            {
-                targets: 4,
-                orderable: false,
-                className: 'text-center fw-bold',
-                render: function(data, type, row) {
-                    if (!data) return 0;
-                    // Đếm số lượng link, lọc bỏ các chuỗi rỗng
-                    const count = data.split(',').filter(url => url.trim() !== '').length;
-                    return count;
-                }
-            },
-            // THAY ĐỔI: Cập nhật lại cột hành động (chỉ còn nút Xem)
+            // THAY ĐỔI: Cột cơ quan ban hành là text bình thường, không cần định dạng đặc biệt.
+            { targets: 4, orderable: true }, 
+
+            // =========================================================================
+            // === BẮT ĐẦU PHẦN NÂNG CẤP: Đơn giản hóa cột hành động                ===
+            // =========================================================================
             {
                 targets: 5, 
                 orderable: false, 
                 className: 'text-center action-buttons',
-                render: (d) => `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${d}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`
+                // Chỉ hiển thị nút xem chi tiết (hình con mắt)
+                render: function(data, type, row) {
+                    return `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${row.stt}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`;
+                }
             },
+            // =========================================================================
+            // === KẾT THÚC PHẦN NÂNG CẤP ==============================================
+            // =========================================================================
         ],
         order: [[3, 'desc']],
         language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' },
@@ -312,8 +282,6 @@ function populateSelect(selector, options) {
     select.find('option:not(:first)').remove();
     options.forEach(opt => select.append(`<option value="${opt}">${opt}</option>`));
 }
-
-// THAY ĐỔI: Đã xóa các hàm không còn sử dụng (openAddModal, openEditModal, handleFormSubmit, submitDataToServer, populateFormDatalists)
 
 function showDocumentDetail(stt) {
     const doc = allData.find(item => item.stt == stt);
