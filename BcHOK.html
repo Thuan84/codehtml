@@ -51,21 +51,21 @@
                     <span class="ml-auto bg-sky-100 text-sky-700 px-3 py-1 rounded-full text-xs font-semibold shadow">Cập nhật mới nhất</span>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 print:grid-cols-3 print:gap-3">
-                    <div class="info-card"><span class="info-label">Ngày cập nhật</span><span class="info-value" id="ngayCapNhat"></span></div>
-                    <div class="info-card border-sky-200"><span class="info-label">Cao trình mực nước hiện tại (m)</span><span class="info-value text-sky-600" id="caoTrinhMucNuoc"></span></div>
-                    <div class="info-card border-green-200"><span class="info-label">Dung tích hiện tại (Tr.m³)</span><span class="info-value text-green-700" id="dungTichHienTai"></span></div>
-                    <div class="info-card border-blue-200"><span class="info-label">Lượng mưa (mm)</span><span class="info-value text-blue-700" id="luongMua"></span></div>
-                    <div class="info-card border-yellow-200"><span class="info-label">Van đầu mối (m)</span><span class="info-value text-yellow-700" id="VanDauMoi"></span></div>
-                    <div class="info-card border-indigo-200"><span class="info-label">Hn Kênh chính (m)</span><span class="info-value text-indigo-700" id="HKenhChinh"></span></div>
-                    <div class="info-card border-pink-200"><span class="info-label">Chênh lệch ∆V (m³)</span><span class="info-value text-pink-700" id="ChenhLech"></span></div>
-                    <div class="info-card border-green-200"><span class="info-label">Tỷ lệ so với Thiết kế (%)</span><span class="info-value text-green-600" id="TyLeTK"></span></div>
-                    <div class="info-card border-sky-200"><span class="info-label">Cao trình MN cùng kỳ (m)</span><span class="info-value" id="CTMNCK"></span></div>
-                    <div class="info-card border-green-200"><span class="info-label">Dung tích cùng kỳ (Tr.m³)</span><span class="info-value text-green-700" id="DTMNCK"></span></div>
-                    <div class="info-card border-red-200"><span class="info-label">Cao trình MN chết (m)</span><span class="info-value text-red-700" id="CTMNC"></span></div>
-                    <div class="info-card border-red-200"><span class="info-label">Dung tích MN chết (Tr.m³)</span><span class="info-value text-red-700" id="DTMNC"></span></div>
-                    <div class="info-card border-yellow-200"><span class="info-label">Cao trình MN thiết kế (m)</span><span class="info-value text-yellow-700" id="CTMNTK"></span></div>
-                    <div class="info-card border-yellow-200"><span class="info-label">Dung tích MN thiết kế (Tr.m³)</span><span class="info-value text-yellow-700" id="DTMNTK"></span></div>
-                    <div class="info-card border-slate-200"><span class="info-label">Cao độ đáy cửa vào (m)</span><span class="info-value" id="CDDCV"></span></div>
+                    <div class="info-card"><span class="info-label">Ngày cập nhật</span><span class="info-value">{{ngayCapNhat}}</span></div>
+                    <div class="info-card border-sky-200"><span class="info-label">Cao trình mực nước hiện tại (m)</span><span class="info-value text-sky-600">{{caoTrinhMucNuoc}}</span></div>
+                    <div class="info-card border-green-200"><span class="info-label">Dung tích hiện tại (Tr.m³)</span><span class="info-value text-green-700">{{dungTichHienTai}}</span></div>
+                    <div class="info-card border-blue-200"><span class="info-label">Lượng mưa (mm)</span><span class="info-value text-blue-700">{{luongMua}}</span></div>
+                    <div class="info-card border-yellow-200"><span class="info-label">Van đầu mối (m)</span><span class="info-value text-yellow-700">{{VanDauMoi}}</span></div>
+                    <div class="info-card border-indigo-200"><span class="info-label">Hn Kênh chính (m)</span><span class="info-value text-indigo-700">{{HKenhChinh}}</span></div>
+                    <div class="info-card border-pink-200"><span class="info-label">Chênh lệch ∆V (m³)</span><span class="info-value text-pink-700">{{ChenhLech}}</span></div>
+                    <div class="info-card border-green-200"><span class="info-label">Tỷ lệ so với Thiết kế (%)</span><span class="info-value text-green-600">{{TyLeTK}}</span></div>
+                    <div class="info-card border-sky-200"><span class="info-label">Cao trình MN cùng kỳ (m)</span><span class="info-value">{{CTMNCK}}</span></div>
+                    <div class="info-card border-green-200"><span class="info-label">Dung tích cùng kỳ (Tr.m³)</span><span class="info-value text-green-700">{{DTMNCK}}</span></div>
+                    <div class="info-card border-red-200"><span class="info-label">Cao trình MN chết (m)</span><span class="info-value text-red-700">{{CTMNC}}</span></div>
+                    <div class="info-card border-red-200"><span class="info-label">Dung tích MN chết (Tr.m³)</span><span class="info-value text-red-700">{{DTMNC}}</span></div>
+                    <div class="info-card border-yellow-200"><span class="info-label">Cao trình MN thiết kế (m)</span><span class="info-value text-yellow-700">{{CTMNTK}}</span></div>
+                    <div class="info-card border-yellow-200"><span class="info-label">Dung tích MN thiết kế (Tr.m³)</span><span class="info-value text-yellow-700">{{DTMNTK}}</span></div>
+                    <div class="info-card border-slate-200"><span class="info-label">Cao độ đáy cửa vào (m)</span><span class="info-value">{{CDDCV}}</span></div>
                 </div>
             </section>
 
@@ -79,10 +79,10 @@
                     <span class="ml-auto bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-semibold shadow">Cảnh báo</span>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 print:grid-cols-4 print:gap-3">
-                    <div class="info-card border-orange-200"><span class="info-label">Htrn (cm)</span><span class="info-value text-orange-700" id="htrn"></span></div>
-                    <div class="info-card border-orange-200"><span class="info-label">Qtr1 (m³/s)</span><span class="info-value text-orange-700" id="qtr1"></span></div>
-                    <div class="info-card border-orange-200"><span class="info-label">Qtr2 (m³/s)</span><span class="info-value text-orange-700" id="qtr2"></span></div>
-                    <div class="info-card border-orange-200"><span class="info-label">Qtd (m³/s)</span><span class="info-value text-orange-700" id="qtn1"></span></div>
+                    <div class="info-card border-orange-200"><span class="info-label">Htrn (cm)</span><span class="info-value text-orange-700">{{htrn}}</span></div>
+                    <div class="info-card border-orange-200"><span class="info-label">Qtr1 (m³/s)</span><span class="info-value text-orange-700">{{qtr1}}</span></div>
+                    <div class="info-card border-orange-200"><span class="info-label">Qtr2 (m³/s)</span><span class="info-value text-orange-700">{{qtr2}}</span></div>
+                    <div class="info-card border-orange-200"><span class="info-label">Qtd (m³/s)</span><span class="info-value text-orange-700">{{qtn1}}</span></div>
                 </div>
             </section>
 
@@ -96,10 +96,10 @@
                     <span class="ml-auto bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-semibold shadow">Lịch sử</span>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 print:grid-cols-2 print:gap-3">
-                    <div class="info-card border-indigo-200"><span class="info-label">Trạng thái</span><span class="info-value text-indigo-700" id="trangThai"></span></div>
-                    <div class="info-card border-indigo-200"><span class="info-label">Thời gian kiểm tra</span><span class="info-value text-indigo-700" id="thoiGianKiemTra"></span></div>
-                    <div class="info-card border-indigo-200"><span class="info-label">Người cập nhật</span><span class="info-value text-indigo-700" id="nguoiCapNhat"></span></div>
-                    <div class="info-card border-indigo-200"><span class="info-label">Ghi chú</span><span class="info-value text-indigo-700" id="GhiChu"></span></div>
+                    <div class="info-card border-indigo-200"><span class="info-label">Trạng thái</span><span class="info-value text-indigo-700">{{trangThai}}</span></div>
+                    <div class="info-card border-indigo-200"><span class="info-label">Thời gian kiểm tra</span><span class="info-value text-indigo-700">{{thoiGianKiemTra}}</span></div>
+                    <div class="info-card border-indigo-200"><span class="info-label">Người cập nhật</span><span class="info-value text-indigo-700">{{nguoiCapNhat}}</span></div>
+                    <div class="info-card border-indigo-200"><span class="info-label">Ghi chú</span><span class="info-value text-indigo-700">{{GhiChu}}</span></div>
                 </div>
             </section>
         </main>
@@ -107,7 +107,7 @@
         <!-- Footer -->
         <footer class="mt-12 pt-8 border-t border-slate-200 text-center print:mt-5 print:pt-3 bg-gradient-to-r from-sky-50 to-slate-100 rounded-b-3xl shadow-inner">
             <p class="text-base text-slate-500 font-medium">
-                Báo cáo được tạo tự động lúc <span class="now-vn"></span>
+                Báo cáo được tạo tự động lúc {{now}}
             </p>
             <p class="text-xs text-slate-400 mt-1">© 2024 Trạm Thủy Nông Ninh Hải</p>
         </footer>
@@ -116,7 +116,6 @@
     <!-- Custom Card Style -->
     <style>
         .info-card {
-            /* Nếu không dùng PostCSS, hãy copy class Tailwind vào từng thẻ */
             background: linear-gradient(135deg, #fff 60%, #f8fafc 100%);
             padding: 1.25rem;
             border-radius: 1.25rem;
@@ -144,40 +143,5 @@
             margin-top: 0.25rem;
         }
     </style>
-
-    <!-- Script lấy dữ liệu từ URL và render -->
-    <script>
-    function getQueryParams() {
-        const params = {};
-        window.location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(str,key,value) {
-            params[key] = decodeURIComponent(value.replace(/\+/g, " "));
-        });
-        return params;
-    }
-
-    function renderData() {
-        const params = getQueryParams();
-        // Danh sách các biến cần render
-        const fields = [
-            "ngayCapNhat", "caoTrinhMucNuoc", "dungTichHienTai", "luongMua", "ChenhLech", "TyLeTK",
-            "CTMNCK", "DTMNCK", "CTMNC", "DTMNC", "CTMNTK", "DTMNTK", "htrn", "qtn1", "qtr1", "qtr2", "VanDauMoi", "HKenhChinh", "CDDCV",
-            "trangThai", "thoiGianKiemTra", "nguoiCapNhat", "GhiChu"
-        ];
-        fields.forEach(field => {
-            const el = document.getElementById(field);
-            if (el) {
-                let value = params[field] || "";
-                // Định dạng số nếu cần
-                if (["dungTichHienTai", "DTMNCK"].includes(field) && value) value = Number(value).toFixed(3);
-                if (field === "TyLeTK" && value) value = (Number(value) * 100).toFixed(2);
-                el.textContent = value;
-            }
-        });
-        // Xử lý ngày giờ tạo báo cáo
-        const nowEls = document.querySelectorAll('.now-vn');
-        nowEls.forEach(el => el.textContent = new Date().toLocaleString('vi-VN'));
-    }
-    renderData();
-    </script>
 </body>
 </html>
