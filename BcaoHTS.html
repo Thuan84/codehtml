@@ -50,13 +50,77 @@
                     <h2 class="text-2xl font-bold text-slate-700 tracking-wide">Thông tin mực nước</h2>
                     <span class="ml-auto bg-sky-100 text-sky-700 px-3 py-1 rounded-full text-xs font-semibold shadow">Cập nhật mới nhất</span>
                 </div>
+                <!-- Biểu đồ so sánh mực nước -->
+                <div class="mb-8 flex justify-center">
+                    <canvas id="waterLevelChart" width="400" height="220"></canvas>
+                </div>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    // Lấy dữ liệu từ template (chuyển sang số nếu cần)
+                    const mucNuocHienTai = Number("{{caoTrinhMucNuoc}}".replace(/,/g, '.'));
+                    const mucNuocCungKy = Number("{{CTMNCK}}".replace(/,/g, '.'));
+                    const mucNuocChet = Number("{{CTMNC}}".replace(/,/g, '.'));
+                    const mucNuocThietKe = Number("{{CTMNTK}}".replace(/,/g, '.'));
+                    const ctx = document.getElementById('waterLevelChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Hiện tại', 'Cùng kỳ', 'Mực nước chết', 'Thiết kế'],
+                            datasets: [{
+                                label: 'Cao trình mực nước (m)',
+                                data: [mucNuocHienTai, mucNuocCungKy, mucNuocChet, mucNuocThietKe],
+                                backgroundColor: [
+                                    'rgba(56, 189, 248, 0.7)', // Hiện tại - sky
+                                    'rgba(59, 130, 246, 0.7)', // Cùng kỳ - blue
+                                    'rgba(239, 68, 68, 0.7)',  // Chết - red
+                                    'rgba(253, 224, 71, 0.7)'  // Thiết kế - yellow
+                                ],
+                                borderColor: [
+                                    'rgba(56, 189, 248, 1)',
+                                    'rgba(59, 130, 246, 1)',
+                                    'rgba(239, 68, 68, 1)',
+                                    'rgba(253, 224, 71, 1)'
+                                ],
+                                borderWidth: 2,
+                                borderRadius: 8,
+                                maxBarThickness: 48
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false },
+                                title: {
+                                    display: true,
+                                    text: 'So sánh mực nước hồ (m)',
+                                    font: { size: 18, weight: 'bold' }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: false,
+                                    title: {
+                                        display: true,
+                                        text: 'Cao trình (m)'
+                                    },
+                                    ticks: {
+                                        font: { size: 14 }
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        font: { size: 14 }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                </script>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 print:grid-cols-3 print:gap-3">
                     <div class="info-card"><span class="info-label">Ngày cập nhật</span><span class="info-value">{{ngayCapNhat}}</span></div>
                     <div class="info-card border-sky-200"><span class="info-label">Cao trình mực nước hiện tại (m)</span><span class="info-value text-sky-600">{{caoTrinhMucNuoc}}</span></div>
                     <div class="info-card border-green-200"><span class="info-label">Dung tích hiện tại (Tr.m³)</span><span class="info-value text-green-700">{{dungTichHienTai}}</span></div>
                     <div class="info-card border-blue-200"><span class="info-label">Lượng mưa (mm)</span><span class="info-value text-blue-700">{{luongMua}}</span></div>
-                    <div class="info-card border-yellow-200"><span class="info-label">Van đầu mối (m)</span><span class="info-value text-yellow-700">{{VanDauMoi}}</span></div>
-                    <div class="info-card border-indigo-200"><span class="info-label">Hn Kênh chính (m)</span><span class="info-value text-indigo-700">{{HKenhChinh}}</span></div>
                     <div class="info-card border-pink-200"><span class="info-label">Chênh lệch ∆V (m³)</span><span class="info-value text-pink-700">{{ChenhLech}}</span></div>
                     <div class="info-card border-green-200"><span class="info-label">Tỷ lệ so với Thiết kế (%)</span><span class="info-value text-green-600">{{TyLeTK}}</span></div>
                     <div class="info-card border-sky-200"><span class="info-label">Cao trình MN cùng kỳ (m)</span><span class="info-value">{{CTMNCK}}</span></div>
@@ -65,7 +129,17 @@
                     <div class="info-card border-red-200"><span class="info-label">Dung tích MN chết (Tr.m³)</span><span class="info-value text-red-700">{{DTMNC}}</span></div>
                     <div class="info-card border-yellow-200"><span class="info-label">Cao trình MN thiết kế (m)</span><span class="info-value text-yellow-700">{{CTMNTK}}</span></div>
                     <div class="info-card border-yellow-200"><span class="info-label">Dung tích MN thiết kế (Tr.m³)</span><span class="info-value text-yellow-700">{{DTMNTK}}</span></div>
-                    <div class="info-card border-slate-200"><span class="info-label">Cao độ đáy cửa vào (m)</span><span class="info-value">{{CDDCV}}</span></div>
+                </div>
+            </section>
+
+            <!-- Biểu đồ so sánh mực nước -->
+            <section class="bg-white/95 p-8 rounded-3xl shadow-2xl border border-slate-200 mb-8">
+                <h2 class="text-2xl font-bold text-slate-700 mb-4 flex items-center gap-2">
+                    <svg class="text-blue-500" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+                    Biểu đồ so sánh mực nước
+                </h2>
+                <div class="w-full max-w-xl mx-auto">
+                    <canvas id="chartMucNuoc" height="200"></canvas>
                 </div>
             </section>
 
@@ -80,9 +154,7 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 print:grid-cols-4 print:gap-3">
                     <div class="info-card border-orange-200"><span class="info-label">Htrn (cm)</span><span class="info-value text-orange-700">{{htrn}}</span></div>
-                    <div class="info-card border-orange-200"><span class="info-label">Qtr1 (m³/s)</span><span class="info-value text-orange-700">{{qtr1}}</span></div>
-                    <div class="info-card border-orange-200"><span class="info-label">Qtr2 (m³/s)</span><span class="info-value text-orange-700">{{qtr2}}</span></div>
-                    <div class="info-card border-orange-200"><span class="info-label">Qtd (m³/s)</span><span class="info-value text-orange-700">{{qtn1}}</span></div>
+                      <div class="info-card border-orange-200"><span class="info-label">Qtd (m³/s)</span><span class="info-value text-orange-700">{{qtn1}}</span></div>
                 </div>
             </section>
 
@@ -143,5 +215,84 @@
             margin-top: 0.25rem;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Lấy giá trị từ các thẻ đã render
+        function getValueByLabel(label) {
+            // Tìm thẻ info-card có info-label đúng label, lấy info-value
+            var cards = document.querySelectorAll('.info-card');
+            for (var i = 0; i < cards.length; i++) {
+                var lbl = cards[i].querySelector('.info-label');
+                var val = cards[i].querySelector('.info-value');
+                if (lbl && val && lbl.textContent.replace(/\s+/g, ' ').trim() === label) {
+                    var num = parseFloat(val.textContent.replace(",", "."));
+                    return isNaN(num) ? 0 : num;
+                }
+            }
+            return 0;
+        }
+        var labels = [
+            "Mực nước hiện tại",
+            "Mực nước cùng kỳ",
+            "Mực nước chết",
+            "Mực nước thiết kế"
+        ];
+        var data = [
+            getValueByLabel("Cao trình mực nước hiện tại (m)"),
+            getValueByLabel("Cao trình MN cùng kỳ (m)"),
+            getValueByLabel("Cao trình MN chết (m)"),
+            getValueByLabel("Cao trình MN thiết kế (m)")
+        ];
+        var bgColors = [
+            "rgba(56,189,248,0.7)",   // xanh dương
+            "rgba(34,197,94,0.7)",    // xanh lá
+            "rgba(239,68,68,0.7)",    // đỏ
+            "rgba(253,224,71,0.7)"    // vàng
+        ];
+        var borderColors = [
+            "rgba(56,189,248,1)",
+            "rgba(34,197,94,1)",
+            "rgba(239,68,68,1)",
+            "rgba(253,224,71,1)"
+        ];
+        var ctx = document.getElementById('chartMucNuoc').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Mực nước (m)",
+                    data: data,
+                    backgroundColor: bgColors,
+                    borderColor: borderColors,
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    maxBarThickness: 60
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ": " + context.parsed.y + " m";
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: "Mực nước (m)" }
+                    }
+                }
+            }
+        });
+    });
+    </script>
 </body>
-</html>
+</html> 
