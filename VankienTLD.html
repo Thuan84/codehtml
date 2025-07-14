@@ -273,6 +273,8 @@ function populateSelect(selector, options) {
 }
 
 function showDocumentDetail(stt) {
+    console.log('allDetails:', allDetails);
+    console.log('stt:', stt);
     const doc = allData.find(item => item.stt == stt);
     if (!doc) { alert('Lỗi: Không tìm thấy văn bản!'); return; }
     const createRow = (label, val) => `<tr><th scope="row" class="w-25 bg-light">${label}:</th><td>${val || '---'}</td></tr>`;
@@ -293,6 +295,8 @@ if (allDetails && allDetails.length > 0) {
 
     // Lọc chi tiết
     const relatedDetails = allDetails.filter(d => Number(d.STT) === Number(stt));
+    const relatedDetails = allDetails.filter(d => Number(d.STT) === Number(stt));
+    console.log('relatedDetails:', relatedDetails);
     console.log('relatedDetails:', relatedDetails);
 
     if (relatedDetails.length > 0) {
