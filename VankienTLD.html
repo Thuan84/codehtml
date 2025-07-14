@@ -4,11 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản Lý Văn Kiện - Trạm Thủy Nông Ninh Hải</title>
+
 <!-- Libraries CSS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
 <style>
 :root { --primary-color: #2c3e50; --secondary-color: #3498db; --light-bg: #f8f9fa; --border-color: #e9ecef; --hover-bg: #e2f3ff; }
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--light-bg); }
@@ -26,6 +28,8 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 .so-hieu-col { font-weight: 700; color: var(--secondary-color); font-family: 'Courier New', Courier, monospace; font-size: 1.05rem; }
 .action-buttons .btn { margin: 0 3px; border-radius: 50px; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease;}
 .action-buttons .btn:hover { transform: scale(1.1); }
+
+/* CSS cho card thống kê */
 .stat-card-item { background-color: #fff; border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem; display: flex; align-items: center; transition: all 0.2s ease-in-out; }
 .stat-card-item:hover { transform: translateY(-4px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
 .stat-card-item .icon { font-size: 1.75rem; padding: 1rem; border-radius: 50%; color: #fff; margin-right: 1rem; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
@@ -86,7 +90,9 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
                 <th>Trích yếu</th>
                 <th>Loại văn bản</th>
                 <th>Ngày BH</th>
+                <!-- THAY ĐỔI: Chuyển sang cột Cơ quan ban hành -->
                 <th>Cơ quan BH</th>
+                <!-- THAY ĐỔI: Bỏ chữ, chỉ để icon -->
                 <th class="text-center" title="Hành động"><i class="fas fa-tools"></i></th>
             </tr>
         </thead>
@@ -118,7 +124,6 @@ const STAT_ICONS = ['fa-file-alt', 'fa-file-invoice', 'fa-file-signature', 'fa-g
 
 let dataTable;
 let allData = [];
-let allDetails = []; // <--- Thay vì vbchitiet, sẽ là vankienct
 
 $(document).ready(function() {
     updateCurrentDate();
@@ -139,14 +144,20 @@ function setupEventListeners() {
 function initializeDataTable() {
     dataTable = $('#data-table').DataTable({
         data: [],
+        // =========================================================================
+        // === BẮT ĐẦU PHẦN NÂNG CẤP: Thay đổi cột và điều chỉnh chiều rộng      ===
+        // =========================================================================
         columns: [
             { data: 'soHieu', width: '12%' },
             { data: 'trichYeu', width: '45%' },
             { data: 'loaiVanBan', width: '15%' },
             { data: 'ngayBanHanh', width: '10%' },
-            { data: 'coQuanBanHanh', width: '13%' },
-            { data: 'stt', width: '5%' }
+            { data: 'coQuanBanHanh', width: '13%' }, // THAY ĐỔI: Từ dinhKem sang coQuanBanHanh
+            { data: 'stt', width: '5%' } // THAY ĐỔI: Cột hành động
         ],
+        // =========================================================================
+        // === KẾT THÚC PHẦN NÂNG CẤP ==============================================
+        // =========================================================================
         columnDefs: [
             { targets: 0, className: 'so-hieu-col' },
             {
@@ -161,15 +172,24 @@ function initializeDataTable() {
                     return formatDateForDisplay(data);
                 }
             },
+            // THAY ĐỔI: Cột cơ quan ban hành là text bình thường, không cần định dạng đặc biệt.
             { targets: 4, orderable: true }, 
+
+            // =========================================================================
+            // === BẮT ĐẦU PHẦN NÂNG CẤP: Đơn giản hóa cột hành động                ===
+            // =========================================================================
             {
                 targets: 5, 
                 orderable: false, 
                 className: 'text-center action-buttons',
+                // Chỉ hiển thị nút xem chi tiết (hình con mắt)
                 render: function(data, type, row) {
                     return `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${row.stt}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`;
                 }
             },
+            // =========================================================================
+            // === KẾT THÚC PHẦN NÂNG CẤP ==============================================
+            // =========================================================================
         ],
         order: [[3, 'desc']],
         language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' },
@@ -187,17 +207,8 @@ function loadData(forceRefresh = false) {
     $.ajax({
         url: url, method: 'GET', dataType: 'jsonp',
         success: function(response) {
-            // Giả định API trả về {status, data: {vankientld: [...], vankienct: [...]}}
             if (response.status === 'error' || !response.data) { showError(response.message || 'Lỗi không xác định hoặc không có dữ liệu.'); return; }
-            // Nếu API trả về 2 sheet
-            if (response.data.vankientld && response.data.vankienct) {
-                allData = response.data.vankientld;
-                allDetails = response.data.vankienct; // SỬA: lấy vankienct
-            } else {
-                // Trường hợp cũ, chỉ có 1 sheet
-                allData = response.data;
-                allDetails = [];
-            }
+            allData = response.data;
             populateFilters(allData);
             updateStatistics(allData);
             resetFilters();
@@ -273,8 +284,6 @@ function populateSelect(selector, options) {
 }
 
 function showDocumentDetail(stt) {
-    console.log('allDetails:', allDetails);
-    console.log('stt:', stt);
     const doc = allData.find(item => item.stt == stt);
     if (!doc) { alert('Lỗi: Không tìm thấy văn bản!'); return; }
     const createRow = (label, val) => `<tr><th scope="row" class="w-25 bg-light">${label}:</th><td>${val || '---'}</td></tr>`;
@@ -285,87 +294,7 @@ function showDocumentDetail(stt) {
             filesHtml = files.map(url => `<a href="${url.trim()}" target="_blank" class="btn btn-sm btn-outline-primary me-2 mb-2"><i class="fas fa-paperclip me-1"></i> ${decodeURIComponent(url.trim().split('/').pop())}</a>`).join('');
         }
     }
-
-    // ==== PHẦN MỚI: Hiển thị các văn bản chi tiết liên quan ====
-let detailsHtml = '';
-if (allDetails && allDetails.length > 0) {
-    // In ra để debug
-    console.log('allDetails:', allDetails);
-    console.log('stt:', stt);
-
-    // Lọc chi tiết
-    const relatedDetails = allDetails.filter(d => Number(d.STT) === Number(stt));
-    const relatedDetails = allDetails.filter(d => Number(d.STT) === Number(stt));
-    console.log('relatedDetails:', relatedDetails);
-    console.log('relatedDetails:', relatedDetails);
-
-    if (relatedDetails.length > 0) {
-        detailsHtml = `
-            <hr>
-            <h6 class="mb-3 text-primary"><i class="fas fa-list-ul me-2"></i>Văn bản chi tiết liên quan</h6>
-            <div class="table-responsive">
-            <table class="table table-bordered table-sm">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>ID</th>
-                        <th>Nội dung</th>
-                        <th>File</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${relatedDetails.map((d, idx) => `
-                        <tr>
-                            <td>${idx + 1}</td>
-                            <td>${d.ID || ''}</td>
-                            <td>${d['Nội dung'] || d.noiDung || ''}</td>
-                            <td>
-                                ${d['File'] ? `<a href="${d['File']}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-paperclip"></i> File</a>` : ''}
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-            </div>
-        `;
-    }
-}
-    // ==== KẾT THÚC PHẦN MỚI ====
-
-    $('#modal-body-content').html(`
-        <div class="row">
-            <div class="col-md-6">
-                <h6 class="border-bottom pb-2 mb-3">Thông tin cơ bản</h6>
-                <table class="table table-bordered table-sm">
-                    <tbody>
-                        ${createRow('Số hiệu', `<span class="fw-bold text-primary">${doc.soHieu}</span>`)}
-                        ${createRow('Trích yếu', doc.trichYeu)}
-                        ${createRow('Loại VB', doc.loaiVanBan)}
-                        ${createRow('Loại Tài liệu', doc.loaiTaiLieu)}
-                        ${createRow('Loại Công văn', doc.loaiCongVan)}
-                        ${createRow('Ngày BH', formatDateForDisplay(doc.ngayBanHanh))}
-                        ${createRow('Cơ quan BH', doc.coQuanBanHanh)}
-                    </tbody>
-                </table>
-            </div>
-            <div class="col-md-6">
-                <h6 class="border-bottom pb-2 mb-3">Thông tin bổ sung</h6>
-                <table class="table table-bordered table-sm">
-                    <tbody>
-                        ${createRow('Người ký', doc.nguoiKy)}
-                        ${createRow('Người thảo', doc.nguoiThaoVanBan)}
-                        ${createRow('Ngày tạo', formatDateForDisplay(doc.thoiGianTao))}
-                        ${createRow('Cập nhật', formatDateForDisplay(doc.thoiGianCapNhat))}
-                        ${createRow('Ghi chú', doc.ghiChu)}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <hr>
-        <h6 class="mb-3">Tệp đính kèm</h6>
-        <div>${filesHtml}</div>
-        ${detailsHtml}
-    `);
+    $('#modal-body-content').html(`<div class="row"><div class="col-md-6"><h6 class="border-bottom pb-2 mb-3">Thông tin cơ bản</h6><table class="table table-bordered table-sm"><tbody>${createRow('Số hiệu', `<span class="fw-bold text-primary">${doc.soHieu}</span>`)}${createRow('Trích yếu', doc.trichYeu)}${createRow('Loại VB', doc.loaiVanBan)}${createRow('Loại Tài liệu', doc.loaiTaiLieu)}${createRow('Loại Công văn', doc.loaiCongVan)}${createRow('Ngày BH', formatDateForDisplay(doc.ngayBanHanh))}${createRow('Cơ quan BH', doc.coQuanBanHanh)}</tbody></table></div><div class="col-md-6"><h6 class="border-bottom pb-2 mb-3">Thông tin bổ sung</h6><table class="table table-bordered table-sm"><tbody>${createRow('Người ký', doc.nguoiKy)}${createRow('Người thảo', doc.nguoiThaoVanBan)}${createRow('Ngày tạo', formatDateForDisplay(doc.thoiGianTao))}${createRow('Cập nhật', formatDateForDisplay(doc.thoiGianCapNhat))}${createRow('Ghi chú', doc.ghiChu)}</tbody></table></div></div><hr><h6 class="mb-3">Tệp đính kèm</h6><div>${filesHtml}</div>`);
     new bootstrap.Modal(document.getElementById('detailModal')).show();
 }
 
