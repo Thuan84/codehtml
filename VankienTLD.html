@@ -285,41 +285,41 @@ function showDocumentDetail(stt) {
     }
 
     // ==== PHẦN MỚI: Hiển thị các văn bản chi tiết liên quan ====
-    let detailsHtml = '';
-    if (allDetails && allDetails.length > 0) {
-        // Lọc các chi tiết có trường stt trùng với stt của văn bản chính
-        const relatedDetails = allDetails.filter(d => d.stt == stt);
-        if (relatedDetails.length > 0) {
-            detailsHtml = `
-                <hr>
-                <h6 class="mb-3 text-primary"><i class="fas fa-list-ul me-2"></i>Văn bản chi tiết liên quan</h6>
-                <div class="table-responsive">
-                <table class="table table-bordered table-sm">
-                    <thead>
+let detailsHtml = '';
+if (allDetails && allDetails.length > 0) {
+    // Lọc các chi tiết có trường STT trùng với STT của văn bản chính
+    const relatedDetails = allDetails.filter(d => Number(d.STT) === Number(stt));
+    if (relatedDetails.length > 0) {
+        detailsHtml = `
+            <hr>
+            <h6 class="mb-3 text-primary"><i class="fas fa-list-ul me-2"></i>Văn bản chi tiết liên quan</h6>
+            <div class="table-responsive">
+            <table class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>ID</th>
+                        <th>Nội dung</th>
+                        <th>File</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${relatedDetails.map((d, idx) => `
                         <tr>
-                            <th>#</th>
-                            <th>ID</th>
-                            <th>Nội dung</th>
-                            <th>File</th>
+                            <td>${idx + 1}</td>
+                            <td>${d.ID || ''}</td>
+                            <td>${d['Nội dung'] || ''}</td>
+                            <td>
+                                ${d['File'] ? `<a href="${d['File']}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-paperclip"></i> File</a>` : ''}
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        ${relatedDetails.map((d, idx) => `
-                            <tr>
-                                <td>${idx + 1}</td>
-                                <td>${d.ID || ''}</td>
-                                <td>${d.noiDung || ''}</td>
-                                <td>
-                                    ${d.file ? `<a href="${d.file}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-paperclip"></i> File</a>` : ''}
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                </div>
-            `;
-        }
+                    `).join('')}
+                </tbody>
+            </table>
+            </div>
+        `;
     }
+}
     // ==== KẾT THÚC PHẦN MỚI ====
 
     $('#modal-body-content').html(`
