@@ -287,8 +287,14 @@ function showDocumentDetail(stt) {
     // ==== PHẦN MỚI: Hiển thị các văn bản chi tiết liên quan ====
 let detailsHtml = '';
 if (allDetails && allDetails.length > 0) {
-    // Lọc các chi tiết có trường STT trùng với STT của văn bản chính
+    // In ra để debug
+    console.log('allDetails:', allDetails);
+    console.log('stt:', stt);
+
+    // Lọc chi tiết
     const relatedDetails = allDetails.filter(d => Number(d.STT) === Number(stt));
+    console.log('relatedDetails:', relatedDetails);
+
     if (relatedDetails.length > 0) {
         detailsHtml = `
             <hr>
@@ -308,7 +314,7 @@ if (allDetails && allDetails.length > 0) {
                         <tr>
                             <td>${idx + 1}</td>
                             <td>${d.ID || ''}</td>
-                            <td>${d['Nội dung'] || ''}</td>
+                            <td>${d['Nội dung'] || d.noiDung || ''}</td>
                             <td>
                                 ${d['File'] ? `<a href="${d['File']}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-paperclip"></i> File</a>` : ''}
                             </td>
