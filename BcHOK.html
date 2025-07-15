@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <title>Báo Cáo Quan Trắc Hồ Ông Kinh</title>
+    <title>Báo Cáo Quan Trắc Mực Nước Hồ Thành Sơn</title>
     <style>
         body { font-family: 'Inter', sans-serif; }
         @media print {
@@ -50,6 +50,7 @@
                     <h2 class="text-2xl font-bold text-slate-700 tracking-wide">Thông tin mực nước</h2>
                     <span class="ml-auto bg-sky-100 text-sky-700 px-3 py-1 rounded-full text-xs font-semibold shadow">Cập nhật mới nhất</span>
                 </div>
+                
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 print:grid-cols-3 print:gap-3">
                     <div class="info-card"><span class="info-label">Ngày cập nhật</span><span class="info-value">{{ngayCapNhat}}</span></div>
                     <div class="info-card border-sky-200"><span class="info-label">Cao trình mực nước hiện tại (m)</span><span class="info-value text-sky-600">{{caoTrinhMucNuoc}}</span></div>
@@ -57,13 +58,13 @@
                     <div class="info-card border-blue-200"><span class="info-label">Lượng mưa (mm)</span><span class="info-value text-blue-700">{{luongMua}}</span></div>
                     <div class="info-card border-pink-200"><span class="info-label">Chênh lệch ∆V (m³)</span><span class="info-value text-pink-700">{{ChenhLech}}</span></div>
                     <div class="info-card border-green-200"><span class="info-label">Tỷ lệ so với Thiết kế (%)</span><span class="info-value text-green-600">{{TyLeTK}}</span></div>
-                    <div class="info-card border-sky-200"><span class="info-label">Cao trình MN cùng kỳ (m)</span><span class="info-value text-green-700">{{CTMNCK}}</span></div>
-                    <div class="info-card border-green-200"><span class="info-label">Dung tích cùng kỳ (Tr.m³)</span><span class="info-value text-green-700">{{DTMNCK}}</span></div>
+                    <div class="info-card border-sky-200"><span class="info-label">Cao trình MN cùng kỳ (m)</span><span class="info-value text-sky-700">{{CTMNCK}}</span></div>
+                    <div class="info-card border-green-200"><span class="info-label">Dung tích cùng kỳ (Tr.m³)</span><span class="info-value text-sky-700">{{DTMNCK}}</span></div>
                     <div class="info-card border-red-200"><span class="info-label">Cao trình MN chết (m)</span><span class="info-value text-red-700">{{CTMNC}}</span></div>
                     <div class="info-card border-red-200"><span class="info-label">Dung tích MN chết (Tr.m³)</span><span class="info-value text-red-700">{{DTMNC}}</span></div>
                     <div class="info-card border-yellow-200"><span class="info-label">Cao trình MN thiết kế (m)</span><span class="info-value text-yellow-700">{{CTMNTK}}</span></div>
                     <div class="info-card border-yellow-200"><span class="info-label">Dung tích MN thiết kế (Tr.m³)</span><span class="info-value text-yellow-700">{{DTMNTK}}</span></div>
-                </div>
+                 </div>
             </section>
 
             <!-- Biểu đồ so sánh mực nước -->
@@ -149,54 +150,87 @@
             margin-top: 0.25rem;
         }
     </style>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Lấy giá trị từ các thẻ đã render
+        // Hàm cải tiến để lấy giá trị từ các thẻ đã render
         function getValueByLabel(label) {
-            // Tìm thẻ info-card có info-label đúng label, lấy info-value
             var cards = document.querySelectorAll('.info-card');
             for (var i = 0; i < cards.length; i++) {
                 var lbl = cards[i].querySelector('.info-label');
                 var val = cards[i].querySelector('.info-value');
                 if (lbl && val && lbl.textContent.replace(/\s+/g, ' ').trim() === label) {
-                    var num = parseFloat(val.textContent.replace(",", "."));
+                    // Xử lý chuỗi số có dấu phẩy hoặc dấu chấm
+                    var textValue = val.textContent.trim();
+                    var num = parseFloat(textValue.replace(/[,]/g, '.'));
                     return isNaN(num) ? 0 : num;
                 }
             }
             return 0;
         }
+
+        // Lấy dữ liệu từ template variables trực tiếp (fallback)
+        function getTemplateValue(variableName) {
+            // Tìm element có chứa template variable
+            var elements = document.querySelectorAll('*');
+            for (var i = 0; i < elements.length; i++) {
+                var text = elements[i].textContent;
+                if (text.includes('{{' + variableName + '}}')) {
+                    var match = text.match(new RegExp('\\{\\{' + variableName + '\\}\\}'));
+                    if (match) {
+                        // Thử lấy giá trị từ data attribute hoặc content
+                        var value = elements[i].getAttribute('data-value') || elements[i].textContent;
+                        var num = parseFloat(value.replace(/[,]/g, '.'));
+                        return isNaN(num) ? 0 : num;
+                    }
+                }
+            }
+            return 0;
+        }
+
+        // Lấy dữ liệu với fallback
+        var mucNuocHienTai = getValueByLabel("Cao trình mực nước hiện tại (m)") || getTemplateValue("caoTrinhMucNuoc");
+        var mucNuocCungKy = getValueByLabel("Cao trình MN cùng kỳ (m)") || getTemplateValue("CTMNCK");
+        var mucNuocChet = getValueByLabel("Cao trình MN chết (m)") || getTemplateValue("CTMNC");
+        var mucNuocThietKe = getValueByLabel("Cao trình MN thiết kế (m)") || getTemplateValue("CTMNTK");
+
+        // Debug: Log các giá trị để kiểm tra
+        console.log("Mực nước hiện tại:", mucNuocHienTai);
+        console.log("Mực nước cùng kỳ:", mucNuocCungKy);
+        console.log("Mực nước chết:", mucNuocChet);
+        console.log("Mực nước thiết kế:", mucNuocThietKe);
+
         var labels = [
-            "Mực nước hiện tại",
-            "Mực nước cùng kỳ",
+            "Hiện tại",
+            "Cùng kỳ", 
             "Mực nước chết",
-            "Mực nước thiết kế"
+            "Thiết kế"
         ];
-        var data = [
-            getValueByLabel("Cao trình mực nước hiện tại (m)"),
-            getValueByLabel("Cao trình MN cùng kỳ (m)"),
-            getValueByLabel("Cao trình MN chết (m)"),
-            getValueByLabel("Cao trình MN thiết kế (m)")
-        ];
+        
+        var data = [mucNuocHienTai, mucNuocCungKy, mucNuocChet, mucNuocThietKe];
+        
         var bgColors = [
-            "rgba(56,189,248,0.7)",   // xanh dương
-            "rgba(34,197,94,0.7)",    // xanh lá
-            "rgba(239,68,68,0.7)",    // đỏ
-            "rgba(253,224,71,0.7)"    // vàng
+            "rgba(56,189,248,0.7)",   // xanh dương - hiện tại
+            "rgba(34,197,94,0.7)",    // xanh lá - cùng kỳ
+            "rgba(239,68,68,0.7)",    // đỏ - chết
+            "rgba(253,224,71,0.7)"    // vàng - thiết kế
         ];
+        
         var borderColors = [
             "rgba(56,189,248,1)",
             "rgba(34,197,94,1)",
             "rgba(239,68,68,1)",
             "rgba(253,224,71,1)"
         ];
+
         var ctx = document.getElementById('chartMucNuoc').getContext('2d');
         new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: "Mực nước (m)",
+                    label: "Cao trình mực nước (m)",
                     data: data,
                     backgroundColor: bgColors,
                     borderColor: borderColors,
@@ -207,21 +241,41 @@
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    title: { display: false },
+                    title: { 
+                        display: true, 
+                        text: 'So sánh mực nước hồ (m)',
+                        font: { size: 16, weight: 'bold' }
+                    },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return context.dataset.label + ": " + context.parsed.y + " m";
+                                return context.dataset.label + ": " + context.parsed.y.toFixed(2) + " m";
                             }
                         }
                     }
                 },
                 scales: {
                     y: {
-                        beginAtZero: true,
-                        title: { display: true, text: "Mực nước (m)" }
+                        beginAtZero: false,
+                        title: { 
+                            display: true, 
+                            text: "Cao trình (m)",
+                            font: { size: 14, weight: 'bold' }
+                        },
+                        ticks: {
+                            font: { size: 12 },
+                            callback: function(value) {
+                                return value.toFixed(2) + " m";
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: { size: 12, weight: '500' }
+                        }
                     }
                 }
             }
@@ -229,4 +283,4 @@
     });
     </script>
 </body>
-</html>
+</html> 
