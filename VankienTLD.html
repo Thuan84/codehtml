@@ -245,6 +245,9 @@ function applyFilters() {
         return true;
     });
     renderData(filteredData);
+
+    // THÊM DÒNG NÀY để cập nhật lại thống kê theo dữ liệu đã lọc
+    updateStatistics(filteredData);
 }
 
 function resetFilters() {
@@ -252,6 +255,9 @@ function resetFilters() {
     $('#search-input').val('');
     dataTable.search('').draw();
     renderData(allData);
+
+    // THÊM DÒNG NÀY để cập nhật lại thống kê về toàn bộ dữ liệu
+    updateStatistics(allData);
 }
 
 function populateFilters(data) {
