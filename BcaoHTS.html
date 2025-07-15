@@ -36,7 +36,7 @@
                 <p class="text-lg font-semibold text-sky-800 uppercase tracking-widest drop-shadow">TRẠM THỦY NÔNG NINH HẢI</p>
             </div>
             <h1 class="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-700 via-sky-500 to-sky-700 mt-2 drop-shadow-lg tracking-tight">BÁO CÁO QUAN TRẮC MỰC NƯỚC</h1>
-            <p class="text-xl font-medium text-slate-600 mt-2 tracking-wide">HỒ THÀNH SƠN</p>
+            <p class="text-xl font-medium text-slate-600 mt-2 tracking-wide">HỒ NƯỚC NGỌT</p>
         </header>
 
         <main class="space-y-12 print:space-y-3">
@@ -56,7 +56,7 @@
                     <div class="info-card border-sky-200"><span class="info-label">Cao trình mực nước hiện tại (m)</span><span class="info-value text-sky-600">{{caoTrinhMucNuoc}}</span></div>
                     <div class="info-card border-green-200"><span class="info-label">Dung tích hiện tại (Tr.m³)</span><span class="info-value text-sky-700">{{dungTichHienTai}}</span></div>
                     <div class="info-card border-blue-200"><span class="info-label">Lượng mưa (mm)</span><span class="info-value text-blue-700">{{luongMua}}</span></div>
-                    <div class="info-card border-yellow-200"><span class="info-label">Van đầu mối (m)</span><span class="info-value text-yellow-700">{{VanDauMoi}}</span></div>
+                    <div class="info-card border-yellow-200"><span class="info-label">Van đầu mối (m)</span><span class="info-value text-yellow-700">{{VanDauMoi}}</span></div>                    
                     <div class="info-card border-indigo-200"><span class="info-label">Hn Kênh chính (m)</span><span class="info-value text-indigo-700">{{HKenhChinh}}</span></div>
                     <div class="info-card border-pink-200"><span class="info-label">Chênh lệch ∆V (m³)</span><span class="info-value text-pink-700">{{ChenhLech}}</span></div>
                     <div class="info-card border-green-200"><span class="info-label">Tỷ lệ so với Thiết kế (%)</span><span class="info-value text-green-600">{{TyLeTK}}</span></div>
@@ -66,8 +66,8 @@
                     <div class="info-card border-red-200"><span class="info-label">Dung tích MN chết (Tr.m³)</span><span class="info-value text-red-700">{{DTMNC}}</span></div>
                     <div class="info-card border-yellow-200"><span class="info-label">Cao trình MN thiết kế (m)</span><span class="info-value text-yellow-700">{{CTMNTK}}</span></div>
                     <div class="info-card border-yellow-200"><span class="info-label">Dung tích MN thiết kế (Tr.m³)</span><span class="info-value text-yellow-700">{{DTMNTK}}</span></div>
-                    <div class="info-card border-slate-200"><span class="info-label">Cao độ đáy cửa vào (m)</span><span class="info-value">{{CDDCV}}</span></div>
-                </div>
+		    <div class="info-card border-slate-200"><span class="info-label">Cao độ đáy cửa vào (m)</span><span class="info-value">{{CDDCV}}</span></div>
+                 </div>
             </section>
 
             <!-- Biểu đồ so sánh mực nước -->
@@ -91,8 +91,11 @@
                     <span class="ml-auto bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-semibold shadow">Cảnh báo</span>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 print:grid-cols-4 print:gap-3">
-                    <div class="info-card border-orange-200"><span class="info-label">Htrn (cm)</span><span class="info-value text-orange-700">{{htrn}}</span></div>
-                    <div class="info-card border-orange-200"><span class="info-label">Qtd (m³/s)</span><span class="info-value text-orange-700">{{qtn1}}</span></div>
+                    <div class="info-card border-orange-200"><span class="info-label">Htr1 (cm)</span><span class="info-value text-orange-700">{{htrn1}}</span></div>
+			<div class="info-card border-orange-200"><span class="info-label">Htr2 (cm)</span><span class="info-value text-blue-700">{{htrn2}}</span></div>
+			<div class="info-card border-orange-200"><span class="info-label">Qtr1 (m³/s)</span><span class="info-value text-orange-700">{{qtr1}}</span></div>
+			<div class="info-card border-orange-200"><span class="info-label">Qtr2 (m³/s)</span><span class="info-value text-blue-700">{{qtr2}}</span></div>
+                    <div class="info-card border-orange-200"><span class="info-label">Qtd (m³/s)</span><span class="info-value text-Red-700">{{qtd}}</span></div>                   
                 </div>
             </section>
 
@@ -113,7 +116,6 @@
                 </div>
             </section>
         </main>
-
         <!-- Footer -->
         <footer class="mt-12 pt-8 border-t border-slate-200 text-center print:mt-5 print:pt-3 bg-gradient-to-r from-sky-50 to-slate-100 rounded-b-3xl shadow-inner">
             <p class="text-base text-slate-500 font-medium">
