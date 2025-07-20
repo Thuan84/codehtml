@@ -210,6 +210,13 @@ function loadData(forceRefresh = false) {
         success: function(response) {
             if (response.status === 'error' || !response.data) { showError(response.message || 'Lỗi không xác định hoặc không có dữ liệu.'); return; }
             allData = response.data;
+            
+            // Debug: Kiểm tra cấu trúc dữ liệu
+            if (allData && allData.length > 0) {
+                console.log('Mẫu dữ liệu đầu tiên:', allData[0]);
+                console.log('Tất cả các key có trong dữ liệu:', Object.keys(allData[0]));
+            }
+            
             populateFilters(allData);
             updateStatistics(allData);
             resetFilters();
@@ -241,7 +248,13 @@ function applyFilters() {
         if (agency && item.coQuanBanHanh !== agency) return false;
         if (materialType && item.loaiTaiLieu !== materialType) return false;
         if (dispatchType && item.loaiCongVan !== dispatchType) return false;
-        if (term && item.nhiemKy !== term) return false;
+        
+        // Cải thiện xử lý lọc nhiệm kỳ - kiểm tra nhiều tên cột có thể có
+        if (term) {
+            const itemTerm = item.nhiemKy || item.NhiemKy || item.nhiem_ky;
+            if (itemTerm !== term) return false;
+        }
+        
         if (selectedYear && (!itemDate || itemDate.getFullYear().toString() !== selectedYear)) return false;
         if (startDate && (!itemDate || itemDate < startDate)) return false;
         if (endDate && (!itemDate || itemDate > endDate)) return false;
@@ -265,12 +278,28 @@ function resetFilters() {
 
 function populateFilters(data) {
     const docTypes = new Set(), agencies = new Set(), materialTypes = new Set(), dispatchTypes = new Set(), terms = new Set(), years = new Set();
+    
+    // Debug: Log để kiểm tra dữ liệu
+    console.log('Dữ liệu nhận được:', data);
+    
     data.forEach(item => {
         if (item.loaiVanBan) docTypes.add(item.loaiVanBan);
         if (item.coQuanBanHanh) agencies.add(item.coQuanBanHanh);
         if (item.loaiTaiLieu) materialTypes.add(item.loaiTaiLieu);
         if (item.loaiCongVan) dispatchTypes.add(item.loaiCongVan);
-        if (item.nhiemKy) terms.add(item.nhiemKy);
+        
+        // Cải thiện xử lý nhiệm kỳ - kiểm tra nhiều tên cột có thể có
+        if (item.nhiemKy) {
+            terms.add(item.nhiemKy);
+            console.log('Tìm thấy nhiệm kỳ:', item.nhiemKy);
+        } else if (item.NhiemKy) {
+            terms.add(item.NhiemKy);
+            console.log('Tìm thấy nhiệm kỳ (viết hoa):', item.NhiemKy);
+        } else if (item.nhiem_ky) {
+            terms.add(item.nhiem_ky);
+            console.log('Tìm thấy nhiệm kỳ (dấu gạch dưới):', item.nhiem_ky);
+        }
+        
         if (item.ngayBanHanh) {
             try {
                 const date = new Date(item.ngayBanHanh);
@@ -280,6 +309,10 @@ function populateFilters(data) {
             } catch(e) { /* Bỏ qua ngày không hợp lệ */ }
         }
     });
+    
+    // Debug: Log các giá trị nhiệm kỳ tìm được
+    console.log('Các giá trị nhiệm kỳ tìm được:', [...terms]);
+    
     populateSelect('#filter-doc-type', [...docTypes].sort());
     populateSelect('#filter-agency', [...agencies].sort());
     populateSelect('#filter-material-type', [...materialTypes].sort());
@@ -317,7 +350,7 @@ function showDocumentDetail(stt) {
                     ${createRow('Loại Công văn', doc.loaiCongVan)}
                     ${createRow('Ngày BH', formatDateForDisplay(doc.ngayBanHanh))}
                     ${createRow('Cơ quan BH', doc.coQuanBanHanh)}
-                    ${createRow('Nhiệm kỳ', doc.nhiemKy)}
+                    ${createRow('Nhiệm kỳ', doc.nhiemKy || doc.NhiemKy || doc.nhiem_ky || '---')}
                 </tbody>
             </table>
         </div>
