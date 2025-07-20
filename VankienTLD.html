@@ -345,18 +345,15 @@ function printFilteredData() {
         Swal.fire('Không có dữ liệu', 'Không có dữ liệu nào để in theo bộ lọc hiện tại.', 'warning');
         return;
     }
-    // Sort by Ngày ban hành (desc), then Số hiệu (desc)
+    // Sort by Số hiệu (asc), then Ngày ban hành (asc)
     filteredData.sort((a, b) => {
+        if (a.soHieu && b.soHieu) {
+            const cmp = a.soHieu.localeCompare(b.soHieu, 'vi', { numeric: true });
+            if (cmp !== 0) return cmp;
+        }
         const dateA = a.ngayBanHanh ? new Date(a.ngayBanHanh) : new Date(0);
         const dateB = b.ngayBanHanh ? new Date(b.ngayBanHanh) : new Date(0);
-        if (dateA.getTime() !== dateB.getTime()) {
-            return dateB.getTime() - dateA.getTime();
-        }
-        // Số hiệu có thể là chuỗi, so sánh giảm dần
-        if (a.soHieu && b.soHieu) {
-            return b.soHieu.localeCompare(a.soHieu, 'vi', { numeric: true });
-        }
-        return 0;
+        return dateA.getTime() - dateB.getTime();
     });
     let tableContent = '';
     filteredData.forEach((item, idx) => {
@@ -365,6 +362,7 @@ function printFilteredData() {
             `<td>${item.soHieu || ''}</td>` +
             `<td>${item.trichYeu || ''}</td>` +
             `<td>${formatDateForDisplay(item.ngayBanHanh)}</td>` +
+            `<td>${item.coQuanBanHanh || ''}</td>` +
             `<td>${item.ghiChu || ''}</td>` +
             `</tr>`;
     });
@@ -389,6 +387,7 @@ function printFilteredData() {
                     <th>Số hiệu</th>
                     <th>Trích yếu</th>
                     <th>Ngày ban hành</th>
+                    <th>Cơ quan ban hành</th>
                     <th>Ghi chú</th>
                 </tr>
             </thead>
