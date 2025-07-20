@@ -73,6 +73,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-material-type" class="form-label fw-bold small">Loại tài liệu</label><select id="filter-material-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
 <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-dispatch-type" class="form-label fw-bold small">Loại công văn</label><select id="filter-dispatch-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
 <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-agency" class="form-label fw-bold small">Cơ quan BH</label><select id="filter-agency" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
+<div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-term" class="form-label fw-bold small">Nhiệm kỳ</label><select id="filter-term" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
 <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-year" class="form-label fw-bold small">Năm ban hành</label><select id="filter-year" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
 <div class="col-xl-3 col-lg-6 col-md-6"><label class="form-label fw-bold small">Ngày ban hành (Từ - Đến)</label><div class="input-group input-group-sm"><input type="date" id="filter-start-date" class="form-control"><input type="date" id="filter-end-date" class="form-control"></div></div>
 <div class="col-xl-1 col-lg-2 col-md-12"><button id="reset-filter-btn" class="btn btn-sm btn-outline-secondary w-100" title="Xóa bộ lọc"><i class="fas fa-times me-1 me-lg-0"></i><span class="d-lg-none ms-1"> Đặt lại</span></button></div>
@@ -135,7 +136,7 @@ $(document).ready(function() {
 function setupEventListeners() {
     $('#refresh-btn, #retry-btn').on('click', () => loadData(true));
     $('#search-input').on('keyup', function() { dataTable.search(this.value).draw(); });
-    $('#filter-doc-type, #filter-agency, #filter-material-type, #filter-dispatch-type, #filter-year, #filter-start-date, #filter-end-date').on('change', applyFilters);
+    $('#filter-doc-type, #filter-agency, #filter-material-type, #filter-dispatch-type, #filter-term, #filter-year, #filter-start-date, #filter-end-date').on('change', applyFilters);
     $('#reset-filter-btn').on('click', resetFilters);
     $('#print-btn').on('click', printFilteredData);
     $('#data-table tbody').on('click', 'button.view-detail', function() { showDocumentDetail($(this).data('id')); });
@@ -227,6 +228,7 @@ function applyFilters() {
     const agency = $('#filter-agency').val();
     const materialType = $('#filter-material-type').val();
     const dispatchType = $('#filter-dispatch-type').val();
+    const term = $('#filter-term').val();
     const selectedYear = $('#filter-year').val();
     const startDate = $('#filter-start-date').val() ? new Date($('#filter-start-date').val()) : null;
     const endDate = $('#filter-end-date').val() ? new Date($('#filter-end-date').val()) : null;
@@ -239,6 +241,7 @@ function applyFilters() {
         if (agency && item.coQuanBanHanh !== agency) return false;
         if (materialType && item.loaiTaiLieu !== materialType) return false;
         if (dispatchType && item.loaiCongVan !== dispatchType) return false;
+        if (term && item.nhiemKy !== term) return false;
         if (selectedYear && (!itemDate || itemDate.getFullYear().toString() !== selectedYear)) return false;
         if (startDate && (!itemDate || itemDate < startDate)) return false;
         if (endDate && (!itemDate || itemDate > endDate)) return false;
@@ -261,12 +264,13 @@ function resetFilters() {
 }
 
 function populateFilters(data) {
-    const docTypes = new Set(), agencies = new Set(), materialTypes = new Set(), dispatchTypes = new Set(), years = new Set();
+    const docTypes = new Set(), agencies = new Set(), materialTypes = new Set(), dispatchTypes = new Set(), terms = new Set(), years = new Set();
     data.forEach(item => {
         if (item.loaiVanBan) docTypes.add(item.loaiVanBan);
         if (item.coQuanBanHanh) agencies.add(item.coQuanBanHanh);
         if (item.loaiTaiLieu) materialTypes.add(item.loaiTaiLieu);
         if (item.loaiCongVan) dispatchTypes.add(item.loaiCongVan);
+        if (item.nhiemKy) terms.add(item.nhiemKy);
         if (item.ngayBanHanh) {
             try {
                 const date = new Date(item.ngayBanHanh);
@@ -280,6 +284,7 @@ function populateFilters(data) {
     populateSelect('#filter-agency', [...agencies].sort());
     populateSelect('#filter-material-type', [...materialTypes].sort());
     populateSelect('#filter-dispatch-type', [...dispatchTypes].sort());
+    populateSelect('#filter-term', [...terms].sort());
     populateSelect('#filter-year', [...years].sort((a, b) => b - a));
 }
 
@@ -300,7 +305,7 @@ function showDocumentDetail(stt) {
             filesHtml = files.map(url => `<a href="${url.trim()}" target="_blank" class="btn btn-sm btn-outline-primary me-2 mb-2"><i class="fas fa-paperclip me-1"></i> ${decodeURIComponent(url.trim().split('/').pop())}</a>`).join('');
         }
     }
-    $('#modal-body-content').html(`<div class="row"><div class="col-md-6"><h6 class="border-bottom pb-2 mb-3">Thông tin cơ bản</h6><table class="table table-bordered table-sm"><tbody>${createRow('Số hiệu', `<span class="fw-bold text-primary">${doc.soHieu}</span>`)}${createRow('Trích yếu', doc.trichYeu)}${createRow('Loại VB', doc.loaiVanBan)}${createRow('Loại Tài liệu', doc.loaiTaiLieu)}${createRow('Loại Công văn', doc.loaiCongVan)}${createRow('Ngày BH', formatDateForDisplay(doc.ngayBanHanh))}${createRow('Cơ quan BH', doc.coQuanBanHanh)}</tbody></table></div><div class="col-md-6"><h6 class="border-bottom pb-2 mb-3">Thông tin bổ sung</h6><table class="table table-bordered table-sm"><tbody>${createRow('Người ký', doc.nguoiKy)}${createRow('Người thảo', doc.nguoiThaoVanBan)}${createRow('Ngày tạo', formatDateForDisplay(doc.thoiGianTao))}${createRow('Cập nhật', formatDateForDisplay(doc.thoiGianCapNhat))}${createRow('Ghi chú', doc.ghiChu)}</tbody></table></div></div><hr><h6 class="mb-3">Tệp đính kèm</h6><div>${filesHtml}</div>`);
+    $('#modal-body-content').html(`<div class="row"><div class="col-md-6"><h6 class="border-bottom pb-2 mb-3">Thông tin cơ bản</h6><table class="table table-bordered table-sm"><tbody>${createRow('Số hiệu', `<span class="fw-bold text-primary">${doc.soHieu}</span>`)}${createRow('Trích yếu', doc.trichYeu)}${createRow('Loại VB', doc.loaiVanBan)}${createRow('Loại Tài liệu', doc.loaiTaiLieu)}${createRow('Loại Công văn', doc.loaiCongVan)}${createRow('Ngày BH', formatDateForDisplay(doc.ngayBanHanh))}${createRow('Cơ quan BH', doc.coQuanBanHanh)}${createRow('Nhiệm kỳ', doc.nhiemKy)}</tbody></table></div><div class="col-md-6"><h6 class="border-bottom pb-2 mb-3">Thông tin bổ sung</h6><table class="table table-bordered table-sm"><tbody>${createRow('Người ký', doc.nguoiKy)}${createRow('Người thảo', doc.nguoiThaoVanBan)}${createRow('Ngày tạo', formatDateForDisplay(doc.thoiGianTao))}${createRow('Cập nhật', formatDateForDisplay(doc.thoiGianCapNhat))}${createRow('Ghi chú', doc.ghiChu)}</tbody></table></div></div><hr><h6 class="mb-3">Tệp đính kèm</h6><div>${filesHtml}</div>`);
     new bootstrap.Modal(document.getElementById('detailModal')).show();
 }
 
