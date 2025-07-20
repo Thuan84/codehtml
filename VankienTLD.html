@@ -250,10 +250,7 @@ function applyFilters() {
         if (dispatchType && item.loaiCongVan !== dispatchType) return false;
         
         // Cải thiện xử lý lọc nhiệm kỳ - kiểm tra nhiều tên cột có thể có
-        if (term) {
-            const itemTerm = item.nhiemKy || item.NhiemKy || item.nhiem_ky;
-            if (itemTerm !== term) return false;
-        }
+        if (item["Nhiệm kỳ"] !== term) return false;
         
         if (selectedYear && (!itemDate || itemDate.getFullYear().toString() !== selectedYear)) return false;
         if (startDate && (!itemDate || itemDate < startDate)) return false;
@@ -285,13 +282,10 @@ function populateFilters(data) {
         if (item.loaiTaiLieu) materialTypes.add(item.loaiTaiLieu);
         if (item.loaiCongVan) dispatchTypes.add(item.loaiCongVan);
 
-        // Lấy tất cả các trường nhiệm kỳ, loại bỏ rỗng, trim, loại trùng
-        const possibleTerms = [item.nhiemKy, item.NhiemKy, item.nhiem_ky];
-        possibleTerms.forEach(term => {
-            if (typeof term === 'string' && term.trim() !== '') {
-                terms.add(term.trim());
-            }
-        });
+        // Lấy nhiệm kỳ đúng tên cột "Nhiệm kỳ"
+        if (typeof item["Nhiệm kỳ"] === 'string' && item["Nhiệm kỳ"].trim() !== '') {
+            terms.add(item["Nhiệm kỳ"].trim());
+        }
 
         if (item.ngayBanHanh) {
             try {
@@ -303,7 +297,6 @@ function populateFilters(data) {
         }
     });
 
-    // Loại bỏ giá trị rỗng khỏi terms
     const filteredTerms = [...terms].filter(t => t && t.trim() !== '');
 
     populateSelect('#filter-doc-type', [...docTypes].sort());
