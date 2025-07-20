@@ -278,28 +278,21 @@ function resetFilters() {
 
 function populateFilters(data) {
     const docTypes = new Set(), agencies = new Set(), materialTypes = new Set(), dispatchTypes = new Set(), terms = new Set(), years = new Set();
-    
-    // Debug: Log để kiểm tra dữ liệu
-    console.log('Dữ liệu nhận được:', data);
-    
+
     data.forEach(item => {
         if (item.loaiVanBan) docTypes.add(item.loaiVanBan);
         if (item.coQuanBanHanh) agencies.add(item.coQuanBanHanh);
         if (item.loaiTaiLieu) materialTypes.add(item.loaiTaiLieu);
         if (item.loaiCongVan) dispatchTypes.add(item.loaiCongVan);
-        
-        // Cải thiện xử lý nhiệm kỳ - kiểm tra nhiều tên cột có thể có
-        if (item.nhiemKy) {
-            terms.add(item.nhiemKy);
-            console.log('Tìm thấy nhiệm kỳ:', item.nhiemKy);
-        } else if (item.NhiemKy) {
-            terms.add(item.NhiemKy);
-            console.log('Tìm thấy nhiệm kỳ (viết hoa):', item.NhiemKy);
-        } else if (item.nhiem_ky) {
-            terms.add(item.nhiem_ky);
-            console.log('Tìm thấy nhiệm kỳ (dấu gạch dưới):', item.nhiem_ky);
-        }
-        
+
+        // Lấy tất cả các trường nhiệm kỳ, loại bỏ rỗng, trim, loại trùng
+        const possibleTerms = [item.nhiemKy, item.NhiemKy, item.nhiem_ky];
+        possibleTerms.forEach(term => {
+            if (typeof term === 'string' && term.trim() !== '') {
+                terms.add(term.trim());
+            }
+        });
+
         if (item.ngayBanHanh) {
             try {
                 const date = new Date(item.ngayBanHanh);
@@ -309,15 +302,15 @@ function populateFilters(data) {
             } catch(e) { /* Bỏ qua ngày không hợp lệ */ }
         }
     });
-    
-    // Debug: Log các giá trị nhiệm kỳ tìm được
-    console.log('Các giá trị nhiệm kỳ tìm được:', [...terms]);
-    
+
+    // Loại bỏ giá trị rỗng khỏi terms
+    const filteredTerms = [...terms].filter(t => t && t.trim() !== '');
+
     populateSelect('#filter-doc-type', [...docTypes].sort());
     populateSelect('#filter-agency', [...agencies].sort());
     populateSelect('#filter-material-type', [...materialTypes].sort());
     populateSelect('#filter-dispatch-type', [...dispatchTypes].sort());
-    populateSelect('#filter-term', [...terms].sort());
+    populateSelect('#filter-term', filteredTerms.sort());
     populateSelect('#filter-year', [...years].sort((a, b) => b - a));
 }
 
