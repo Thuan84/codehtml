@@ -82,6 +82,14 @@
         .export-btn-group .btn {
             margin-left: 10px;
         }
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
         @media (max-width: 768px) {
             .search-container .col-md-6 {
                 margin-bottom: 15px;
@@ -128,6 +136,8 @@
                 <p class="mt-3">Đang tải dữ liệu...</p>
             </div>
             
+            <div id="errorContainer" style="display: none;"></div>
+            
             <div class="table-responsive">
                 <table class="table table-hover" id="dataTable">
                     <thead class="table-light">
@@ -161,6 +171,8 @@
         let filteredData = [];
         const itemsPerPage = 15;
         let currentPage = 1;
+        let retryCount = 0;
+        const maxRetries = 3;
 
         document.addEventListener('DOMContentLoaded', function() {
             fetchData();
@@ -174,6 +186,7 @@
             // Sự kiện làm mới
             document.getElementById('refreshBtn').addEventListener('click', function() {
                 document.getElementById('searchInput').value = '';
+                retryCount = 0;
                 fetchData();
             });
             
@@ -182,32 +195,101 @@
             document.getElementById('exportPdfBtn').addEventListener('click', exportToPDF);
         });
 
-        // Hàm tải dữ liệu bằng JSONP
+        // Hàm tải dữ liệu bằng JSONP với xử lý lỗi cải thiện
         function fetchData() {
             showLoading();
+            hideError();
             
-            // Tạo callback function trên window
-            window.handleJsonpResponse = function(data) {
-                allData = data;
-                filteredData = [...allData];
-                updateTableInfo();
-                renderTable();
-                renderPagination();
-                hideLoading();
-                
-                // Dọn dẹp
-                delete window.handleJsonpResponse;
-                document.body.removeChild(script);
+            // Tạo callback function trên window với tên unique
+            const callbackName = 'handleJsonpResponse_' + Date.now();
+            
+            window[callbackName] = function(data) {
+                try {
+                    // Kiểm tra nếu có lỗi từ server
+                    if (data.error) {
+                        throw new Error(data.message || 'Lỗi từ server');
+                    }
+                    
+                    allData = Array.isArray(data) ? data : [];
+                    filteredData = [...allData];
+                    updateTableInfo();
+                    renderTable();
+                    renderPagination();
+                    hideLoading();
+                    retryCount = 0;
+                    
+                } catch (error) {
+                    console.error('Lỗi xử lý dữ liệu:', error);
+                    showError('Lỗi xử lý dữ liệu: ' + error.message);
+                } finally {
+                    // Dọn dẹp
+                    delete window[callbackName];
+                    if (document.getElementById('jsonp-script')) {
+                        document.body.removeChild(document.getElementById('jsonp-script'));
+                    }
+                }
             };
             
             // Tạo thẻ script để gọi API
             const script = document.createElement('script');
-            script.src = `${API_URL}?callback=handleJsonpResponse`;
+            script.id = 'jsonp-script';
+            script.src = `${API_URL}?callback=${callbackName}&_t=${Date.now()}`;
+            
             script.onerror = function() {
-                hideLoading();
-                alert('Không thể kết nối đến server. Vui lòng thử lại sau.');
+                console.error('Lỗi tải script, lần thử:', retryCount + 1);
+                
+                // Dọn dẹp callback
+                delete window[callbackName];
+                
+                if (retryCount < maxRetries) {
+                    retryCount++;
+                    setTimeout(() => {
+                        fetchData();
+                    }, 2000 * retryCount); // Tăng thời gian chờ theo số lần thử
+                } else {
+                    hideLoading();
+                    showError(`
+                        <strong>Không thể kết nối đến server</strong><br>
+                        Vui lòng kiểm tra:<br>
+                        • URL Google Apps Script có đúng không<br>
+                        • Script đã được deploy chưa<br>
+                        • Quyền truy cập có đủ không<br>
+                        • Kết nối internet có ổn định không<br>
+                        <button class="btn btn-primary mt-2" onclick="location.reload()">
+                            <i class="bi bi-arrow-clockwise"></i> Thử lại
+                        </button>
+                    `);
+                }
             };
+            
+            // Timeout cho request
+            const timeout = setTimeout(() => {
+                script.onerror();
+            }, 15000); // 15 giây timeout
+            
+            script.onload = function() {
+                clearTimeout(timeout);
+            };
+            
             document.body.appendChild(script);
+        }
+
+        // Hàm hiển thị lỗi
+        function showError(message) {
+            hideLoading();
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.innerHTML = `
+                <div class="error-message">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    ${message}
+                </div>
+            `;
+            errorContainer.style.display = 'block';
+        }
+
+        // Hàm ẩn lỗi
+        function hideError() {
+            document.getElementById('errorContainer').style.display = 'none';
         }
 
         // Hàm lọc dữ liệu
