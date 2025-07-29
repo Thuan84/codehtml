@@ -1,0 +1,65 @@
+<svg width="1400" height="120" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .header { fill: #1976d2; font-weight: bold; font-size: 15px; font-family: Arial, sans-serif; }
+    .cell { fill: #fff; font-size: 14px; font-family: Arial, sans-serif; }
+    .row-bg { fill: #e3f2fd; }
+    .border { stroke: #90caf9; stroke-width: 1; }
+  </style>
+  <!-- Header row background -->
+  <rect x="0" y="0" width="1400" height="30" class="row-bg" />
+  <!-- Header cells -->
+  <g>
+    <text x="10" y="20" class="header">So</text>
+    <text x="60" y="20" class="header">Sophieu</text>
+    <text x="150" y="20" class="header">Ngay</text>
+    <text x="230" y="20" class="header">Dien_giai</text>
+    <text x="370" y="20" class="header">Hinh_thuc</text>
+    <text x="480" y="20" class="header">Thu</text>
+    <text x="560" y="20" class="header">Chi</text>
+    <text x="640" y="20" class="header">Ton</text>
+    <text x="720" y="20" class="header">Nam</text>
+    <text x="800" y="20" class="header">Lich_su_thay_doi</text>
+    <text x="980" y="20" class="header">Ghi_chu</text>
+    <text x="1100" y="20" class="header">Thang</text>
+    <text x="1200" y="20" class="header">So_tien</text>
+  </g>
+  <!-- Data row background -->
+  <rect x="0" y="30" width="1400" height="30" fill="#fff" />
+  <!-- Data cells (sample data) -->
+  <g>
+    <text x="10" y="50" class="cell">1</text>
+    <text x="60" y="50" class="cell">P001</text>
+    <text x="150" y="50" class="cell">2024-06-01</text>
+    <text x="230" y="50" class="cell">Thu tien ban hang</text>
+    <text x="370" y="50" class="cell">Tien mat</text>
+    <text x="480" y="50" class="cell">5,000,000</text>
+    <text x="560" y="50" class="cell">0</text>
+    <text x="640" y="50" class="cell">10,000,000</text>
+    <text x="720" y="50" class="cell">2024</text>
+    <text x="800" y="50" class="cell">Tao moi</text>
+    <text x="980" y="50" class="cell">Khong</text>
+    <text x="1100" y="50" class="cell">6</text>
+    <text x="1200" y="50" class="cell">5,000,000</text>
+  </g>
+  <!-- Vertical borders -->
+  <g class="border">
+    <line x1="50" y1="0" x2="50" y2="60" />
+    <line x1="140" y1="0" x2="140" y2="60" />
+    <line x1="220" y1="0" x2="220" y2="60" />
+    <line x1="360" y1="0" x2="360" y2="60" />
+    <line x1="470" y1="0" x2="470" y2="60" />
+    <line x1="550" y1="0" x2="550" y2="60" />
+    <line x1="630" y1="0" x2="630" y2="60" />
+    <line x1="710" y1="0" x2="710" y2="60" />
+    <line x1="790" y1="0" x2="790" y2="60" />
+    <line x1="970" y1="0" x2="970" y2="60" />
+    <line x1="1090" y1="0" x2="1090" y2="60" />
+    <line x1="1190" y1="0" x2="1190" y2="60" />
+  </g>
+  <!-- Horizontal borders -->
+  <g class="border">
+    <line x1="0" y1="0" x2="1400" y2="0" />
+    <line x1="0" y1="30" x2="1400" y2="30" />
+    <line x1="0" y1="60" x2="1400" y2="60" />
+  </g>
+</svg>
