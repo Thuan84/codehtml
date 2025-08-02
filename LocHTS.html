@@ -18,11 +18,11 @@
 
   <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</h1>
   
-  <div class="header-info">Tháng: <span id="current-month"></span></div>
+  <div class="header-info"> <span id="current-month"></span></div>
   
   <table id="data-table">
     <thead>
-      <!-- Dòng 1: Tiêu đề nhóm - ĐÃ CẬP NHẬT COLSPAN -->
+      <!-- Dòng 1: Tiêu đề nhóm -->
       <tr>
         <th rowspan="2">STT</th>
         <th rowspan="2">Ngày, giờ</th>
@@ -36,7 +36,7 @@
         <th rowspan="2">Họ, tên người kiểm tra</th>
         <th rowspan="2">Ký tên</th>
       </tr>
-      <!-- Dòng 2: Tiêu đề chi tiết - ĐÃ THÊM CỘT a3 -->
+      <!-- Dòng 2: Tiêu đề chi tiết -->
       <tr>
         <!-- Nhóm Tràn tự do (2 cột) -->
         <th>H<sub>tràn</sub> (cm)</th>
@@ -53,7 +53,7 @@
       </tr>
     </thead>
     <tbody id="table-body">
-      <!-- Tổng số cột bây giờ là 17 -->
+      <!-- Dữ liệu sẽ được chèn vào đây bởi JavaScript -->
       <tr><td colspan="17" class="status-message">Đang tải dữ liệu...</td></tr>
     </tbody>
   </table>
@@ -65,9 +65,31 @@
       const errorDiv = document.getElementById('error-message');
       errorDiv.textContent = message;
       errorDiv.style.display = 'block';
-      // Cập nhật colspan cho thông báo lỗi
       document.getElementById('table-body').innerHTML = `<tr><td colspan="17" class="status-message error-message">${message}</td></tr>`;
     }
+
+    // *** BẮT ĐẦU PHẦN NÂNG CẤP ***
+    /**
+     * Hàm định dạng một giá trị thành số có 3 chữ số thập phân.
+     * @param {*} value - Giá trị đầu vào (có thể là số, chuỗi, null, undefined).
+     * @returns {string} - Chuỗi đã định dạng hoặc giá trị gốc nếu không phải số.
+     */
+    function formatNumber(value) {
+      // Nếu giá trị là null, undefined hoặc rỗng thì trả về chuỗi rỗng
+      if (value === null || value === undefined || value === '') {
+        return '';
+      }
+      // Chuyển giá trị thành số
+      const num = parseFloat(value);
+      // Kiểm tra xem có phải là một số hợp lệ không
+      if (!isNaN(num)) {
+        // Nếu là số, định dạng nó với 3 chữ số thập phân
+        return num.toFixed(3);
+      }
+      // Nếu không phải số (ví dụ: một chuỗi văn bản), trả về giá trị gốc
+      return value;
+    }
+    // *** KẾT THÚC PHẦN NÂNG CẤP ***
 
     const currentDate = new Date();
     document.getElementById('current-month').textContent = `Tháng ${currentDate.getMonth() + 1} năm ${currentDate.getFullYear()}`;
@@ -92,30 +114,33 @@
         if (data && Array.isArray(data) && data.length > 0) {
           data.forEach((row) => {
             const tr = document.createElement('tr');
-            // CẬP NHẬT TEMPLATE ĐỂ THÊM row.a3
+            
+            // *** BẮT ĐẦU PHẦN NÂNG CẤP ***
+            // Áp dụng hàm formatNumber cho các cột được yêu cầu
             tr.innerHTML = `
               <td>${row.stt || ''}</td>
               <td>${row.ngayGio || ''}</td>
               <td>${row.mucNuoc || ''}</td>
-              <td>${row.dungTich || ''}</td>
+              <td>${formatNumber(row.dungTich)}</td>              <!-- Đã định dạng -->
               <td>${row.luongMua || ''}</td>
-              <td>${row.hTran || ''}</td>
-              <td>${row.qTranTuDo || ''}</td>
+              <td>${formatNumber(row.hTran)}</td>                  <!-- Đã định dạng -->
+              <td>${formatNumber(row.qTranTuDo)}</td>              <!-- Đã định dạng -->
               <td>${row.a1 || ''}</td>
               <td>${row.a2 || ''}</td>
-              <td>${row.a3 || ''}</td> <!-- CỘT MỚI -->
-              <td>${row.qTranSuCo || ''}</td>
+              <td>${row.a3 || ''}</td>
+              <td>${formatNumber(row.qTranSuCo)}</td>              <!-- Đã định dạng -->
               <td>${row.a || ''}</td>
-              <td>${row.cotNuocDauKenh || ''}</td>
-              <td>${row.qCong || ''}</td>
+              <td>${formatNumber(row.cotNuocDauKenh)}</td>        <!-- Đã định dạng -->
+              <td>${formatNumber(row.qCong)}</td>                  <!-- Đã định dạng -->
               <td>${row.nguoiVanHanh || ''}</td>
               <td>${row.nguoiKiemTra || ''}</td>
               <td>${row.kyTen || ''}</td>
             `;
+            // *** KẾT THÚC PHẦN NÂNG CẤP ***
+
             tbody.appendChild(tr);
           });
         } else {
-          // Cập nhật colspan cho thông báo không có dữ liệu
           tbody.innerHTML = '<tr><td colspan="17" class="status-message">Không có dữ liệu để hiển thị.</td></tr>';
         }
       })
