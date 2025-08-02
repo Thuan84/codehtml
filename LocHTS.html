@@ -2,72 +2,131 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Nhật ký vận hành hồ chứa - Nâng cấp</title>
+  <title>Nhật ký vận hành hồ chứa - Bản nâng cấp hoàn chỉnh</title>
   
+  <!-- Thư viện cần thiết cho xuất file -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
   
+  <!-- Nhúng font 'Liberation Serif' (giống Times New Roman) hỗ trợ tiếng Việt cho PDF -->
+  <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Regular.js"></script>
+  <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Bold.js"></script>
+  <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Italic.js"></script>
+  
   <style>
     :root {
-      --primary-color: #0056b3; --secondary-color: #333; --bg-color: #f4f4f4;
-      --text-color: #000; --border-color: #ccc; --header-bg: #e9ecef;
-      --hover-bg: #f1f3f5; --shadow: 0 2px 5px rgba(0,0,0,0.1);
+      --header-bg: #1EA48D; /* Màu xanh trong ảnh mẫu */
+      --border-color: #ccc;
+      --hover-bg: #f1f3f5;
     }
     body {
-      font-family: 'Times New Roman', Times, serif; background-color: var(--bg-color);
-      color: var(--text-color); margin: 0; padding: 20px; font-size: 14pt;
+      font-family: 'Times New Roman', Times, serif;
+      background-color: #f4f4f4;
+      color: #000;
+      margin: 0;
+      padding: 20px;
+      font-size: 14pt;
     }
     .container {
-      max-width: 1600px; margin: 0 auto; background-color: #fff;
-      padding: 30px; border-radius: 5px; box-shadow: var(--shadow);
+      max-width: 1600px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     h1 {
-      font-size: 16pt; font-weight: bold; color: var(--secondary-color);
-      text-align: center; text-transform: uppercase; margin-bottom: 5px;
+      font-size: 16pt;
+      font-weight: bold;
+      color: #333;
+      text-align: center;
+      text-transform: uppercase;
+      margin-bottom: 5px;
     }
     .subtitle {
-      text-align: center; font-weight: bold; font-style: italic;
-      font-size: 14pt; margin-bottom: 20px;
+      text-align: center;
+      font-weight: normal;
+      font-size: 14pt;
+      margin-bottom: 20px;
     }
     .controls-container {
-      display: flex; justify-content: space-between; align-items: center;
-      flex-wrap: wrap; gap: 15px; margin-bottom: 20px; padding: 15px;
-      background-color: #fdfdff; border-radius: 6px; border: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #fdfdff;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
     }
-    .filters, .exports { display: flex; gap: 15px; align-items: center; }
+    .filters, .exports {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
     .filters label { font-weight: bold; }
     .filters select, .exports button {
-      padding: 8px 12px; border-radius: 5px; border: 1px solid var(--border-color);
-      background-color: #fff; font-family: 'Times New Roman', Times, serif;
-      font-size: 13pt; cursor: pointer; transition: all 0.2s ease-in-out;
+      padding: 8px 12px;
+      border-radius: 5px;
+      border: 1px solid var(--border-color);
+      background-color: #fff;
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 13pt;
+      cursor: pointer;
     }
-    .exports button { font-weight: bold; color: #fff; border: none; }
-    #export-excel { background-color: #28a745; }
-    #export-pdf { background-color: #dc3545; }
-    .filters select:hover, .exports button:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .exports button {
+      font-weight: bold;
+      color: #fff;
+      border: none;
+      transition: opacity 0.2s;
+    }
+    .exports button:hover { opacity: 0.9; }
+    #export-excel { background-color: #218838; }
+    #export-pdf { background-color: #c82333; }
     table {
-      border-collapse: collapse; width: 100%; font-size: 13pt; margin-top: 15px;
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13pt;
+      margin-top: 15px;
     }
     th, td {
-      border: 1px solid var(--border-color); padding: 8px 10px;
-      text-align: center; vertical-align: middle;
+      border: 1px solid var(--border-color);
+      padding: 8px 10px;
+      text-align: center;
+      vertical-align: middle;
     }
     th {
-      background-color: var(--header-bg); font-weight: bold;
-      position: sticky; top: 0; z-index: 1;
+      background-color: var(--header-bg);
+      color: white;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 1;
     }
     tbody tr:nth-child(even) { background-color: #f9f9f9; }
     tbody tr:hover { background-color: var(--hover-bg); }
     .status-message {
-      color: var(--secondary-color); padding: 40px; text-align: center;
-      font-style: italic; font-size: 14pt;
+      color: #555;
+      padding: 40px;
+      text-align: center;
+      font-style: italic;
+      font-size: 14pt;
     }
     .error-message {
       color: red; padding: 15px; background-color: #ffeeee;
       border: 1px solid #ffcccc; margin-top: 15px; border-radius: 5px;
     }
-    #loader { text-align: center; padding: 50px; }
+    .loader-container { padding: 50px; text-align: center; }
+    .spinner {
+      border: 5px solid #f3f3f3; border-top: 5px solid #3498db;
+      border-radius: 50%; width: 40px; height: 40px;
+      animation: spin 1s linear infinite; display: inline-block;
+      margin-bottom: 10px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -82,8 +141,8 @@
         <select id="year-filter"><option value="all">Tất cả</option></select>
         <label for="quarter-filter">Quý:</label>
         <select id="quarter-filter">
-          <option value="all">Tất cả</option> <option value="1">Quý 1</option>
-          <option value="2">Quý 2</option> <option value="3">Quý 3</option>
+          <option value="all">Tất cả</option><option value="1">Quý 1</option>
+          <option value="2">Quý 2</option><option value="3">Quý 3</option>
           <option value="4">Quý 4</option>
         </select>
         <label for="month-filter">Tháng:</label>
@@ -101,11 +160,11 @@
     <table id="data-table">
       <thead>
         <tr>
-          <th rowspan="2">STT</th> <th rowspan="2">Ngày, giờ</th> <th rowspan="2">Mực nước (m)</th>
-          <th rowspan="2">Dung tích (Triệu m³)</th> <th rowspan="2">Lượng mưa (mm)</th>
-          <th colspan="2">Tràn tự do</th> <th colspan="4">Tràn sự cố</th>
-          <th colspan="3">Cống lấy nước</th> <th rowspan="2">Người vận hành</th>
-          <th rowspan="2">Người kiểm tra</th> <th rowspan="2">Ký tên</th>
+          <th rowspan="2">STT</th><th rowspan="2">Ngày, giờ</th><th rowspan="2">Mực nước (m)</th>
+          <th rowspan="2">Dung tích (Triệu m³)</th><th rowspan="2">Lượng mưa (mm)</th>
+          <th colspan="2">Tràn tự do</th><th colspan="4">Tràn sự cố</th>
+          <th colspan="3">Cống lấy nước</th><th rowspan="2">Người vận hành</th>
+          <th rowspan="2">Người kiểm tra</th><th rowspan="2">Ký tên</th>
         </tr>
         <tr>
           <th>H<sub>tràn</sub> (cm)</th><th>Q<sub>tràn tự do</sub> (m³/s)</th>
@@ -115,7 +174,14 @@
         </tr>
       </thead>
       <tbody id="table-body">
-        <tr><td colspan="17" id="loader" class="status-message">Đang tải dữ liệu...</td></tr>
+        <tr>
+          <td colspan="17">
+            <div class="loader-container">
+              <div class="spinner"></div>
+              <div class="status-message">Đang tải dữ liệu...</div>
+            </div>
+          </td>
+        </tr>
       </tbody>
     </table>
     <div id="error-message" class="error-message" style="display: none;"></div>
@@ -140,10 +206,7 @@
     function formatNumberWithComma(value) {
       if (value === null || value === undefined || value === '') return '';
       const num = parseFloat(value);
-      if (!isNaN(num)) {
-        return num.toFixed(3).replace('.', ',');
-      }
-      return value;
+      return !isNaN(num) ? num.toFixed(3).replace('.', ',') : value;
     }
 
     function renderTable(data) {
@@ -154,25 +217,23 @@
       }
       data.forEach((row, index) => {
         const tr = document.createElement('tr');
-        // *** BẮT ĐẦU NÂNG CẤP ***
         tr.innerHTML = `
           <td>${index + 1}</td>
           <td>${row.ngayGio || ''}</td>
-          <td>${formatNumberWithComma(row.mucNuoc)}</td> <!-- Đã định dạng -->
+          <td>${formatNumberWithComma(row.mucNuoc)}</td>
           <td>${formatNumberWithComma(row.dungTich)}</td>
           <td>${row.luongMua || ''}</td>
           <td>${formatNumberWithComma(row.hTran)}</td>
           <td>${formatNumberWithComma(row.qTranTuDo)}</td>
           <td>${row.a1 || ''}</td><td>${row.a2 || ''}</td><td>${row.a3 || ''}</td>
           <td>${formatNumberWithComma(row.qTranSuCo)}</td>
-          <td>${formatNumberWithComma(row.a)}</td> <!-- Đã định dạng -->
+          <td>${formatNumberWithComma(row.a)}</td>
           <td>${formatNumberWithComma(row.cotNuocDauKenh)}</td>
           <td>${formatNumberWithComma(row.qCong)}</td>
           <td>${row.nguoiVanHanh || ''}</td>
           <td>${row.nguoiKiemTra || ''}</td>
           <td></td>
         `;
-        // *** KẾT THÚC NÂNG CẤP ***
         tableBody.appendChild(tr);
       });
     }
@@ -180,6 +241,7 @@
     function populateYearFilter(data) {
         const years = [...new Set(data.map(row => (row.ngayGio && row.ngayGio.split(' ')[0].split('/').length === 3) ? row.ngayGio.split(' ')[0].split('/')[2] : null).filter(Boolean))];
         years.sort((a, b) => b - a);
+        yearFilter.innerHTML = '<option value="all">Tất cả</option>'; // Xóa các năm cũ trước khi thêm
         years.forEach(year => {
             const option = document.createElement('option');
             option.value = year;
@@ -219,39 +281,57 @@
     quarterFilter.addEventListener('change', () => { if (quarterFilter.value !== 'all') monthFilter.value = 'all'; });
 
     const apiURL = 'https://script.google.com/macros/s/AKfycby4PiKkbpB_7TBwwje1kZSFEQS-WvC7JMW6_0EcGTWPuAM4N46PS1c1h1I1GQ0oVjs/exec';
-    fetch(apiURL)
-      .then(res => res.ok ? res.json() : Promise.reject(`Lỗi mạng: ${res.status}`))
-      .then(data => {
-        if (data.error) throw new Error(`Lỗi từ API: ${data.message}`);
+    const cacheKey = 'nhat_ky_van_hanh_cache_v1';
+    
+    function processData(data) {
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="17" class="status-message">Không có dữ liệu để hiển thị.</td></tr>`;
+            return;
+        }
         allData = data;
         populateYearFilter(allData);
         applyFiltersAndRender();
+    }
+    
+    const cachedData = localStorage.getItem(cacheKey);
+    if (cachedData) {
+        processData(JSON.parse(cachedData));
+    }
+
+    fetch(apiURL)
+      .then(res => res.ok ? res.json() : Promise.reject(`Lỗi mạng: ${res.status}`))
+      .then(data => {
+        const freshData = typeof data === 'string' ? JSON.parse(data) : data;
+        if (freshData.error) throw new Error(`Lỗi từ API: ${freshData.message}`);
+        if (JSON.stringify(freshData) !== cachedData) {
+            localStorage.setItem(cacheKey, JSON.stringify(freshData));
+            processData(freshData);
+        }
       })
-      .catch(err => { console.error('Lỗi tải dữ liệu:', err); showError(`Không thể tải dữ liệu. Lỗi: ${err.message}`); });
+      .catch(err => {
+        console.error('Lỗi tải dữ liệu:', err);
+        if (!cachedData) {
+            showError(`Không thể tải dữ liệu. Lỗi: ${err.message}`);
+        }
+      });
       
     document.getElementById('export-excel').addEventListener('click', () => {
         if (filteredData.length === 0) return alert('Không có dữ liệu để xuất.');
         const headers = ["STT", "Ngày, giờ", "Mực nước (m)", "Dung tích (Triệu m³)", "Lượng mưa (mm)", "Htràn (cm)", "Qtràn tự do (m³/s)", "a1 (cm)", "a2 (cm)", "a3 (cm)", "Qtràn sự cố (m³/s)", "a (cm)", "Cột nước đầu kênh (m)", "Qcống (m³/s)", "Người vận hành", "Người kiểm tra"];
-        
-        // *** BẮT ĐẦU NÂNG CẤP ***
         const dataToExport = filteredData.map((row, index) => [
-            index + 1,
-            row.ngayGio || '',
-            row.mucNuoc ? Number(parseFloat(row.mucNuoc).toFixed(3)) : '', // Đã định dạng
+            index + 1, row.ngayGio || '',
+            row.mucNuoc ? Number(parseFloat(row.mucNuoc).toFixed(3)) : '',
             row.dungTich ? Number(parseFloat(row.dungTich).toFixed(3)) : '',
             row.luongMua || '',
             row.hTran ? Number(parseFloat(row.hTran).toFixed(3)) : '',
             row.qTranTuDo ? Number(parseFloat(row.qTranTuDo).toFixed(3)) : '',
             row.a1 || '', row.a2 || '', row.a3 || '',
             row.qTranSuCo ? Number(parseFloat(row.qTranSuCo).toFixed(3)) : '',
-            row.a ? Number(parseFloat(row.a).toFixed(3)) : '', // Đã định dạng
+            row.a ? Number(parseFloat(row.a).toFixed(3)) : '',
             row.cotNuocDauKenh ? Number(parseFloat(row.cotNuocDauKenh).toFixed(3)) : '',
             row.qCong ? Number(parseFloat(row.qCong).toFixed(3)) : '',
-            row.nguoiVanHanh || '',
-            row.nguoiKiemTra || ''
+            row.nguoiVanHanh || '', row.nguoiKiemTra || ''
         ]);
-        // *** KẾT THÚC NÂNG CẤP ***
-
         const worksheetData = [headers, ...dataToExport];
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(worksheetData);
@@ -264,23 +344,36 @@
         if (filteredData.length === 0) return alert('Không có dữ liệu để xuất.');
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('landscape', 'pt', 'a4');
-        try {
-            const fontResponse = await fetch('https://raw.githubusercontent.com/MrRio/jsPDF/master/src/libs/raw-fonts/Roboto-Regular.js');
-            const fontFile = await fontResponse.text();
-            (new Function(fontFile)).call(this);
-            doc.setFont('Roboto-Regular', 'normal');
-        } catch (e) { console.error("Không tải được font, PDF có thể lỗi tiếng Việt.", e); }
+        const FONT_FAMILY = "LiberationSerif";
+        doc.addFont('LiberationSerif-Regular.js', FONT_FAMILY, 'normal');
+        doc.addFont('LiberationSerif-Bold.js', FONT_FAMILY, 'bold');
+        doc.addFont('LiberationSerif-Italic.js', FONT_FAMILY, 'italic');
+        doc.setFont(FONT_FAMILY);
+        
         doc.setFontSize(16);
-        doc.setFont('Roboto-Regular', 'bold');
+        doc.setFont(FONT_FAMILY, 'bold');
         doc.text("NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT", doc.internal.pageSize.getWidth() / 2, 40, { align: 'center' });
-        doc.setFontSize(12);
-        doc.setFont('Roboto-Regular', 'normal');
+        
+        doc.setFontSize(14);
+        doc.setFont(FONT_FAMILY, 'normal');
         const subtitle = subtitleDiv.textContent;
         doc.text(subtitle, doc.internal.pageSize.getWidth() / 2, 60, { align: 'center' });
+        
         doc.autoTable({
             html: '#data-table', startY: 80, theme: 'grid',
-            headStyles: { fillColor: [22, 160, 133], fontSize: 8, font: 'Roboto-Regular', fontStyle: 'bold' },
-            styles: { font: 'Roboto-Regular', fontSize: 7 }, margin: { top: 80 }
+            headStyles: {
+                font: FONT_FAMILY, fontStyle: 'bold',
+                fillColor: [30, 164, 141], textColor: [255, 255, 255],
+                fontSize: 10, halign: 'center', valign: 'middle',
+                lineWidth: 0.5, lineColor: [204, 204, 204]
+            },
+            styles: {
+                font: FONT_FAMILY, fontStyle: 'normal',
+                textColor: [0, 0, 0], fontSize: 9, cellPadding: 4,
+                lineWidth: 0.5, lineColor: [204, 204, 204]
+            },
+            alternateRowStyles: { fillColor: [245, 245, 245] },
+            margin: { top: 80 }
         });
         doc.save(`NhatKyVanHanh_${subtitle.replace(/ /g, '_')}.pdf`);
     });
