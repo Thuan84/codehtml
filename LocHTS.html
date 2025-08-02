@@ -33,6 +33,13 @@
       margin-bottom: 10px;
       font-weight: bold;
     }
+    .error-message {
+      color: red;
+      padding: 10px;
+      background-color: #ffeeee;
+      border: 1px solid #ffcccc;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -57,7 +64,7 @@
         <th rowspan="2">Ký tên</th>
       </tr>
       <tr>
-        <th>Hiện (cm)</th>
+        <th>Htràn (cm)</th>
         <th>Qtràn tự do (m³/s)</th>
         <th>a1 (cm)</th>
         <th>a2 (cm)</th>
@@ -72,8 +79,16 @@
     </tbody>
   </table>
 
+  <div id="error-message" class="error-message" style="display: none;"></div>
+
   <script>
-    const apiURL = 'https://script.google.com/macros/s/AKfycby4PiKkbpB_7TBwwje1kZSFEQS-WvC7JMW6_0EcGTWPuAM4N46PS1c1h1I1GQ0oVjs/exec';
+    // Hàm hiển thị thông báo lỗi
+    function showError(message) {
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      document.getElementById('table-body').innerHTML = '<tr><td colspan="16">Không thể tải dữ liệu</td></tr>';
+    }
 
     // Lấy tháng hiện tại
     const months = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
@@ -81,43 +96,75 @@
     const currentDate = new Date();
     document.getElementById('current-month').textContent = months[currentDate.getMonth()] + ' ' + currentDate.getFullYear();
 
-    fetch(apiURL)
-      .then(response => response.json())
+    // URL API - thêm no-cache để tránh cache trình duyệt
+    const apiURL = 'https://script.google.com/macros/s/AKfycby4PiKkbpB_7TBwwje1kZSFEQS-WvC7JMW6_0EcGTWPuAM4N46PS1c1h1I1GQ0oVjs/exec?nocache=' + new Date().getTime();
+
+    // Thử tải dữ liệu
+    fetch(apiURL, {
+      mode: 'no-cors' // Thử chế độ no-cors nếu có vấn đề CORS
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Lỗi HTTP: ${response.status}`);
+        }
+        return response.json();
+      })
       .then(data => {
         const tbody = document.getElementById('table-body');
         tbody.innerHTML = '';
 
-        if (data && data.data) { // Giả sử API trả về object có property 'data' chứa mảng các bản ghi
-          data.data.forEach((row, index) => {
+        if (data && Array.isArray(data)) {
+          if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="16">Không có dữ liệu</td></tr>';
+            return;
+          }
+
+          data.forEach((row, index) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
               <td>${index + 1}</td>
-              <td>${row.date_time || ''}</td>
-              <td>${row.water_level || ''}</td>
-              <td>${row.capacity || ''}</td>
-              <td>${row.rainfall || ''}</td>
-              <td>${row.spillway_current || ''}</td>
-              <td>${row.spillway_free_flow || ''}</td>
-              <td>${row.spillway_a1 || ''}</td>
-              <td>${row.spillway_a2 || ''}</td>
-              <td>${row.spillway_emergency_flow || ''}</td>
-              <td>${row.spillway_a || ''}</td>
-              <td>${row.intake_head || ''}</td>
-              <td>${row.intake_flow || ''}</td>
-              <td>${row.operator || ''}</td>
-              <td>${row.inspector || ''}</td>
-              <td>${row.signature || ''}</td>
+              <td>${row.ngayGio || ''}</td>
+              <td>${row.mucNuoc || ''}</td>
+              <td>${row.dungTich || ''}</td>
+              <td>${row.luongMua || ''}</td>
+              <td>${row.hTran || ''}</td>
+              <td>${row.qTranTuDo || ''}</td>
+              <td>${row.a1 || ''}</td>
+              <td>${row.a2 || ''}</td>
+              <td>${row.qTranSuCo || ''}</td>
+              <td>${row.a || ''}</td>
+              <td>${row.cotNuocDauKenh || ''}</td>
+              <td>${row.qCong || ''}</td>
+              <td>${row.nguoiVanHanh || ''}</td>
+              <td>${row.nguoiKiemTra || ''}</td>
+              <td>${row.kyTen || ''}</td>
             `;
             tbody.appendChild(tr);
           });
         } else {
-          tbody.innerHTML = '<tr><td colspan="16">Không có dữ liệu</td></tr>';
+          showError('Dữ liệu không đúng định dạng');
         }
       })
       .catch(error => {
-        document.getElementById('table-body').innerHTML = `<tr><td colspan="16">Lỗi khi tải dữ liệu: ${error.message}</td></tr>`;
-        console.error('Error fetching data:', error);
+        console.error('Lỗi khi tải dữ liệu:', error);
+        showError(`Không thể kết nối đến máy chủ dữ liệu. Lỗi: ${error.message}`);
+        
+        // Gợi ý khắc phục cho người dùng
+        setTimeout(() => {
+          const errorDiv = document.getElementById('error-message');
+          errorDiv.innerHTML += '<br><br><strong>Gợi ý khắc phục:</strong>';
+          errorDiv.innerHTML += '<br>1. Kiểm tra kết nối internet của bạn';
+          errorDiv.innerHTML += '<br>2. Thử tải lại trang sau vài phút';
+          errorDiv.innerHTML += '<br>3. Liên hệ với bộ phận kỹ thuật nếu lỗi tiếp diễn';
+        }, 1000);
       });
+
+    // Thử phương pháp dự phòng nếu fetch không hoạt động
+    setTimeout(() => {
+      if (document.getElementById('table-body').innerHTML.includes('Đang tải dữ liệu')) {
+        showError('Kết nối quá lâu. Máy chủ có thể không phản hồi.');
+      }
+    }, 10000); // Timeout sau 10 giây
   </script>
 
 </body>
