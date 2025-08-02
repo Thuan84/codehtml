@@ -39,7 +39,7 @@
 
   <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</h1>
   
-  <div class="month">Tháng: <<[Thang]>></div>
+  <div class="month">Tháng: <span id="current-month"></span></div>
   
   <table id="data-table">
     <thead>
@@ -75,37 +75,48 @@
   <script>
     const apiURL = 'https://script.google.com/macros/s/AKfycby4PiKkbpB_7TBwwje1kZSFEQS-WvC7JMW6_0EcGTWPuAM4N46PS1c1h1I1GQ0oVjs/exec';
 
+    // Lấy tháng hiện tại
+    const months = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                    "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
+    const currentDate = new Date();
+    document.getElementById('current-month').textContent = months[currentDate.getMonth()] + ' ' + currentDate.getFullYear();
+
     fetch(apiURL)
       .then(response => response.json())
       .then(data => {
         const tbody = document.getElementById('table-body');
         tbody.innerHTML = '';
 
-        data.forEach((row, index) => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${row.ngayGio}</td>
-            <td>${row.mucNuoc}</td>
-            <td>${row.dungTich}</td>
-            <td>${row.luongMua}</td>
-            <td>${row.hTran}</td>
-            <td>${row.qTranTuDo}</td>
-            <td>${row.a1}</td>
-            <td>${row.a2}</td>
-            <td>${row.qTranSuCo}</td>
-            <td>${row.a}</td>
-            <td>${row.cotNuocDauKenh}</td>
-            <td>${row.qCong}</td>
-            <td>${row.nguoiVanHanh}</td>
-            <td>${row.nguoiKiemTra}</td>
-            <td>${row.kyTen}</td>
-          `;
-          tbody.appendChild(tr);
-        });
+        if (data && data.data) { // Giả sử API trả về object có property 'data' chứa mảng các bản ghi
+          data.data.forEach((row, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${index + 1}</td>
+              <td>${row.date_time || ''}</td>
+              <td>${row.water_level || ''}</td>
+              <td>${row.capacity || ''}</td>
+              <td>${row.rainfall || ''}</td>
+              <td>${row.spillway_current || ''}</td>
+              <td>${row.spillway_free_flow || ''}</td>
+              <td>${row.spillway_a1 || ''}</td>
+              <td>${row.spillway_a2 || ''}</td>
+              <td>${row.spillway_emergency_flow || ''}</td>
+              <td>${row.spillway_a || ''}</td>
+              <td>${row.intake_head || ''}</td>
+              <td>${row.intake_flow || ''}</td>
+              <td>${row.operator || ''}</td>
+              <td>${row.inspector || ''}</td>
+              <td>${row.signature || ''}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="16">Không có dữ liệu</td></tr>';
+        }
       })
       .catch(error => {
-        document.getElementById('table-body').innerHTML = `<tr><td colspan="16">Lỗi khi tải dữ liệu: ${error}</td></tr>`;
+        document.getElementById('table-body').innerHTML = `<tr><td colspan="16">Lỗi khi tải dữ liệu: ${error.message}</td></tr>`;
+        console.error('Error fetching data:', error);
       });
   </script>
 
