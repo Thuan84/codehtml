@@ -66,64 +66,58 @@
     const currentDate = new Date();
     document.getElementById('current-month').textContent = `Tháng ${currentDate.getMonth() + 1} năm ${currentDate.getFullYear()}`;
 
-    // *** BƯỚC QUAN TRỌNG: DÁN URL WEB APP BẠN VỪA SAO CHÉP VÀO ĐÂY ***
+    // URL của Web App từ Google Apps Script
     const apiURL = 'https://script.google.com/macros/s/AKfycby4PiKkbpB_7TBwwje1kZSFEQS-WvC7JMW6_0EcGTWPuAM4N46PS1c1h1I1GQ0oVjs/exec';
 
-    // Kiểm tra nếu người dùng chưa dán URL
-    if (apiURL === 'https://script.google.com/macros/s/AKfycby4PiKkbpB_7TBwwje1kZSFEQS-WvC7JMW6_0EcGTWPuAM4N46PS1c1h1I1GQ0oVjs/exec') {
-        showError('Lỗi cấu hình: Vui lòng dán URL của Google Apps Script vào biến apiURL trong file HTML.');
-    } else {
-        // Tải dữ liệu từ API
-        fetch(apiURL) // <-- ĐÃ XÓA { mode: 'no-cors' }
-          .then(response => {
-            if (!response.ok) {
-              // Nếu server trả về lỗi, ném ra lỗi để khối .catch() xử lý
-              throw new Error(`Lỗi mạng hoặc máy chủ: ${response.status} ${response.statusText}`);
-            }
-            return response.json();
-          })
-          .then(data => {
-            // Kiểm tra xem dữ liệu trả về có phải là lỗi từ Apps Script không
-            if (data.error) {
-              throw new Error(`Lỗi từ Google Script: ${data.message}`);
-            }
+    // *** ĐÃ SỬA LỖI: BỎ ĐI KHỐI LỆNH IF/ELSE KHÔNG CẦN THIẾT ***
 
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = ''; // Xóa thông báo "Đang tải"
+    // Tải dữ liệu từ API
+    fetch(apiURL)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Lỗi mạng hoặc máy chủ: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.error) {
+          throw new Error(`Lỗi từ Google Script: ${data.message}`);
+        }
 
-            if (data && Array.isArray(data) && data.length > 0) {
-              data.forEach((row) => {
-                // Chúng ta dùng row.stt từ Google Sheet thay vì index + 1
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                  <td>${row.stt || ''}</td>
-                  <td>${row.ngayGio || ''}</td>
-                  <td>${row.mucNuoc || ''}</td>
-                  <td>${row.dungTich || ''}</td>
-                  <td>${row.luongMua || ''}</td>
-                  <td>${row.hTran || ''}</td>
-                  <td>${row.qTranTuDo || ''}</td>
-                  <td>${row.a1 || ''}</td>
-                  <td>${row.a2 || ''}</td>
-                  <td>${row.qTranSuCo || ''}</td>
-                  <td>${row.a || ''}</td>
-                  <td>${row.cotNuocDauKenh || ''}</td>
-                  <td>${row.qCong || ''}</td>
-                  <td>${row.nguoiVanHanh || ''}</td>
-                  <td>${row.nguoiKiemTra || ''}</td>
-                  <td>${row.kyTen || ''}</td>
-                `;
-                tbody.appendChild(tr);
-              });
-            } else {
-              tbody.innerHTML = '<tr><td colspan="16" class="status-message">Không có dữ liệu để hiển thị.</td></tr>';
-            }
-          })
-          .catch(error => {
-            console.error('Đã xảy ra lỗi khi tải dữ liệu:', error);
-            showError(`Không thể tải dữ liệu. Lỗi: ${error.message}`);
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = ''; 
+
+        if (data && Array.isArray(data) && data.length > 0) {
+          data.forEach((row) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${row.stt || ''}</td>
+              <td>${row.ngayGio || ''}</td>
+              <td>${row.mucNuoc || ''}</td>
+              <td>${row.dungTich || ''}</td>
+              <td>${row.luongMua || ''}</td>
+              <td>${row.hTran || ''}</td>
+              <td>${row.qTranTuDo || ''}</td>
+              <td>${row.a1 || ''}</td>
+              <td>${row.a2 || ''}</td>
+              <td>${row.qTranSuCo || ''}</td>
+              <td>${row.a || ''}</td>
+              <td>${row.cotNuocDauKenh || ''}</td>
+              <td>${row.qCong || ''}</td>
+              <td>${row.nguoiVanHanh || ''}</td>
+              <td>${row.nguoiKiemTra || ''}</td>
+              <td>${row.kyTen || ''}</td>
+            `;
+            tbody.appendChild(tr);
           });
-    }
+        } else {
+          tbody.innerHTML = '<tr><td colspan="16" class="status-message">Không có dữ liệu để hiển thị.</td></tr>';
+        }
+      })
+      .catch(error => {
+        console.error('Đã xảy ra lỗi khi tải dữ liệu:', error);
+        showError(`Không thể tải dữ liệu. Lỗi: ${error.message}`);
+      });
   </script>
 
 </body>
