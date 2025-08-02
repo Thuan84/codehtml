@@ -2,153 +2,397 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Nhật ký vận hành hồ chứa</title>
+  <title>Nhật ký vận hành hồ chứa - Nâng cấp</title>
+  
+  <!-- Thêm Google Fonts cho giao diện hiện đại hơn -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Thư viện để xuất file Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  
+  <!-- Thư viện để xuất file PDF và plugin tạo bảng -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    table { border-collapse: collapse; width: 100%; font-size: 14px; margin-top: 15px; }
-    th, td { border: 1px solid #ccc; padding: 8px 10px; text-align: center; vertical-align: middle; }
-    th { background-color: #f2f2f2; font-weight: bold; }
-    h1 { font-size: 20px; font-weight: bold; margin-bottom: 10px; text-align: center; text-transform: uppercase; }
-    .header-info { text-align: left; margin-bottom: 10px; font-weight: bold; }
-    .status-message { color: #555; padding: 20px; text-align: center; font-style: italic; }
-    .error-message { color: red; padding: 10px; background-color: #ffeeee; border: 1px solid #ffcccc; margin-top: 10px; }
+    :root {
+      --primary-color: #007bff;
+      --secondary-color: #6c757d;
+      --bg-color: #f8f9fa;
+      --text-color: #333;
+      --border-color: #dee2e6;
+      --header-bg: #e9ecef;
+      --hover-bg: #f1f3f5;
+      --shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary-color);
+      text-align: center;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .controls-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #fdfdff;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+    .filters, .exports {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+    .filters label { font-weight: 500; }
+    .filters select, .exports button {
+      padding: 8px 12px;
+      border-radius: 5px;
+      border: 1px solid var(--border-color);
+      background-color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+    }
+    .exports button { font-weight: 500; color: #fff; border: none; }
+    #export-excel { background-color: #28a745; }
+    #export-pdf { background-color: #dc3545; }
+    .filters select:hover, .exports button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    #export-excel:hover { background-color: #218838; }
+    #export-pdf:hover { background-color: #c82333; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 14px;
+      margin-top: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 10px 12px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    th {
+      background-color: var(--header-bg);
+      font-weight: 500;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    tbody tr:nth-child(even) { background-color: #f9f9f9; }
+    tbody tr:hover { background-color: var(--hover-bg); }
+    .status-message {
+      color: var(--secondary-color);
+      padding: 40px;
+      text-align: center;
+      font-style: italic;
+      font-size: 16px;
+    }
+    .error-message {
+      color: red;
+      padding: 15px;
+      background-color: #ffeeee;
+      border: 1px solid #ffcccc;
+      margin-top: 15px;
+      border-radius: 5px;
+    }
+    #loader { text-align: center; padding: 50px; }
   </style>
 </head>
 <body>
 
-  <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</h1>
-  
-  <div class="header-info"> <span id="current-month"></span></div>
-  
-  <table id="data-table">
-    <thead>
-      <!-- Dòng 1: Tiêu đề nhóm -->
-      <tr>
-        <th rowspan="2">STT</th>
-        <th rowspan="2">Ngày, giờ</th>
-        <th rowspan="2">Mực nước (m)</th>
-        <th rowspan="2">Dung tích (Triệu m³)</th>
-        <th rowspan="2">Lượng mưa (mm)</th>
-        <th colspan="2">Thông số vận hành tràn tự do</th>
-        <th colspan="4">Thông số vận hành tràn sự cố</th>
-        <th colspan="3">Thông số vận hành cống lấy nước</th>
-        <th rowspan="2">Họ, tên người vận hành</th>
-        <th rowspan="2">Họ, tên người kiểm tra</th>
-        <th rowspan="2">Ký tên</th>
-      </tr>
-      <!-- Dòng 2: Tiêu đề chi tiết -->
-      <tr>
-        <!-- Nhóm Tràn tự do (2 cột) -->
-        <th>H<sub>tràn</sub> (cm)</th>
-        <th>Q<sub>tràn tự do</sub> (m³/s)</th>
-        <!-- Nhóm Tràn sự cố (4 cột) -->
-        <th>a<sub>1</sub> (cm)</th>
-        <th>a<sub>2</sub> (cm)</th>
-        <th>a<sub>3</sub> (cm)</th>
-        <th>Q<sub>tràn sự cố</sub> (m³/s)</th>
-        <!-- Nhóm Cống lấy nước (3 cột) -->
-        <th>a (cm)</th>
-        <th>Cột nước đầu kênh (m)</th>
-        <th>Q<sub>cống</sub> (m³/s)</th>
-      </tr>
-    </thead>
-    <tbody id="table-body">
-      <!-- Dữ liệu sẽ được chèn vào đây bởi JavaScript -->
-      <tr><td colspan="17" class="status-message">Đang tải dữ liệu...</td></tr>
-    </tbody>
-  </table>
-
-  <div id="error-message" class="error-message" style="display: none;"></div>
+  <div class="container">
+    <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</h1>
+    
+    <div class="controls-container">
+      <div class="filters">
+        <label for="year-filter">Năm:</label>
+        <select id="year-filter"><option value="all">Tất cả</option></select>
+        <label for="quarter-filter">Quý:</label>
+        <select id="quarter-filter">
+          <option value="all">Tất cả</option>
+          <option value="1">Quý 1 (Thg 1-3)</option>
+          <option value="2">Quý 2 (Thg 4-6)</option>
+          <option value="3">Quý 3 (Thg 7-9)</option>
+          <option value="4">Quý 4 (Thg 10-12)</option>
+        </select>
+        <label for="month-filter">Tháng:</label>
+        <select id="month-filter">
+          <option value="all">Tất cả</option>
+          <script>
+            for (let i = 1; i <= 12; i++) {
+              document.write(`<option value="${i}">Tháng ${i}</option>`);
+            }
+          </script>
+        </select>
+      </div>
+      <div class="exports">
+        <button id="export-excel">Xuất Excel</button>
+        <button id="export-pdf">Xuất PDF</button>
+      </div>
+    </div>
+    
+    <table id="data-table">
+      <thead>
+        <tr>
+          <th rowspan="2">STT</th>
+          <th rowspan="2">Ngày, giờ</th>
+          <th rowspan="2">Mực nước (m)</th>
+          <th rowspan="2">Dung tích (Triệu m³)</th>
+          <th rowspan="2">Lượng mưa (mm)</th>
+          <th colspan="2">Tràn tự do</th>
+          <th colspan="4">Tràn sự cố</th>
+          <th colspan="3">Cống lấy nước</th>
+          <th rowspan="2">Người vận hành</th>
+          <th rowspan="2">Người kiểm tra</th>
+          <th rowspan="2">Ký tên</th>
+        </tr>
+        <tr>
+          <th>H<sub>tràn</sub> (cm)</th>
+          <th>Q<sub>tràn tự do</sub> (m³/s)</th>
+          <th>a<sub>1</sub> (cm)</th>
+          <th>a<sub>2</sub> (cm)</th>
+          <th>a<sub>3</sub> (cm)</th>
+          <th>Q<sub>tràn sự cố</sub> (m³/s)</th>
+          <th>a (cm)</th>
+          <th>Cột nước đầu kênh (m)</th>
+          <th>Q<sub>cống</sub> (m³/s)</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <tr><td colspan="17" id="loader" class="status-message">Đang tải dữ liệu...</td></tr>
+      </tbody>
+    </table>
+    <div id="error-message" class="error-message" style="display: none;"></div>
+  </div>
 
   <script>
+    let allData = [];
+    let filteredData = [];
+    const yearFilter = document.getElementById('year-filter');
+    const quarterFilter = document.getElementById('quarter-filter');
+    const monthFilter = document.getElementById('month-filter');
+    const tableBody = document.getElementById('table-body');
+    const errorDiv = document.getElementById('error-message');
+
     function showError(message) {
-      const errorDiv = document.getElementById('error-message');
       errorDiv.textContent = message;
       errorDiv.style.display = 'block';
-      document.getElementById('table-body').innerHTML = `<tr><td colspan="17" class="status-message error-message">${message}</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="17" class="status-message error-message">${message}</td></tr>`;
     }
 
-    // *** BẮT ĐẦU PHẦN NÂNG CẤP ***
-    /**
-     * Hàm định dạng một giá trị thành số có 3 chữ số thập phân.
-     * @param {*} value - Giá trị đầu vào (có thể là số, chuỗi, null, undefined).
-     * @returns {string} - Chuỗi đã định dạng hoặc giá trị gốc nếu không phải số.
-     */
     function formatNumber(value) {
-      // Nếu giá trị là null, undefined hoặc rỗng thì trả về chuỗi rỗng
-      if (value === null || value === undefined || value === '') {
-        return '';
-      }
-      // Chuyển giá trị thành số
+      if (value === null || value === undefined || value === '') return '';
       const num = parseFloat(value);
-      // Kiểm tra xem có phải là một số hợp lệ không
-      if (!isNaN(num)) {
-        // Nếu là số, định dạng nó với 3 chữ số thập phân
-        return num.toFixed(3);
-      }
-      // Nếu không phải số (ví dụ: một chuỗi văn bản), trả về giá trị gốc
-      return value;
+      return !isNaN(num) ? num.toFixed(3) : value;
     }
-    // *** KẾT THÚC PHẦN NÂNG CẤP ***
-
-    const currentDate = new Date();
-    document.getElementById('current-month').textContent = `Tháng ${currentDate.getMonth() + 1} năm ${currentDate.getFullYear()}`;
+    
+    /**
+     * Hàm render bảng với dữ liệu được cung cấp
+     * @param {Array} data - Mảng dữ liệu để hiển thị
+     */
+    function renderTable(data) {
+      tableBody.innerHTML = '';
+      if (!data || data.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="17" class="status-message">Không có dữ liệu phù hợp với bộ lọc.</td></tr>';
+        return;
+      }
+      
+      // *** BẮT ĐẦU NÂNG CẤP ***
+      // Sử dụng `forEach` với tham số `index` để tạo STT động
+      data.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${index + 1}</td> <!-- STT được tạo từ chỉ số của mảng (index + 1) -->
+          <td>${row.ngayGio || ''}</td>
+          <td>${row.mucNuoc || ''}</td>
+          <td>${formatNumber(row.dungTich)}</td>
+          <td>${row.luongMua || ''}</td>
+          <td>${formatNumber(row.hTran)}</td>
+          <td>${formatNumber(row.qTranTuDo)}</td>
+          <td>${row.a1 || ''}</td>
+          <td>${row.a2 || ''}</td>
+          <td>${row.a3 || ''}</td>
+          <td>${formatNumber(row.qTranSuCo)}</td>
+          <td>${row.a || ''}</td>
+          <td>${formatNumber(row.cotNuocDauKenh)}</td>
+          <td>${formatNumber(row.qCong)}</td>
+          <td>${row.nguoiVanHanh || ''}</td>
+          <td>${row.nguoiKiemTra || ''}</td>
+          <td></td>
+        `;
+        tableBody.appendChild(tr);
+      });
+      // *** KẾT THÚC NÂNG CẤP ***
+    }
+    
+    function populateYearFilter(data) {
+      const years = [...new Set(data.map(row => {
+        if (!row.ngayGio) return null;
+        const parts = row.ngayGio.split(' ')[0].split('/');
+        if (parts.length === 3) return parts[2];
+        return null;
+      }).filter(Boolean))];
+      years.sort((a, b) => b - a);
+      years.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = `Năm ${year}`;
+        yearFilter.appendChild(option);
+      });
+    }
+    
+    function applyFiltersAndRender() {
+      const selectedYear = yearFilter.value;
+      const selectedQuarter = quarterFilter.value;
+      const selectedMonth = monthFilter.value;
+      filteredData = allData.filter(row => {
+        if (!row.ngayGio) return false;
+        const dateParts = row.ngayGio.split(' ')[0].split('/');
+        if (dateParts.length !== 3) return false;
+        const day = parseInt(dateParts[0], 10);
+        const month = parseInt(dateParts[1], 10);
+        const year = parseInt(dateParts[2], 10);
+        const date = new Date(year, month - 1, day);
+        if (selectedYear !== 'all' && date.getFullYear() != selectedYear) return false;
+        if (selectedMonth !== 'all') {
+          if (date.getMonth() + 1 != selectedMonth) return false;
+        } else if (selectedQuarter !== 'all') {
+          const currentQuarter = Math.floor((date.getMonth() + 3) / 3);
+          if (currentQuarter != selectedQuarter) return false;
+        }
+        return true;
+      });
+      renderTable(filteredData);
+    }
+    
+    [yearFilter, quarterFilter, monthFilter].forEach(filter => filter.addEventListener('change', applyFiltersAndRender));
+    monthFilter.addEventListener('change', () => { if (monthFilter.value !== 'all') quarterFilter.value = 'all'; });
+    quarterFilter.addEventListener('change', () => { if (quarterFilter.value !== 'all') monthFilter.value = 'all'; });
 
     const apiURL = 'https://script.google.com/macros/s/AKfycby4PiKkbpB_7TBwwje1kZSFEQS-WvC7JMW6_0EcGTWPuAM4N46PS1c1h1I1GQ0oVjs/exec';
-
     fetch(apiURL)
       .then(response => {
-        if (!response.ok) {
-          throw new Error(`Lỗi mạng hoặc máy chủ: ${response.status} ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Lỗi mạng: ${response.status}`);
         return response.json();
       })
       .then(data => {
-        if (data.error) {
-          throw new Error(`Lỗi từ Google Script: ${data.message}`);
-        }
-
-        const tbody = document.getElementById('table-body');
-        tbody.innerHTML = ''; 
-
-        if (data && Array.isArray(data) && data.length > 0) {
-          data.forEach((row) => {
-            const tr = document.createElement('tr');
-            
-            // *** BẮT ĐẦU PHẦN NÂNG CẤP ***
-            // Áp dụng hàm formatNumber cho các cột được yêu cầu
-            tr.innerHTML = `
-              <td>${row.stt || ''}</td>
-              <td>${row.ngayGio || ''}</td>
-              <td>${row.mucNuoc || ''}</td>
-              <td>${formatNumber(row.dungTich)}</td>              <!-- Đã định dạng -->
-              <td>${row.luongMua || ''}</td>
-              <td>${formatNumber(row.hTran)}</td>                  <!-- Đã định dạng -->
-              <td>${formatNumber(row.qTranTuDo)}</td>              <!-- Đã định dạng -->
-              <td>${row.a1 || ''}</td>
-              <td>${row.a2 || ''}</td>
-              <td>${row.a3 || ''}</td>
-              <td>${formatNumber(row.qTranSuCo)}</td>              <!-- Đã định dạng -->
-              <td>${row.a || ''}</td>
-              <td>${formatNumber(row.cotNuocDauKenh)}</td>        <!-- Đã định dạng -->
-              <td>${formatNumber(row.qCong)}</td>                  <!-- Đã định dạng -->
-              <td>${row.nguoiVanHanh || ''}</td>
-              <td>${row.nguoiKiemTra || ''}</td>
-              <td>${row.kyTen || ''}</td>
-            `;
-            // *** KẾT THÚC PHẦN NÂNG CẤP ***
-
-            tbody.appendChild(tr);
-          });
-        } else {
-          tbody.innerHTML = '<tr><td colspan="17" class="status-message">Không có dữ liệu để hiển thị.</td></tr>';
-        }
+        if (data.error) throw new Error(`Lỗi từ API: ${data.message}`);
+        allData = data;
+        populateYearFilter(allData);
+        applyFiltersAndRender();
       })
       .catch(error => {
-        console.error('Đã xảy ra lỗi khi tải dữ liệu:', error);
+        console.error('Lỗi khi tải dữ liệu:', error);
         showError(`Không thể tải dữ liệu. Lỗi: ${error.message}`);
       });
-  </script>
+      
+    // --- CHỨC NĂNG XUẤT FILE ---
 
+    // 1. Xuất Excel
+    document.getElementById('export-excel').addEventListener('click', () => {
+      if (filteredData.length === 0) {
+        alert('Không có dữ liệu để xuất.');
+        return;
+      }
+      const headers = [
+        "STT", "Ngày, giờ", "Mực nước (m)", "Dung tích (Triệu m³)", "Lượng mưa (mm)",
+        "Htràn (cm)", "Qtràn tự do (m³/s)", "a1 (cm)", "a2 (cm)", "a3 (cm)", "Qtràn sự cố (m³/s)",
+        "a (cm)", "Cột nước đầu kênh (m)", "Qcống (m³/s)", "Người vận hành", "Người kiểm tra"
+      ];
+      
+      // *** BẮT ĐẦU NÂNG CẤP ***
+      // Sử dụng `map` với tham số `index` để tạo STT động cho file Excel
+      const dataToExport = filteredData.map((row, index) => [
+        index + 1, // STT động
+        row.ngayGio || '',
+        row.mucNuoc || '',
+        formatNumber(row.dungTich),
+        row.luongMua || '',
+        formatNumber(row.hTran),
+        formatNumber(row.qTranTuDo),
+        row.a1 || '',
+        row.a2 || '',
+        row.a3 || '',
+        formatNumber(row.qTranSuCo),
+        row.a || '',
+        formatNumber(row.cotNuocDauKenh),
+        formatNumber(row.qCong),
+        row.nguoiVanHanh || '',
+        row.nguoiKiemTra || ''
+      ]);
+      // *** KẾT THÚC NÂNG CẤP ***
+
+      const worksheetData = [headers, ...dataToExport];
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+      const colsWidth = headers.map((_, i) => ({ wch: Math.max(...worksheetData.map(row => row[i] ? row[i].toString().length : 0)) + 2 }));
+      ws['!cols'] = colsWidth;
+      XLSX.utils.book_append_sheet(wb, ws, "NhatKyVanHanh");
+      XLSX.writeFile(wb, "NhatKyVanHanhHoChua.xlsx");
+    });
+    
+    // 2. Xuất PDF
+    document.getElementById('export-pdf').addEventListener('click', async () => {
+        if (filteredData.length === 0) {
+            alert('Không có dữ liệu để xuất.');
+            return;
+        }
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape', 'pt', 'a4');
+
+        try {
+            const fontResponse = await fetch('https://raw.githubusercontent.com/MrRio/jsPDF/master/src/libs/raw-fonts/Roboto-Regular.js');
+            const fontFile = await fontResponse.text();
+            const callAddFont = new Function(fontFile);
+            callAddFont.call(this);
+            doc.setFont('Roboto-Regular', 'normal');
+        } catch (e) {
+            console.error("Không thể tải font Roboto, PDF có thể không hiển thị đúng tiếng Việt.", e);
+        }
+
+        doc.setFontSize(18);
+        doc.text("NHAT KY VAN HANH HO CHUA NUOC NGOT", doc.internal.pageSize.getWidth() / 2, 40, { align: 'center' });
+        
+        doc.autoTable({
+            html: '#data-table',
+            startY: 60,
+            theme: 'grid',
+            headStyles: { fillColor: [22, 160, 133], fontSize: 8 },
+            styles: { font: 'Roboto-Regular', fontSize: 7 },
+            margin: { top: 60 }
+        });
+
+        doc.save('NhatKyVanHanhHoChua.pdf');
+    });
+  </script>
 </body>
 </html>
