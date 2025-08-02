@@ -328,7 +328,7 @@
       
     document.getElementById('export-excel').addEventListener('click', () => {
         if (filteredData.length === 0) return alert('Không có dữ liệu để xuất.');
-        const headers = ["STT", "Ngày, giờ", "Mực nước (m)", "Dung tích (Triệu .m³)", "Lượng mưa (mm)", "Htràn 1 (cm)", "Qtràn 1 (m³/s)", "Htràn 2 (cm)", "Qtràn 2 (m³/s)", "a (cm)", "Cột nước đầu kênh (m)", "Qcống (m³/s)", "Họ, tên người vận hành", "Họ, tên người kiểm tra"];
+        const headers = ["STT", "Ngày, giờ", "Mực nước (m)", "Dung tích (Triệu .m³)", "Lượng mưa (mm)", "Htràn 1 (cm)", "Qtràn 1 (m³/s)", "Htràn 2 (cm)", "Qtràn 2 (m³/s)", "a (m)", "Cột nước đầu kênh (m)", "Qcống (m³/s)", "Họ, tên người vận hành", "Họ, tên người kiểm tra"];
         const dataToExport = filteredData.map((row, index) => [
             index + 1,
             row.ngayGio || '',
