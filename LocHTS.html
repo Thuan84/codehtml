@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Nhật ký vận hành hồ chứa</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    caption {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <caption>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</caption>
+  <table id="data-table">
+    <thead>
+      <tr>
+        <th>Ngày, giờ</th>
+        <th>Mực nước (m)</th>
+        <th>Dung tích (Triệu m³)</th>
+        <th>Lượng mưa (mm)</th>
+        <th>Htràn (cm)</th>
+        <th>Qtràn tự do (m³/s)</th>
+        <th>a1 (cm)</th>
+        <th>a2 (cm)</th>
+        <th>a3 (cm)</th>
+        <th>Qtràn sự cố (m³/s)</th>
+        <th>a (cm)</th>
+        <th>Cột nước đầu kênh (m)</th>
+        <th>Q cống (m³/s)</th>
+        <th>Người vận hành</th>
+        <th>Người kiểm tra</th>
+        <th>Ký tên</th>
+      </tr>
+    </thead>
+    <tbody id="table-body">
+      <tr><td colspan="16">Đang tải dữ liệu...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    const apiURL = 'https://script.google.com/macros/s/AKfycby4PiKkbpB_7TBwwje1kZSFEQS-WvC7JMW6_0EcGTWPuAM4N46PS1c1h1I1GQ0oVjs/exec';
+
+    fetch(apiURL)
+      .then(response => response.json())
+      .then(data => {
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+
+        data.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${row.ngayGio}</td>
+            <td>${row.mucNuoc}</td>
+            <td>${row.dungTich}</td>
+            <td>${row.luongMua}</td>
+            <td>${row.hTran}</td>
+            <td>${row.qTranTuDo}</td>
+            <td>${row.a1}</td>
+            <td>${row.a2}</td>
+            <td>${row.a3}</td>
+            <td>${row.qTranSuCo}</td>
+            <td>${row.a}</td>
+            <td>${row.cotNuocDauKenh}</td>
+            <td>${row.qCong}</td>
+            <td>${row.nguoiVanHanh}</td>
+            <td>${row.nguoiKiemTra}</td>
+            <td>${row.kyTen}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(error => {
+        document.getElementById('table-body').innerHTML = `<tr><td colspan="16">Lỗi khi tải dữ liệu: ${error}</td></tr>`;
+      });
+  </script>
+
+</body>
+</html>
