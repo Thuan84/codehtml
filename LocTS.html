@@ -276,13 +276,11 @@
             }
             return true;
         });
-
-        let subtitleText = "Tháng: 3"; // Mặc định theo template
-        if (selectedMonth !== 'all') {
-            subtitleText = `Tháng: ${selectedMonth}`;
-        }
+        let subtitleText = "";
+        if (selectedMonth !== 'all' && selectedYear !== 'all') subtitleText = `Tháng ${selectedMonth} năm ${selectedYear}`;
+        else if (selectedYear !== 'all') subtitleText = `Năm ${selectedYear}`;
+        else { const c = new Date(); subtitleText = `Tháng ${c.getMonth() + 1} năm ${c.getFullYear()}`; }
         subtitleDiv.textContent = subtitleText;
-        
         renderTable(filteredData);
     }
     
