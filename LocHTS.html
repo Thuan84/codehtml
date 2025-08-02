@@ -9,7 +9,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
   
-  <!-- Nhúng font 'Liberation Serif' (giống Times New Roman) hỗ trợ tiếng Việt cho PDF -->
+  <!-- Nhúng font 'Liberation Serif' (giống Times New Roman) hỗ trợ tiếng Việt cho PDF.
+       Các file này sẽ tự động đăng ký font với jsPDF khi được tải. -->
   <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Regular.js"></script>
   <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Bold.js"></script>
   <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Italic.js"></script>
@@ -341,8 +342,11 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('landscape', 'pt', 'a4');
             const FONT_FAMILY = "LiberationSerif";
+            
+            // Chỉ cần đặt font. Các script trong <head> đã tự động đăng ký font với jsPDF.
             doc.setFont(FONT_FAMILY);
             
+            // --- Vẽ Header ---
             doc.setFontSize(16);
             doc.setFont(FONT_FAMILY, 'bold');
             doc.text("NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT", doc.internal.pageSize.getWidth() / 2, 40, { align: 'center' });
@@ -352,6 +356,7 @@
             const subtitle = subtitleDiv.textContent;
             doc.text(subtitle, doc.internal.pageSize.getWidth() / 2, 60, { align: 'center' });
             
+            // --- Vẽ Bảng Dữ Liệu ---
             doc.autoTable({
                 html: '#data-table', startY: 80, theme: 'grid',
                 headStyles: {
@@ -369,7 +374,7 @@
             doc.save(`NhatKyVanHanh_${subtitle.replace(/ /g, '_')}.pdf`);
         } catch (e) {
             console.error("Lỗi khi tạo file PDF:", e);
-            alert("Đã có lỗi xảy ra khi tạo file PDF. Vui lòng thử lại. Lỗi: " + e.message);
+            alert("Đã có lỗi xảy ra khi tạo file PDF. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau. Lỗi: " + e.message);
         }
     });
   </script>
