@@ -98,9 +98,10 @@
       text-align: center;
       vertical-align: middle;
     }
+    /* === SỬA LỖI Ở ĐÂY === */
     th {
-      background-color: #fff;
-      color: #000;
+      background-color: var(--header-bg); /* Dùng màu xanh đã định nghĩa */
+      color: #fff; /* Đổi màu chữ thành trắng để dễ đọc */
       font-weight: bold;
       position: sticky;
       top: 0;
@@ -289,7 +290,6 @@
         applyFiltersAndRender();
     }
     
-    // Đã loại bỏ logic caching (localStorage) để sửa lỗi quota
     fetch(apiURL)
       .then(res => res.ok ? res.json() : Promise.reject(`Lỗi mạng: ${res.status}`))
       .then(data => {
@@ -354,11 +354,13 @@
             const subtitle = subtitleDiv.textContent;
             doc.text(subtitle, doc.internal.pageSize.getWidth() / 2, 60, { align: 'center' });
             
+            // === SỬA LỖI Ở ĐÂY ===
             doc.autoTable({
                 html: '#data-table', startY: 80, theme: 'grid',
                 headStyles: {
                     font: FONT_FAMILY, fontStyle: 'bold',
-                    fillColor: [255, 255, 255], textColor: [0, 0, 0],
+                    fillColor: [30, 164, 141],  /* Sửa thành màu xanh (#1EA48D) */
+                    textColor: [255, 255, 255], /* Sửa thành màu trắng */
                     lineColor: [0, 0, 0], lineWidth: 0.5,
                     fontSize: 8, halign: 'center', valign: 'middle'
                 },
