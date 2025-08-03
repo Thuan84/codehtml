@@ -16,7 +16,7 @@
   
   <style>
     :root {
-      --border-color: #000; /* Sửa: Border đen giống mẫu */
+      --border-color: #000;
       --hover-bg: #f1f3f5;
     }
     body {
@@ -98,7 +98,7 @@
       vertical-align: middle;
     }
     th {
-      background-color: #fff; /* Sửa: Nền trắng cho header giống mẫu */
+      background-color: #fff;
       color: #000;
       font-weight: bold;
       position: sticky;
@@ -153,7 +153,6 @@
       </div>
     </div>
     
-    <!-- Sửa lỗi: Cấu trúc lại thead cho đúng mẫu Hồ Ông Kinh -->
     <table id="data-table">
       <thead>
         <tr>
@@ -177,7 +176,6 @@
         </tr>
       </thead>
       <tbody id="table-body">
-        <!-- Sửa: Cập nhật colspan để khớp với số cột mới -->
         <tr><td colspan="13"><div class="loader-container"><div class="spinner"></div><div class="status-message">Đang tải dữ liệu...</div></div></td></tr>
       </tbody>
     </table>
@@ -193,7 +191,6 @@
     const tableBody = document.getElementById('table-body');
     const errorDiv = document.getElementById('error-message');
     const subtitleDiv = document.getElementById('subtitle');
-    // Sửa lỗi: Cập nhật tổng số cột cho đúng
     const totalColumns = 13; 
 
     function showError(message) {
@@ -204,7 +201,7 @@
     
     function formatNumberWithComma(value) {
       if (value === null || value === undefined || value === '') return '';
-      const num = parseFloat(String(value).replace(',', '.')); // Thay dấu phẩy bằng dấu chấm
+      const num = parseFloat(String(value).replace(',', '.'));
       if (isNaN(num)) return value;
       return num.toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 3 });
     }
@@ -217,7 +214,6 @@
       }
       data.forEach((row, index) => {
         const tr = document.createElement('tr');
-        // Sửa lỗi: Thống nhất tên thuộc tính (đã chuẩn hóa sang chữ thường) để render bảng
         tr.innerHTML = `
           <td>${index + 1}</td>
           <td>${row.ngaygio || ''}</td>
@@ -231,7 +227,7 @@
           <td>${formatNumberWithComma(row.qcong)}</td>
           <td>${row.nguoivanhanh || ''}</td>
           <td>${row.nguoikiemtra || ''}</td>
-          <td></td> <!-- Cột Ký tên trống -->
+          <td></td>
         `;
         tableBody.appendChild(tr);
       });
@@ -280,9 +276,7 @@
     monthFilter.addEventListener('change', () => { if (monthFilter.value !== 'all') quarterFilter.value = 'all'; });
     quarterFilter.addEventListener('change', () => { if (quarterFilter.value !== 'all') monthFilter.value = 'all'; });
 
-    // Sửa lỗi: Cập nhật URL API và Cache Key
     const apiURL = 'https://script.google.com/macros/s/AKfycbz9bNzKFLCUp5MK0aMCjhzLKlSH1P2X446XeQ0PYvWGAL4mq9b6H5jCjQH0ZJwB-7k5/exec';
-    const cacheKey = 'nhat_ky_van_hanh_ong_kinh_v1';
     
     function processData(data) {
         if (!data || !Array.isArray(data) || data.length === 0) {
@@ -294,40 +288,29 @@
         applyFiltersAndRender();
     }
     
-    const cachedData = localStorage.getItem(cacheKey);
-    if (cachedData) {
-        processData(JSON.parse(cachedData));
-    }
-
+    // Đã loại bỏ logic caching (localStorage) để sửa lỗi quota
     fetch(apiURL)
       .then(res => res.ok ? res.json() : Promise.reject(`Lỗi mạng: ${res.status}`))
       .then(data => {
         const freshData = typeof data === 'string' ? JSON.parse(data) : data;
         if (freshData.error) throw new Error(`Lỗi từ API: ${freshData.message}`);
         
-        // Sửa lỗi: Chuẩn hóa tên thuộc tính sang chữ thường để xử lý nhất quán
         const standardizedData = freshData.map(obj => 
             Object.keys(obj).reduce((acc, key) => {
-                acc[key.toLowerCase().replace(/\s+/g, '')] = obj[key]; // Chuyển sang chữ thường và xóa khoảng trắng
+                acc[key.toLowerCase().replace(/\s+/g, '')] = obj[key];
                 return acc;
             }, {})
         );
-
-        if (JSON.stringify(standardizedData) !== cachedData) {
-            localStorage.setItem(cacheKey, JSON.stringify(standardizedData));
-            processData(standardizedData);
-        }
+        
+        processData(standardizedData);
       })
       .catch(err => {
         console.error('Lỗi tải dữ liệu:', err);
-        if (!cachedData) {
-            showError(`Không thể tải dữ liệu. Lỗi: ${err.message}`);
-        }
+        showError(`Không thể tải dữ liệu. Lỗi: ${err.message}`);
       });
       
     document.getElementById('export-excel').addEventListener('click', () => {
         if (filteredData.length === 0) return alert('Không có dữ liệu để xuất.');
-        // Sửa lỗi: Cập nhật headers và data mapping cho Excel
         const headers = ["STT", "Ngày, giờ", "Mực nước (m)", "Dung tích (Triệu m³)", "Lượng mưa (mm)", "Htràn (cm)", "Qtràn tự do (m³/s)", "a (cm)", "Cột nước đầu kênh (m)", "Q cống (m³/s)", "Họ, tên người vận hành", "Họ, tên người kiểm tra", "Ký tên"];
         const dataToExport = filteredData.map((row, index) => [
             index + 1,
@@ -342,7 +325,7 @@
             row.qcong ? parseFloat(String(row.qcong).replace(',', '.')) : '',
             row.nguoivanhanh || '',
             row.nguoikiemtra || '',
-            '' // Cột ký tên
+            ''
         ]);
         const worksheetData = [headers, ...dataToExport];
         const wb = XLSX.utils.book_new();
@@ -374,7 +357,7 @@
                 html: '#data-table', startY: 80, theme: 'grid',
                 headStyles: {
                     font: FONT_FAMILY, fontStyle: 'bold',
-                    fillColor: [255, 255, 255], textColor: [0, 0, 0], // Nền trắng, chữ đen
+                    fillColor: [255, 255, 255], textColor: [0, 0, 0],
                     lineColor: [0, 0, 0], lineWidth: 0.5,
                     fontSize: 8, halign: 'center', valign: 'middle'
                 },
