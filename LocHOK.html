@@ -220,7 +220,7 @@
       }
       data.forEach((row, index) => {
         const tr = document.createElement('tr');
-        // Giả sử dữ liệu nguồn có các thuộc tính mới: htran1, qtran1, htran2, qtran2
+        // Giả sử dữ liệu nguồn có các thuộc tính mới: htran, qtrantudo
         tr.innerHTML = `
           <td>${index + 1}</td>
           <td>${row.ngayGio || ''}</td>
@@ -284,7 +284,7 @@
     quarterFilter.addEventListener('change', () => { if (quarterFilter.value !== 'all') monthFilter.value = 'all'; });
 
     // !!! DÁN URL MỚI TỪ GOOGLE SCRIPT VÀO ĐÂY !!!
-    const apiURL = 'https://script.google.com/macros/s/AKfycbz9YBd5EDRzHCrUx9DZ9Y-ZL0nspt6R8fcss2LEh9z66DDC65L4bT_MXPFXM093SHmD/exec';
+    const apiURL = 'https://script.google.com/macros/s/AKfycbz9bNzKFLCUp5MK0aMCjhzLKlSH1P2X446XeQ0PYvWGAL4mq9b6H5jCjQH0ZJwB-7k5/exec';
     const cacheKey = 'nhat_ky_van_hanh_cache_v2'; // Đổi key cache để tránh dùng dữ liệu cũ
     
     function processData(data) {
