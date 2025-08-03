@@ -98,9 +98,10 @@
       text-align: center;
       vertical-align: middle;
     }
+    /* === SỬA LỖI Ở ĐÂY === */
     th {
-      background-color: var(--header-bg);
-      color: #fff;
+      background-color: var(--header-bg); /* Dùng màu xanh đã định nghĩa */
+      color: #fff; /* Đổi màu chữ thành trắng để dễ đọc */
       font-weight: bold;
       position: sticky;
       top: 0;
@@ -337,68 +338,41 @@
     
     document.getElementById('export-pdf').addEventListener('click', async () => {
         if (filteredData.length === 0) return alert('Không có dữ liệu để xuất.');
-        
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('landscape', 'pt', 'a4');
             const FONT_FAMILY = "LiberationSerif";
             
-            // Thêm font vào jsPDF
-            doc.addFont('LiberationSerif-Regular.ttf', FONT_FAMILY, 'normal');
-            doc.addFont('LiberationSerif-Bold.ttf', FONT_FAMILY, 'bold');
+            doc.setFont(FONT_FAMILY);
             
-            // Tiêu đề chính
-            doc.setFont(FONT_FAMILY, 'bold');
             doc.setFontSize(16);
-            doc.text("NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC ÔNG KINH", 
-                    doc.internal.pageSize.getWidth() / 2, 
-                    40, 
-                    { align: 'center' });
-            
-            // Phụ đề
             doc.setFont(FONT_FAMILY, 'bold');
-            doc.setFontSize(14);
-            const subtitle = subtitleDiv.textContent;
-            doc.text(subtitle, 
-                    doc.internal.pageSize.getWidth() / 2, 
-                    60, 
-                    { align: 'center' });
+            doc.text("NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC ÔNG KINH", doc.internal.pageSize.getWidth() / 2, 40, { align: 'center' });
             
-            // Tạo bảng
+            doc.setFontSize(14);
+            doc.setFont(FONT_FAMILY, 'bold');
+            const subtitle = subtitleDiv.textContent;
+            doc.text(subtitle, doc.internal.pageSize.getWidth() / 2, 60, { align: 'center' });
+            
+            // === SỬA LỖI Ở ĐÂY ===
             doc.autoTable({
-                html: '#data-table', 
-                startY: 80,
-                theme: 'grid',
+                html: '#data-table', startY: 80, theme: 'grid',
                 headStyles: {
-                    font: FONT_FAMILY,
-                    fontStyle: 'bold',
-                    fillColor: [30, 164, 141],  // Màu xanh #1EA48D
-                    textColor: [255, 255, 255], // Màu trắng
-                    lineColor: [0, 0, 0],
-                    lineWidth: 0.5,
-                    fontSize: 8,
-                    halign: 'center',
-                    valign: 'middle'
+                    font: FONT_FAMILY, fontStyle: 'bold',
+                    fillColor: [30, 164, 141],  /* Sửa thành màu xanh (#1EA48D) */
+                    textColor: [255, 255, 255], /* Sửa thành màu trắng */
+                    lineColor: [0, 0, 0], lineWidth: 0.5,
+                    fontSize: 8, halign: 'center', valign: 'middle'
                 },
                 styles: {
-                    font: FONT_FAMILY,
-                    fontStyle: 'normal',
-                    lineColor: [0, 0, 0],
-                    lineWidth: 0.5,
-                    fontSize: 8,
-                    cellPadding: 4,
-                    halign: 'center'
+                    font: FONT_FAMILY, fontStyle: 'normal',
+                    lineColor: [0, 0, 0], lineWidth: 0.5,
+                    fontSize: 8, cellPadding: 4, halign: 'center'
                 },
-                alternateRowStyles: {
-                    fillColor: [255, 255, 255]
-                },
+                alternateRowStyles: { fillColor: [255, 255, 255] },
                 margin: { top: 80 }
             });
-            
-            // Lưu file PDF
-            const fileName = `NhatKyVanHanh_HoOngKinh_${subtitle.replace(/ /g, '_').replace(/:/g, '')}.pdf`;
-            doc.save(fileName);
-            
+            doc.save(`NhatKyVanHanh_HoOngKinh_${subtitle.replace(/ /g, '_').replace(/:/g, '')}.pdf`);
         } catch (e) {
             console.error("Lỗi khi tạo file PDF:", e);
             alert("Đã có lỗi xảy ra khi tạo file PDF. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau. Lỗi: " + e.message);
