@@ -9,7 +9,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
   
-  <!-- Nhúng font 'Liberation Serif' (giống Times New Roman) hỗ trợ tiếng Việt cho PDF -->
+  <!-- Nhúng font 'Liberation Serif' (giống Times New Roman) hỗ trợ tiếng Việt cho PDF.
+       Các file này sẽ tự động đăng ký font với jsPDF khi được tải. -->
   <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Regular.js"></script>
   <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Bold.js"></script>
   <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Italic.js"></script>
@@ -180,7 +181,7 @@
     <div id="error-message" class="error-message" style="display: none;"></div>
   </div>
 
-<script>
+  <script>
     let allData = [];
     let filteredData = [];
     const yearFilter = document.getElementById('year-filter');
@@ -274,73 +275,39 @@
     monthFilter.addEventListener('change', () => { if (monthFilter.value !== 'all') quarterFilter.value = 'all'; });
     quarterFilter.addEventListener('change', () => { if (quarterFilter.value !== 'all') monthFilter.value = 'all'; });
 
-    // !!! DÁN URL TỪ GOOGLE SCRIPT VÀO ĐÂY !!!
+    // !!! DÁN URL MỚI TỪ GOOGLE SCRIPT VÀO ĐÂY !!!
     const apiURL = 'https://script.google.com/macros/s/AKfycby9BI9c2atUViHYFQqIQdN0hRxh_4-sc2WKmMzkphAjjiljFzMG3XCCy8CWTx-EJZ-t/exec';
     const cacheKey = 'nhat_ky_van_hanh_cache_v1';
     
-    // ================== HÀM ĐÃ ĐƯỢC SỬA LỖI ==================
-    function processData(rawData) {
-        if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
+    function processData(data) {
+        if (!data || !Array.isArray(data) || data.length === 0) {
             tableBody.innerHTML = `<tr><td colspan="17" class="status-message">Không có dữ liệu để hiển thị.</td></tr>`;
             return;
         }
-
-        // Ánh xạ dữ liệu từ array of arrays sang array of objects
-        // QUAN TRỌNG: Các chỉ số (row[0], row[1],...) phải khớp với thứ tự cột trong file Google Sheets của bạn.
-        // Dựa trên yêu cầu, 'qCong' được lấy từ cột 48 (chỉ số 47).
-        allData = rawData.map(row => {
-            // Bỏ qua các hàng trống có thể có trong dữ liệu trả về
-            if (!row || row.length === 0 || !row[0]) {
-                return null;
-            }
-            return {
-                ngayGio: row[0],
-                mucNuoc: row[1],
-                dungTich: row[2],
-                luongMua: row[3],
-                hTran: row[4],
-                qTranTuDo: row[5],
-                a1: row[6],
-                a2: row[7],
-                a3: row[8],
-                qTranSuCo: row[9],
-                a: row[10],
-                cotNuocDauKenh: row[11],
-                // !!! LẤY DỮ LIỆU Q-CỐNG TỪ CỘT 48 (chỉ số 47) !!!
-                qCong: row[47], 
-                // !!! KIỂM TRA LẠI CÁC CHỈ SỐ NÀY CHO ĐÚNG VỚI FILE SHEETS !!!
-                // Ví dụ: người vận hành ở cột 49, người kiểm tra ở cột 50
-                nguoiVanHanh: row[48],
-                nguoiKiemTra: row[49]
-            };
-        }).filter(Boolean); // Lọc ra các giá trị null (các hàng trống đã bị loại)
-
+        allData = data;
         populateYearFilter(allData);
         applyFiltersAndRender();
     }
-    // ==========================================================
     
     const cachedData = localStorage.getItem(cacheKey);
     if (cachedData) {
-        // Xử lý dữ liệu từ cache ngay lập tức để hiển thị nhanh
         processData(JSON.parse(cachedData));
     }
 
     fetch(apiURL)
       .then(res => res.ok ? res.json() : Promise.reject(`Lỗi mạng: ${res.status}`))
-      .then(freshData => {
+      .then(data => {
+        const freshData = typeof data === 'string' ? JSON.parse(data) : data;
         if (freshData.error) throw new Error(`Lỗi từ API: ${freshData.message}`);
-        
-        // So sánh dữ liệu mới và dữ liệu cache sau khi đã chuyển thành chuỗi
         if (JSON.stringify(freshData) !== cachedData) {
             localStorage.setItem(cacheKey, JSON.stringify(freshData));
-            processData(freshData); // Xử lý và hiển thị lại dữ liệu mới
+            processData(freshData);
         }
       })
       .catch(err => {
         console.error('Lỗi tải dữ liệu:', err);
-        if (!cachedData) { // Chỉ hiển thị lỗi nếu không có dữ liệu cache để hiển thị
-            showError(`Không thể tải dữ liệu mới. Lỗi: ${err.message}`);
+        if (!cachedData) {
+            showError(`Không thể tải dữ liệu. Lỗi: ${err.message}`);
         }
       });
       
@@ -376,8 +343,10 @@
             const doc = new jsPDF('landscape', 'pt', 'a4');
             const FONT_FAMILY = "LiberationSerif";
             
+            // Chỉ cần đặt font. Các script trong <head> đã tự động đăng ký font với jsPDF.
             doc.setFont(FONT_FAMILY);
             
+            // --- Vẽ Header ---
             doc.setFontSize(16);
             doc.setFont(FONT_FAMILY, 'bold');
             doc.text("NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT", doc.internal.pageSize.getWidth() / 2, 40, { align: 'center' });
@@ -387,6 +356,7 @@
             const subtitle = subtitleDiv.textContent;
             doc.text(subtitle, doc.internal.pageSize.getWidth() / 2, 60, { align: 'center' });
             
+            // --- Vẽ Bảng Dữ Liệu ---
             doc.autoTable({
                 html: '#data-table', startY: 80, theme: 'grid',
                 headStyles: {
@@ -407,7 +377,6 @@
             alert("Đã có lỗi xảy ra khi tạo file PDF. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau. Lỗi: " + e.message);
         }
     });
-</script>
-
+  </script>
 </body>
 </html>
