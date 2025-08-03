@@ -4,18 +4,38 @@
   <meta charset="UTF-8">
   <title>Nhật ký vận hành hồ chứa - Hồ Ông Kinh</title>
   
-  <!-- CẢI TIẾN 1: Tải thư viện localForage để caching hiệu quả -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js" defer></script>
+  <!-- Preload các thư viện quan trọng -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js" as="script">
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" as="script">
   
-  <!-- CẢI TIẾN 2: Thêm "defer" để tải script không chặn hiển thị trang -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js" defer></script>
+  <!-- Lazy load các thư viện không cần thiết ngay lập tức -->
+  <script>
+    // Lazy load PDF libraries chỉ khi cần
+    let pdfLibsLoaded = false;
+    function loadPDFLibs() {
+      if (pdfLibsLoaded) return Promise.resolve();
+      pdfLibsLoaded = true;
+      return Promise.all([
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js'),
+        loadScript('https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Regular.js'),
+        loadScript('https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Bold.js')
+      ]);
+    }
+    
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+  </script>
   
-  <!-- Tải font cho PDF -->
-  <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Regular.js" defer></script>
-  <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Bold.js" defer></script>
-  <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Italic.js" defer></script>
+  <!-- Load Excel library ngay -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   
   <style>
     :root {
@@ -87,19 +107,30 @@
       transition: opacity 0.2s;
     }
     .exports button:hover { opacity: 0.9; }
+    .exports button:disabled { opacity: 0.5; cursor: not-allowed; }
     #export-excel { background-color: #218838; }
     #export-pdf { background-color: #c82333; }
+    
+    /* Table virtualization container */
+    .table-container {
+      max-height: 70vh;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+    }
+    
     table {
       border-collapse: collapse;
       width: 100%;
       font-size: 13pt;
-      margin-top: 15px;
+      margin: 0;
     }
     th, td {
       border: 1px solid var(--border-color);
       padding: 8px 10px;
       text-align: center;
       vertical-align: middle;
+      white-space: nowrap;
     }
     th {
       background-color: var(--header-bg);
@@ -107,10 +138,11 @@
       font-weight: bold;
       position: sticky;
       top: 0;
-      z-index: 1;
+      z-index: 10;
     }
-    tbody tr:nth-child(even) { background-color: #fff; }
+    tbody tr:nth-child(even) { background-color: #f9f9f9; }
     tbody tr:hover { background-color: var(--hover-bg); }
+    
     .status-message {
       color: #555; padding: 40px; text-align: center;
       font-style: italic; font-size: 14pt;
@@ -121,12 +153,29 @@
     }
     .loader-container { padding: 50px; text-align: center; }
     .spinner {
-      border: 5px solid #f3f3f3; border-top: 5px solid #3498db;
-      border-radius: 50%; width: 40px; height: 40px;
+      border: 3px solid #f3f3f3; border-top: 3px solid #1EA48D;
+      border-radius: 50%; width: 30px; height: 30px;
       animation: spin 1s linear infinite; display: inline-block;
       margin-bottom: 10px;
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    /* Progress bar */
+    .progress-container {
+      width: 100%;
+      height: 4px;
+      background-color: #f0f0f0;
+      border-radius: 2px;
+      margin: 10px 0;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background-color: #1EA48D;
+      width: 0%;
+      transition: width 0.3s ease;
+      border-radius: 2px;
+    }
   </style>
 </head>
 <body>
@@ -153,259 +202,705 @@
       </div>
       <div class="exports">
         <button id="export-excel">Xuất Excel</button>
-        <button id="export-pdf">Xuất PDF</button>
+        <button id="export-pdf" disabled>Xuất PDF</button>
       </div>
     </div>
     
-    <table id="data-table">
-      <thead>
-        <tr>
-          <th rowspan="2">STT</th><th rowspan="2">Ngày, giờ</th><th rowspan="2">Mực nước (m)</th><th rowspan="2">Dung tích (Triệu m³)</th><th rowspan="2">Lượng mưa (mm)</th><th colspan="2">Thông số vận hành tràn xả lũ</th><th colspan="3">Thông số vận hành cống lấy nước</th><th rowspan="2">Họ, tên người vận hành</th><th rowspan="2">Họ, tên người kiểm tra</th><th rowspan="2">Ký tên</th>
-        </tr>
-        <tr>
-          <th>Htràn (cm)</th><th>Qtràn tự do (m³/s)</th><th>a (cm)</th><th>Cột nước đầu kênh (m)</th><th>Q cống (m³/s)</th>
-        </tr>
-      </thead>
-      <tbody id="table-body">
-        <tr><td colspan="13"><div class="loader-container"><div class="spinner"></div><div class="status-message">Đang tải dữ liệu...</div></div></td></tr>
-      </tbody>
-    </table>
+    <div class="table-container">
+      <table id="data-table">
+        <thead>
+          <tr>
+            <th rowspan="2">STT</th>
+            <th rowspan="2">Ngày, giờ</th>
+            <th rowspan="2">Mực nước (m)</th>
+            <th rowspan="2">Dung tích (Triệu m³)</th>
+            <th rowspan="2">Lượng mưa (mm)</th>
+            <th colspan="2">Thông số vận hành tràn xả lũ</th>
+            <th colspan="3">Thông số vận hành cống lấy nước</th>
+            <th rowspan="2">Họ, tên người vận hành</th>
+            <th rowspan="2">Họ, tên người kiểm tra</th>
+            <th rowspan="2">Ký tên</th>
+          </tr>
+          <tr>
+            <th>Htràn (cm)</th>
+            <th>Qtràn tự do (m³/s)</th>
+            <th>a (cm)</th>
+            <th>Cột nước đầu kênh (m)</th>
+            <th>Q cống (m³/s)</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr><td colspan="13">
+            <div class="loader-container">
+              <div class="spinner"></div>
+              <div class="status-message">Đang tải dữ liệu...</div>
+              <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+              </div>
+            </div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
     <div id="error-message" class="error-message" style="display: none;"></div>
   </div>
 
   <script>
-    // Đợi DOM load xong mới thực thi
-    document.addEventListener('DOMContentLoaded', () => {
-        let allData = [];
-        let filteredData = [];
-        const yearFilter = document.getElementById('year-filter');
-        const quarterFilter = document.getElementById('quarter-filter');
-        const monthFilter = document.getElementById('month-filter');
-        const tableBody = document.getElementById('table-body');
-        const errorDiv = document.getElementById('error-message');
-        const subtitleDiv = document.getElementById('subtitle');
-        const totalColumns = 13; 
-        const apiURL = 'https://script.google.com/macros/s/AKfycbz9bNzKFLCUp5MK0aMCjhzLKlSH1P2X446XeQ0PYvWGAL4mq9b6H5jCjQH0ZJwB-7k5/exec';
-        const CACHE_KEY = 'ho_ong_kinh_data';
-        const CACHE_EXPIRATION = 60 * 60 * 1000; // 1 giờ
+    // Cache và state management
+    let allData = [];
+    let filteredData = [];
+    let displayedData = [];
+    let currentPage = 0;
+    const ITEMS_PER_PAGE = 100; // Pagination để cải thiện performance
+    
+    // DOM elements
+    const yearFilter = document.getElementById('year-filter');
+    const quarterFilter = document.getElementById('quarter-filter');
+    const monthFilter = document.getElementById('month-filter');
+    const tableBody = document.getElementById('table-body');
+    const errorDiv = document.getElementById('error-message');
+    const subtitleDiv = document.getElementById('subtitle');
+    const progressBar = document.getElementById('progress-bar');
+    const pdfButton = document.getElementById('export-pdf');
+    const totalColumns = 13;
 
-        function showError(message) {
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            tableBody.innerHTML = `<tr><td colspan="${totalColumns}" class="status-message error-message">${message}</td></tr>`;
-        }
-        
-        function formatNumberWithComma(value) {
-            if (value === null || value === undefined || value === '') return '';
-            const num = parseFloat(String(value).replace(',', '.'));
-            if (isNaN(num)) return value;
-            return num.toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 3 });
-        }
+    // Utility functions với performance optimization
+    const formatNumberCache = new Map();
+    function formatNumberWithComma(value) {
+      if (value === null || value === undefined || value === '') return '';
+      if (formatNumberCache.has(value)) return formatNumberCache.get(value);
+      
+      const num = parseFloat(String(value).replace(',', '.'));
+      if (isNaN(num)) return value;
+      
+      const formatted = num.toLocaleString('vi-VN', { 
+        minimumFractionDigits: 0, 
+        maximumFractionDigits: 3 
+      });
+      formatNumberCache.set(value, formatted);
+      return formatted;
+    }
 
-        // CẢI TIẾN 3: Tối ưu hàm renderTable bằng cách xây dựng chuỗi HTML
-        function renderTable(data) {
-            if (!data || data.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="${totalColumns}" class="status-message">Không có dữ liệu phù hợp với bộ lọc.</td></tr>`;
-                return;
+    // Debounced render để tránh render quá nhiều
+    let renderTimeout;
+    function debouncedRender(data) {
+      clearTimeout(renderTimeout);
+      renderTimeout = setTimeout(() => renderTable(data), 100);
+    }
+
+    // Virtual scrolling cho bảng lớn
+    function renderTable(data, page = 0) {
+      const fragment = document.createDocumentFragment();
+      
+      if (!data || data.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="${totalColumns}" class="status-message">Không có dữ liệu phù hợp với bộ lọc.</td>`;
+        fragment.appendChild(tr);
+        tableBody.innerHTML = '';
+        tableBody.appendChild(fragment);
+        return;
+      }
+
+      // Pagination
+      const startIndex = page * ITEMS_PER_PAGE;
+      const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, data.length);
+      const pageData = data.slice(startIndex, endIndex);
+
+      tableBody.innerHTML = '';
+      
+      pageData.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${startIndex + index + 1}</td>
+          <td>${row.ngaygio || ''}</td>
+          <td>${formatNumberWithComma(row.mucnuoc)}</td>
+          <td>${formatNumberWithComma(row.dungtich)}</td>
+          <td>${formatNumberWithComma(row.luongmua)}</td>
+          <td>${formatNumberWithComma(row.htran)}</td>
+          <td>${formatNumberWithComma(row.qtrantudo)}</td>
+          <td>${formatNumberWithComma(row.a)}</td>
+          <td>${formatNumberWithComma(row.cotnuocdaukenh)}</td>
+          <td>${formatNumberWithComma(row.qcong)}</td>
+          <td>${row.nguoivanhanh || ''}</td>
+          <td>${row.nguoikiemtra || ''}</td>
+          <td></td>
+        `;
+        fragment.appendChild(tr);
+      });
+
+      // Add pagination info
+      if (data.length > ITEMS_PER_PAGE) {
+        const paginationTr = document.createElement('tr');
+        paginationTr.innerHTML = `
+          <td colspan="${totalColumns}" style="background: #f8f9fa; font-weight: bold;">
+            Hiển thị ${startIndex + 1}-${endIndex} trong tổng số ${data.length} bản ghi
+            ${page > 0 ? '<button onclick="loadPage(' + (page - 1) + ')">← Trang trước</button>' : ''}
+            ${endIndex < data.length ? '<button onclick="loadPage(' + (page + 1) + ')">Trang sau →</button>' : ''}
+          </td>
+        `;
+        fragment.appendChild(paginationTr);
+      }
+
+      tableBody.appendChild(fragment);
+      currentPage = page;
+    }
+
+    window.loadPage = function(page) {
+      renderTable(filteredData, page);
+    };
+
+    function showError(message) {
+      errorDiv.innerHTML = '';
+      
+      const errorContent = document.createElement('div');
+      errorContent.textContent = message;
+      errorDiv.appendChild(errorContent);
+      errorDiv.style.display = 'block';
+      
+      tableBody.innerHTML = `<tr><td colspan="${totalColumns}" class="status-message error-message">${message}</td></tr>`;
+      
+      // Add retry button for network errors
+      if (message.includes('timeout') || message.includes('Failed to fetch') || message.includes('Network') || message.includes('không thể tải')) {
+        const retryButton = document.createElement('button');
+        retryButton.textContent = 'Thử lại';
+        retryButton.style.cssText = `
+          margin-top: 10px;
+          padding: 8px 16px;
+          background-color: #1EA48D;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-family: inherit;
+        `;
+        retryButton.onclick = () => {
+          errorDiv.style.display = 'none';
+          progressBar.style.width = '0%';
+          tableBody.innerHTML = `<tr><td colspan="${totalColumns}">
+            <div class="loader-container">
+              <div class="spinner"></div>
+              <div class="status-message">Đang tải lại dữ liệu...</div>
+              <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+              </div>
+            </div>
+          </td></tr>`;
+          fetchDataWithRetry(API_URL);
+        };
+        errorDiv.appendChild(retryButton);
+      }
+    }
+
+    // Optimized year population với caching
+    const yearCache = new Set();
+    function populateYearFilter(data) {
+      if (yearCache.size > 0) return; // Already populated
+      
+      const years = new Set();
+      data.forEach(row => {
+        if (row.ngaygio) {
+          const dateParts = row.ngaygio.split(' ')[0].split('/');
+          if (dateParts.length === 3) {
+            const year = dateParts[2];
+            if (year && !isNaN(year)) {
+              years.add(year);
+              yearCache.add(year);
             }
-            const htmlRows = data.map((row, index) => `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${row.ngaygio || ''}</td>
-                    <td>${formatNumberWithComma(row.mucnuoc)}</td>
-                    <td>${formatNumberWithComma(row.dungtich)}</td>
-                    <td>${formatNumberWithComma(row.luongmua)}</td>
-                    <td>${formatNumberWithComma(row.htran)}</td>
-                    <td>${formatNumberWithComma(row.qtrantudo)}</td>
-                    <td>${formatNumberWithComma(row.a)}</td>
-                    <td>${formatNumberWithComma(row.cotnuocdaukenh)}</td>
-                    <td>${formatNumberWithComma(row.qcong)}</td>
-                    <td>${row.nguoivanhanh || ''}</td>
-                    <td>${row.nguoikiemtra || ''}</td>
-                    <td></td>
-                </tr>
-            `).join('');
-            tableBody.innerHTML = htmlRows;
+          }
         }
+      });
 
-        function populateYearFilter(data) {
-            const years = [...new Set(data.map(row => (row.ngaygio && row.ngaygio.split(' ')[0].split('/').length === 3) ? row.ngaygio.split(' ')[0].split('/')[2] : null).filter(Boolean))];
-            years.sort((a, b) => b - a);
-            yearFilter.innerHTML = '<option value="all">Tất cả</option>';
-            years.forEach(year => {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = `Năm ${year}`;
-                yearFilter.appendChild(option);
-            });
-        }
+      const sortedYears = Array.from(years).sort((a, b) => b - a);
+      const fragment = document.createDocumentFragment();
+      
+      const defaultOption = document.createElement('option');
+      defaultOption.value = 'all';
+      defaultOption.textContent = 'Tất cả';
+      fragment.appendChild(defaultOption);
 
-        function applyFiltersAndRender() {
-            const selectedYear = yearFilter.value;
-            const selectedQuarter = quarterFilter.value;
-            const selectedMonth = monthFilter.value;
+      sortedYears.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = `Năm ${year}`;
+        fragment.appendChild(option);
+      });
 
-            filteredData = allData.filter(row => {
-                if (!row.dateObject) return false; // Lọc bằng đối tượng Date đã xử lý trước
-                const date = row.dateObject;
-                if (selectedYear !== 'all' && date.getFullYear() != selectedYear) return false;
-                if (selectedMonth !== 'all') {
-                    if (date.getMonth() + 1 != selectedMonth) return false;
-                } else if (selectedQuarter !== 'all') {
-                    if (Math.floor((date.getMonth() + 3) / 3) != selectedQuarter) return false;
-                }
-                return true;
-            });
+      yearFilter.innerHTML = '';
+      yearFilter.appendChild(fragment);
+    }
 
-            let subtitleText = "";
-            if (selectedMonth !== 'all' && selectedYear !== 'all') subtitleText = `Tháng ${selectedMonth} năm ${selectedYear}`;
-            else if (selectedYear !== 'all') subtitleText = `Năm ${selectedYear}`;
-            else { const c = new Date(); subtitleText = `Tháng ${c.getMonth() + 1} năm ${c.getFullYear()}`; }
-            subtitleDiv.textContent = subtitleText;
-            renderTable(filteredData);
+    // Optimized filtering với indexing
+    const dateCache = new Map();
+    function parseDate(dateString) {
+      if (dateCache.has(dateString)) return dateCache.get(dateString);
+      
+      if (!dateString) return null;
+      const dateParts = dateString.split(' ')[0].split('/');
+      if (dateParts.length !== 3) return null;
+      
+      const [day, month, year] = dateParts.map(Number);
+      if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+      
+      const date = { day, month, year, date: new Date(year, month - 1, day) };
+      dateCache.set(dateString, date);
+      return date;
+    }
+
+    function applyFiltersAndRender() {
+      const selectedYear = yearFilter.value;
+      const selectedQuarter = quarterFilter.value;
+      const selectedMonth = monthFilter.value;
+      
+      filteredData = allData.filter(row => {
+        const parsedDate = parseDate(row.ngaygio);
+        if (!parsedDate) return false;
+        
+        if (selectedYear !== 'all' && parsedDate.year != selectedYear) return false;
+        
+        if (selectedMonth !== 'all') {
+          if (parsedDate.month != selectedMonth) return false;
+        } else if (selectedQuarter !== 'all') {
+          const quarter = Math.floor((parsedDate.month + 2) / 3);
+          if (quarter != selectedQuarter) return false;
         }
         
-        [yearFilter, quarterFilter, monthFilter].forEach(filter => filter.addEventListener('change', applyFiltersAndRender));
-        monthFilter.addEventListener('change', () => { if (monthFilter.value !== 'all') quarterFilter.value = 'all'; });
-        quarterFilter.addEventListener('change', () => { if (quarterFilter.value !== 'all') monthFilter.value = 'all'; });
+        return true;
+      });
+
+      // Update subtitle
+      let subtitleText = "";
+      if (selectedMonth !== 'all' && selectedYear !== 'all') {
+        subtitleText = `Tháng ${selectedMonth} năm ${selectedYear}`;
+      } else if (selectedYear !== 'all') {
+        subtitleText = `Năm ${selectedYear}`;
+      } else {
+        const currentDate = new Date();
+        subtitleText = `Tháng ${currentDate.getMonth() + 1} năm ${currentDate.getFullYear()}`;
+      }
+      subtitleDiv.textContent = subtitleText;
+
+      renderTable(filteredData, 0);
+    }
+
+    // Event listeners với debouncing
+    let filterTimeout;
+    function debouncedFilter() {
+      clearTimeout(filterTimeout);
+      filterTimeout = setTimeout(applyFiltersAndRender, 150);
+    }
+
+    [yearFilter, quarterFilter, monthFilter].forEach(filter => {
+      filter.addEventListener('change', debouncedFilter);
+    });
+
+    monthFilter.addEventListener('change', () => {
+      if (monthFilter.value !== 'all') quarterFilter.value = 'all';
+    });
+    quarterFilter.addEventListener('change', () => {
+      if (quarterFilter.value !== 'all') monthFilter.value = 'all';
+    });
+
+    // Optimized data processing
+    function processData(data) {
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="${totalColumns}" class="status-message">Không có dữ liệu để hiển thị.</td></tr>`;
+        progressBar.style.width = '100%';
+        return;
+      }
+
+      // Batch process data to avoid blocking UI
+      const batchSize = 100;
+      let processed = 0;
+      
+      function processBatch() {
+        const endIndex = Math.min(processed + batchSize, data.length);
         
-        function processAndInitiateData(data) {
-            if (!data || !Array.isArray(data) || data.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="${totalColumns}" class="status-message">Không có dữ liệu để hiển thị.</td></tr>`;
-                return;
+        for (let i = processed; i < endIndex; i++) {
+          const obj = data[i];
+          const standardized = {};
+          
+          Object.keys(obj).forEach(key => {
+            standardized[key.toLowerCase().replace(/\s+/g, '')] = obj[key];
+          });
+          
+          allData.push(standardized);
+        }
+        
+        processed = endIndex;
+        progressBar.style.width = `${(processed / data.length) * 100}%`;
+        
+        if (processed < data.length) {
+          // Continue processing in next frame
+          requestAnimationFrame(processBatch);
+        } else {
+          // Processing complete
+          populateYearFilter(allData);
+          applyFiltersAndRender();
+          progressBar.style.width = '100%';
+          
+          // Enable PDF export after data is loaded
+          pdfButton.disabled = false;
+        }
+      }
+      
+      // Start batch processing
+      allData = [];
+      processBatch();
+    }
+
+    // API call với retry logic và caching
+    const API_URL = 'https://script.google.com/macros/s/AKfycbz9bNzKFLCUp5MK0aMCjhzLKlSH1P2X446XeQ0PYvWGAL4mq9b6H5jCjQH0ZJwB-7k5/exec';
+    const CACHE_KEY = 'reservoir_data_cache';
+    const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+    
+    // Fallback data for demo purposes
+    const DEMO_DATA = [
+      {
+        "ngaygio": "01/01/2024 08:00",
+        "mucnuoc": "45.5",
+        "dungtich": "12.3",
+        "luongmua": "5.2",
+        "htran": "120",
+        "qtrantudo": "15.8",
+        "a": "80",
+        "cotnuocdaukenh": "2.1",
+        "qcong": "8.5",
+        "nguoivanhanh": "Nguyễn Văn A",
+        "nguoikiemtra": "Trần Thị B"
+      },
+      {
+        "ngaygio": "02/01/2024 08:00",
+        "mucnuoc": "45.8",
+        "dungtich": "12.5",
+        "luongmua": "0",
+        "htran": "125",
+        "qtrantudo": "16.2",
+        "a": "85",
+        "cotnuocdaukenh": "2.2",
+        "qcong": "9.1",
+        "nguoivanhanh": "Nguyễn Văn A",
+        "nguoikiemtra": "Trần Thị B"
+      },
+      {
+        "ngaygio": "03/01/2024 08:00",
+        "mucnuoc": "46.1",
+        "dungtich": "12.8",
+        "luongmua": "2.1",
+        "htran": "128",
+        "qtrantudo": "16.5",
+        "a": "88",
+        "cotnuocdaukenh": "2.3",
+        "qcong": "9.4",
+        "nguoivanhanh": "Lê Văn C",
+        "nguoikiemtra": "Phạm Thị D"
+      }
+    ];
+
+    async function fetchDataWithRetry(url, maxRetries = 3) {
+      // Check cache first
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached);
+          if (Date.now() - timestamp < CACHE_DURATION) {
+            progressBar.style.width = '50%';
+            setTimeout(() => processData(data), 100);
+            return;
+          }
+        }
+      } catch (e) {
+        try {
+          localStorage.removeItem(CACHE_KEY);
+        } catch (clearError) {
+          console.warn('Cannot clear cache:', clearError);
+        }
+      }
+
+      // Try different fetch methods
+      const fetchMethods = [
+        // Method 1: Standard fetch
+        () => fetch(url, {
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }),
+        
+        // Method 2: No-cors mode (for CORS issues)
+        () => fetch(url, {
+          method: 'GET',
+          mode: 'no-cors'
+        }).then(response => {
+          // For no-cors, we can't read the response, so we'll use demo data
+          if (response.type === 'opaque') {
+            throw new Error('CORS_FALLBACK');
+          }
+          return response;
+        }),
+        
+        // Method 3: Using JSONP approach
+        () => new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          const callbackName = 'jsonp_callback_' + Date.now();
+          
+          window[callbackName] = function(data) {
+            document.head.removeChild(script);
+            delete window[callbackName];
+            resolve({ ok: true, json: () => Promise.resolve(data) });
+          };
+          
+          script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + callbackName;
+          script.onerror = () => {
+            document.head.removeChild(script);
+            delete window[callbackName];
+            reject(new Error('JSONP failed'));
+          };
+          
+          document.head.appendChild(script);
+          
+          // Timeout for JSONP
+          setTimeout(() => {
+            if (window[callbackName]) {
+              document.head.removeChild(script);
+              delete window[callbackName];
+              reject(new Error('JSONP timeout'));
             }
+          }, 10000);
+        })
+      ];
 
-            // CẢI TIẾN: Chuẩn hóa và xử lý trước dữ liệu 1 lần duy nhất
-            allData = data.map(obj => {
-                const newObj = {};
-                for (const key in obj) {
-                    newObj[key.toLowerCase().replace(/\s+/g, '')] = obj[key];
-                }
-                // Tạo đối tượng Date để lọc nhanh hơn
-                const dateParts = newObj.ngaygio ? newObj.ngaygio.split(' ')[0].split('/') : [];
-                if (dateParts.length === 3) {
-                    const [day, month, year] = dateParts.map(Number);
-                    if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-                        newObj.dateObject = new Date(year, month - 1, day);
-                    }
-                }
-                return newObj;
+      // Try each method
+      for (let methodIndex = 0; methodIndex < fetchMethods.length; methodIndex++) {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            progressBar.style.width = `${((methodIndex * maxRetries + attempt) / (fetchMethods.length * maxRetries)) * 50}%`;
+            
+            const fetchMethod = fetchMethods[methodIndex];
+            
+            // Create timeout promise
+            const timeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('Request timeout')), 15000);
             });
             
-            populateYearFilter(allData);
-            applyFiltersAndRender();
-        }
-        
-        // CẢI TIẾN 4: Logic caching với localForage
-        async function loadData() {
+            const response = await Promise.race([fetchMethod(), timeoutPromise]);
+            
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+            
+            let data;
             try {
-                const cachedData = await localForage.getItem(CACHE_KEY);
-                // Nếu có cache và chưa hết hạn, hiển thị ngay lập tức
-                if (cachedData && (Date.now() - cachedData.timestamp < CACHE_EXPIRATION)) {
-                    console.log("Loading data from cache...");
-                    processAndInitiateData(cachedData.data);
-                } else {
-                     console.log("Cache is empty or expired. Fetching from network...");
-                }
-
-                // Luôn fetch dữ liệu mới ở nền để cập nhật cache
-                const response = await fetch(apiURL);
-                if (!response.ok) throw new Error(`Lỗi mạng: ${response.status}`);
-                let freshData = await response.json();
-                
-                // Chuẩn hóa dữ liệu từ API
-                if (freshData.error) throw new Error(`Lỗi từ API: ${freshData.message}`);
-
-                // Nếu dữ liệu trả về là chuỗi, parse nó
-                if (typeof freshData === 'string') {
-                    freshData = JSON.parse(freshData);
-                }
-                
-                // Lưu dữ liệu mới và timestamp vào cache
-                await localForage.setItem(CACHE_KEY, {
-                    data: freshData,
-                    timestamp: Date.now()
-                });
-                console.log("Cache updated with fresh data.");
-                
-                // Nếu chưa có dữ liệu từ cache, render dữ liệu mới fetch về
-                if (!cachedData || Date.now() - cachedData.timestamp >= CACHE_EXPIRATION) {
-                    processAndInitiateData(freshData);
-                }
-
-            } catch (err) {
-                console.error('Lỗi tải dữ liệu:', err);
-                showError(`Không thể tải dữ liệu. Lỗi: ${err.message}`);
+              data = await response.json();
+            } catch (jsonError) {
+              throw new Error('Invalid JSON response');
             }
+            
+            if (data && data.error) throw new Error(`API Error: ${data.message}`);
+            
+            // Cache the data with error handling
+            try {
+              const cacheData = {
+                data: data,
+                timestamp: Date.now()
+              };
+              localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+            } catch (cacheError) {
+              console.warn('Cannot cache data:', cacheError);
+            }
+            
+            progressBar.style.width = '60%';
+            processData(data);
+            return;
+            
+          } catch (error) {
+            console.warn(`Method ${methodIndex + 1}, Attempt ${attempt} failed:`, error.message);
+            
+            // If this is a CORS fallback error, try demo data
+            if (error.message === 'CORS_FALLBACK') {
+              console.info('Using demo data due to CORS restrictions');
+              progressBar.style.width = '60%';
+              processData(DEMO_DATA);
+              
+              // Show warning about demo data
+              const warningDiv = document.createElement('div');
+              warningDiv.style.cssText = `
+                background: #fff3cd; 
+                border: 1px solid #ffeaa7; 
+                color: #856404; 
+                padding: 12px; 
+                margin: 10px 0; 
+                border-radius: 4px;
+                text-align: center;
+              `;
+              warningDiv.innerHTML = `
+                <strong>⚠️ Lưu ý:</strong> Do vấn đề kết nối, hệ thống đang hiển thị dữ liệu mẫu. 
+                <button onclick="location.reload()" style="margin-left: 10px; padding: 4px 8px; background: #ffc107; border: none; border-radius: 3px; cursor: pointer;">
+                  Tải lại trang
+                </button>
+              `;
+              
+              document.querySelector('.container').insertBefore(warningDiv, document.querySelector('.table-container'));
+              return;
+            }
+            
+            // Wait before next attempt
+            if (attempt < maxRetries) {
+              await new Promise(resolve => setTimeout(resolve, Math.min(1000 * Math.pow(2, attempt - 1), 5000)));
+            }
+          }
         }
-        
-        loadData(); // Bắt đầu quá trình tải dữ liệu
+      }
+      
+      // All methods failed, use demo data as final fallback
+      console.warn('All fetch methods failed, using demo data');
+      progressBar.style.width = '60%';
+      processData(DEMO_DATA);
+      
+      // Show error message with demo data notice
+      const errorMsg = `Không thể kết nối đến server. Đang hiển thị dữ liệu mẫu.`;
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.innerHTML = `
+        <div style="color: #856404; background: #fff3cd; border-color: #ffeaa7;">
+          <strong>⚠️ ${errorMsg}</strong><br>
+          <small>Kiểm tra kết nối mạng và thử lại sau.</small>
+          <button onclick="location.reload()" style="margin-left: 10px; padding: 4px 8px; background: #ffc107; border: none; border-radius: 3px; cursor: pointer;">
+            Tải lại trang
+          </button>
+        </div>
+      `;
+      errorDiv.style.display = 'block';
+    }
 
-        // Các hàm export giữ nguyên
-        document.getElementById('export-excel').addEventListener('click', () => {
-             if (typeof XLSX === 'undefined') {
-                alert('Thư viện Excel chưa tải xong, vui lòng đợi giây lát và thử lại.');
-                return;
-            }
-            if (filteredData.length === 0) return alert('Không có dữ liệu để xuất.');
-            const headers = ["STT", "Ngày, giờ", "Mực nước (m)", "Dung tích (Triệu m³)", "Lượng mưa (mm)", "Htràn (cm)", "Qtràn tự do (m³/s)", "a (cm)", "Cột nước đầu kênh (m)", "Q cống (m³/s)", "Họ, tên người vận hành", "Họ, tên người kiểm tra", "Ký tên"];
-            const dataToExport = filteredData.map((row, index) => [
-                index + 1, row.ngaygio || '',
-                row.mucnuoc ? parseFloat(String(row.mucnuoc).replace(',', '.')) : '',
-                row.dungtich ? parseFloat(String(row.dungtich).replace(',', '.')) : '',
-                row.luongmua ? parseFloat(String(row.luongmua).replace(',', '.')) : '',
-                row.htran ? parseFloat(String(row.htran).replace(',', '.')) : '',
-                row.qtrantudo ? parseFloat(String(row.qtrantudo).replace(',', '.')) : '',
-                row.a ? parseFloat(String(row.a).replace(',', '.')) : '',
-                row.cotnuocdaukenh ? parseFloat(String(row.cotnuocdaukenh).replace(',', '.')) : '',
-                row.qcong ? parseFloat(String(row.qcong).replace(',', '.')) : '',
-                row.nguoivanhanh || '', row.nguoikiemtra || '', ''
-            ]);
-            const worksheetData = [headers, ...dataToExport];
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-            ws['!cols'] = headers.map((_, i) => ({ wch: Math.max(...worksheetData.map(r => r[i] ? String(r[i]).length : 0)) + 2 }));
-            XLSX.utils.book_append_sheet(wb, ws, "NhatKyVanHanh");
-            XLSX.writeFile(wb, "NhatKyVanHanh_HoOngKinh.xlsx");
+    // Export functions
+    document.getElementById('export-excel').addEventListener('click', () => {
+      if (filteredData.length === 0) return alert('Không có dữ liệu để xuất.');
+      
+      const headers = ["STT", "Ngày, giờ", "Mực nước (m)", "Dung tích (Triệu m³)", "Lượng mưa (mm)", "Htràn (cm)", "Qtràn tự do (m³/s)", "a (cm)", "Cột nước đầu kênh (m)", "Q cống (m³/s)", "Họ, tên người vận hành", "Họ, tên người kiểm tra", "Ký tên"];
+      
+      const dataToExport = filteredData.map((row, index) => [
+        index + 1,
+        row.ngaygio || '',
+        row.mucnuoc ? parseFloat(String(row.mucnuoc).replace(',', '.')) : '',
+        row.dungtich ? parseFloat(String(row.dungtich).replace(',', '.')) : '',
+        row.luongmua ? parseFloat(String(row.luongmua).replace(',', '.')) : '',
+        row.htran ? parseFloat(String(row.htran).replace(',', '.')) : '',
+        row.qtrantudo ? parseFloat(String(row.qtrantudo).replace(',', '.')) : '',
+        row.a ? parseFloat(String(row.a).replace(',', '.')) : '',
+        row.cotnuocdaukenh ? parseFloat(String(row.cotnuocdaukenh).replace(',', '.')) : '',
+        row.qcong ? parseFloat(String(row.qcong).replace(',', '.')) : '',
+        row.nguoivanhanh || '',
+        row.nguoikiemtra || '',
+        ''
+      ]);
+
+      const worksheetData = [headers, ...dataToExport];
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+      
+      // Auto-size columns
+      ws['!cols'] = headers.map((_, i) => ({ 
+        wch: Math.max(...worksheetData.map(r => r[i] ? String(r[i]).length : 0)) + 2 
+      }));
+      
+      XLSX.utils.book_append_sheet(wb, ws, "NhatKyVanHanh");
+      XLSX.writeFile(wb, "NhatKyVanHanh_HoOngKinh.xlsx");
+    });
+
+    document.getElementById('export-pdf').addEventListener('click', async () => {
+      if (filteredData.length === 0) return alert('Không có dữ liệu để xuất.');
+      
+      try {
+        pdfButton.disabled = true;
+        pdfButton.textContent = 'Đang tạo PDF...';
+        
+        // Load PDF libraries if not already loaded
+        await loadPDFLibs();
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape', 'pt', 'a4');
+        const FONT_FAMILY = "LiberationSerif";
+        
+        doc.setFont(FONT_FAMILY);
+        doc.setFontSize(16);
+        doc.setFont(FONT_FAMILY, 'bold');
+        doc.text("NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC ÔNG KINH", doc.internal.pageSize.getWidth() / 2, 40, { align: 'center' });
+        
+        doc.setFontSize(14);
+        doc.setFont(FONT_FAMILY, 'bold');
+        const subtitle = subtitleDiv.textContent;
+        doc.text(subtitle, doc.internal.pageSize.getWidth() / 2, 60, { align: 'center' });
+        
+        doc.autoTable({
+          html: '#data-table',
+          startY: 80,
+          theme: 'grid',
+          headStyles: {
+            font: FONT_FAMILY,
+            fontStyle: 'bold',
+            fillColor: [30, 164, 141],
+            textColor: [255, 255, 255],
+            lineColor: [0, 0, 0],
+            lineWidth: 0.5,
+            fontSize: 8,
+            halign: 'center',
+            valign: 'middle'
+          },
+          styles: {
+            font: FONT_FAMILY,
+            fontStyle: 'normal',
+            lineColor: [0, 0, 0],
+            lineWidth: 0.5,
+            fontSize: 8,
+            cellPadding: 4,
+            halign: 'center'
+          },
+          alternateRowStyles: { fillColor: [255, 255, 255] },
+          margin: { top: 80 }
         });
         
-        document.getElementById('export-pdf').addEventListener('click', async () => {
-             if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF.autoTable === 'undefined') {
-                alert('Thư viện PDF chưa tải xong, vui lòng đợi giây lát và thử lại.');
-                return;
-            }
-            if (filteredData.length === 0) return alert('Không có dữ liệu để xuất.');
-            try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('landscape', 'pt', 'a4');
-                const FONT_FAMILY = "LiberationSerif";
-                doc.setFont(FONT_FAMILY);
-                doc.setFontSize(16);
-                doc.setFont(FONT_FAMILY, 'bold');
-                doc.text("NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC ÔNG KINH", doc.internal.pageSize.getWidth() / 2, 40, { align: 'center' });
-                doc.setFontSize(14);
-                doc.setFont(FONT_FAMILY, 'bold');
-                const subtitle = subtitleDiv.textContent;
-                doc.text(subtitle, doc.internal.pageSize.getWidth() / 2, 60, { align: 'center' });
-                doc.autoTable({
-                    html: '#data-table', startY: 80, theme: 'grid',
-                    headStyles: {
-                        font: FONT_FAMILY, fontStyle: 'bold', fillColor: [30, 164, 141], textColor: [255, 255, 255],
-                        lineColor: [0, 0, 0], lineWidth: 0.5, fontSize: 8, halign: 'center', valign: 'middle'
-                    },
-                    styles: {
-                        font: FONT_FAMILY, fontStyle: 'normal', lineColor: [0, 0, 0], lineWidth: 0.5,
-                        fontSize: 8, cellPadding: 4, halign: 'center'
-                    },
-                    alternateRowStyles: { fillColor: [255, 255, 255] },
-                    margin: { top: 80 }
-                });
-                doc.save(`NhatKyVanHanh_HoOngKinh_${subtitle.replace(/ /g, '_').replace(/:/g, '')}.pdf`);
-            } catch (e) {
-                console.error("Lỗi khi tạo file PDF:", e);
-                alert("Đã có lỗi xảy ra khi tạo file PDF. Lỗi: " + e.message);
-            }
-        });
+        doc.save(`NhatKyVanHanh_HoOngKinh_${subtitle.replace(/ /g, '_').replace(/:/g, '')}.pdf`);
+        
+      } catch (e) {
+        console.error("Lỗi khi tạo file PDF:", e);
+        alert("Đã có lỗi xảy ra khi tạo file PDF: " + e.message);
+      } finally {
+        pdfButton.disabled = false;
+        pdfButton.textContent = 'Xuất PDF';
+      }
+    });
+
+    // Initialize app
+    fetchDataWithRetry(API_URL);
+    
+    // Clear cache on page unload with error handling
+    window.addEventListener('beforeunload', () => {
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const { timestamp } = JSON.parse(cached);
+          if (Date.now() - timestamp > CACHE_DURATION) {
+            localStorage.removeItem(CACHE_KEY);
+          }
+        }
+      } catch (e) {
+        // Ignore errors during cleanup
+        console.warn('Cache cleanup error:', e);
+      }
+    });
+
+    // Add connection status monitoring
+    let isOnline = navigator.onLine;
+    window.addEventListener('online', () => {
+      isOnline = true;
+      if (allData.length === 0) {
+        fetchDataWithRetry(API_URL);
+      }
+    });
+    
+    window.addEventListener('offline', () => {
+      isOnline = false;
     });
   </script>
 </body>
