@@ -223,7 +223,7 @@
           <td>${formatNumberWithComma(row.qTranSuCo)}</td>
           <td>${formatNumberWithComma(row.a)}</td>
           <td>${formatNumberWithComma(row.cotNuocDauKenh)}</td>
-          <td>${formatNumberWithComma(row.Qcong)}</td>
+          <td>${formatNumberWithComma(row.qcong)}</td>
           <td>${row.nguoiVanHanh || ''}</td>
           <td>${row.nguoiKiemTra || ''}</td>
           <td></td>
@@ -325,7 +325,7 @@
             row.qTranSuCo ? Number(parseFloat(row.qTranSuCo).toFixed(3)) : '',
             row.a ? Number(parseFloat(row.a).toFixed(3)) : '',
             row.cotNuocDauKenh ? Number(parseFloat(row.cotNuocDauKenh).toFixed(3)) : '',
-            row.Qcong ? Number(parseFloat(row.Qcong).toFixed(3)) : '',
+            row.qcong ? Number(parseFloat(row.qcong).toFixed(3)) : '',
             row.nguoiVanHanh || '', row.nguoiKiemTra || ''
         ]);
         const worksheetData = [headers, ...dataToExport];
