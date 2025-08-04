@@ -223,7 +223,7 @@
           <td>${formatNumberWithComma(row.qTranSuCo)}</td>
           <td>${formatNumberWithComma(row.a)}</td>
           <td>${formatNumberWithComma(row.cotNuocDauKenh)}</td>
-          <td>${formatNumberWithComma(row.qCong)}</td>
+          <td>${formatNumberWithComma(row.Qcong)}</td>
           <td>${row.nguoiVanHanh || ''}</td>
           <td>${row.nguoiKiemTra || ''}</td>
           <td></td>
@@ -316,22 +316,18 @@
         const headers = ["STT", "Ngày, giờ", "Mực nước (m)", "Dung tích (Triệu m³)", "Lượng mưa (mm)", "Htràn (cm)", "Qtràn tự do (m³/s)", "a1 (cm)", "a2 (cm)", "a3 (cm)", "Qtràn sự cố (m³/s)", "a (cm)", "Cột nước đầu kênh (m)", "Qcống (m³/s)", "Người vận hành", "Người kiểm tra"];
         const dataToExport = filteredData.map((row, index) => [
             index + 1, row.ngayGio || '',
-            row.mucNuoc ? parseFloat(row.mucNuoc) : '',
-            row.dungTich ? parseFloat(row.dungTich) : '',
-            row.luongMua ? parseFloat(row.luongMua) : '',
-            row.htran ? parseFloat(row.htran) : '',
-            row.qTranTuDo ? parseFloat(row.qTranTuDo) : '',
-            row.a1 ? parseFloat(row.a1) : '',
-            row.a2 ? parseFloat(row.a2) : '',
-            row.a3 ? parseFloat(row.a3) : '',
-            row.qTranSuCo ? parseFloat(row.qTranSuCo) : '',
-            row.a ? parseFloat(row.a) : '',
-            row.cotNuocDauKenh ? parseFloat(row.cotNuocDauKenh) : '',
-            row.qCong ? parseFloat(row.qCong) : '',
-            row.nguoiVanHanh || '',
-            row.nguoiKiemTra || ''        
-            
-          ]);
+            row.mucNuoc ? Number(parseFloat(row.mucNuoc).toFixed(3)) : '',
+            row.dungTich ? Number(parseFloat(row.dungTich).toFixed(3)) : '',
+            row.luongMua || '',
+            row.hTran ? Number(parseFloat(row.hTran).toFixed(3)) : '',
+            row.qTranTuDo ? Number(parseFloat(row.qTranTuDo).toFixed(3)) : '',
+            row.a1 || '', row.a2 || '', row.a3 || '',
+            row.qTranSuCo ? Number(parseFloat(row.qTranSuCo).toFixed(3)) : '',
+            row.a ? Number(parseFloat(row.a).toFixed(3)) : '',
+            row.cotNuocDauKenh ? Number(parseFloat(row.cotNuocDauKenh).toFixed(3)) : '',
+            row.Qcong ? Number(parseFloat(row.Qcong).toFixed(3)) : '',
+            row.nguoiVanHanh || '', row.nguoiKiemTra || ''
+        ]);
         const worksheetData = [headers, ...dataToExport];
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(worksheetData);
