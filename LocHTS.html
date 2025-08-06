@@ -199,7 +199,14 @@
     
     function formatNumberWithComma(value) {
       if (value === null || value === undefined || value === '') return '';
-      const num = parseFloat(value);
+      
+      // BƯỚC 1: Chuyển đổi giá trị thành chuỗi và thay thế dấu phẩy bằng dấu chấm
+      const stringValue = String(value).replace(',', '.');
+      
+      // BƯỚC 2: Dùng chuỗi đã được sửa để parse
+      const num = parseFloat(stringValue);
+
+      // Trả về giá trị gốc nếu không phải là số, ngược lại thì định dạng
       return !isNaN(num) ? num.toFixed(3).replace('.', ',') : value;
     }
 
