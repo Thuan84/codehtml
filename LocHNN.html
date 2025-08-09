@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nhật ký vận hành hồ chứa nước ngọt - A4 ngang</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <style>
+    :root{ --text:#111; --muted:#555; --line:#333; --primary:#0b5ed7; }
+    *{box-sizing:border-box}
+    body{ font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif; color:var(--text); margin:0; background:#f7f7f7; }
+    .toolbar{ position:sticky; top:0; z-index:10; display:flex; gap:8px; align-items:center; padding:10px 14px; background:#fff; border-bottom:1px solid #e5e5e5; }
+    .toolbar .spacer{flex:1}
+    button{ padding:8px 14px; border:1px solid #ddd; border-radius:8px; background:#fff; cursor:pointer; font-weight:600; }
+    button.primary{ background:var(--primary); color:#fff; border-color:var(--primary) }
+    button:active{ transform:translateY(1px) }
+
+    /* Khổ ngang A4 */
+    .sheet{
+      width: 297mm;
+      min-height: 210mm;
+      margin:16px auto;
+      background:#fff;
+      color:#000;
+      box-shadow:0 2px 10px rgba(0,0,0,.08);
+      padding:12mm 10mm;
+    }
+    h1{ text-align:center; margin:0 0 6mm; font-size:20pt; }
+    .subhead{ text-align:center; margin-top:-5mm; margin-bottom:6mm; color:var(--muted); font-size:11pt; }
+    .meta{ display:flex; justify-content:space-between; margin-bottom:6mm; font-size:11pt; }
+    table{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:10pt; }
+    th,td{ border:1px solid var(--line); padding:4px; text-align:center; vertical-align:middle; word-wrap:break-word; }
+    th{ font-weight:700 }
+    .group{ background:#f1f5ff; }
+    .sign{ display:flex; justify-content:space-between; gap:16mm; margin-top:12mm; font-size:11pt; }
+    .sign .col{ flex:1; text-align:center }
+    .muted{ color:var(--muted); font-style:italic }
+
+    @media print{
+      @page { size: A4 landscape; margin: 10mm; }
+      .toolbar{ display:none !important }
+      body{ background:#fff }
+      .sheet{ margin:0; box-shadow:none; padding:0; width:100%; min-height:auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <div><b>Nhật ký vận hành</b></div>
+    <div class="spacer"></div>
+    <button onclick="window.print()">In</button>
+    <button class="primary" id="btnPdf">Xuất PDF</button>
+    <button id="btnLink">Sao chép liên kết dữ liệu</button>
+  </div>
+
+  <div id="printArea" class="sheet">
+    <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</h1>
+    <div class="subhead" id="subTitle">Tháng …/…</div>
+
+    <div class="meta">
+      <div><b>Mã phiếu:</b> <span id="mapp">—</span></div>
+      <div><b>In lúc:</b> <span id="now">—</span></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr class="group">
+          <th rowspan="2">Ngày báo cáo</th>
+          <th rowspan="2">CTMNHT<br>(m)</th>
+          <th rowspan="2">DTHT<br>(Triệu m³)</th>
+          <th rowspan="2">Lượng mưa<br>(mm)</th>
+
+          <th colspan="2">Thông số vận hành tràn tự do</th>
+          <th colspan="5">Thông số vận hành tràn sự cố</th>
+          <th colspan="3">Thông số vận hành cống lấy nước</th>
+
+          <th rowspan="2">Người cập nhật</th>
+          <th rowspan="2">Ký tên</th>
+        </tr>
+        <tr>
+          <th>Htràn<br>(cm)</th>
+          <th>Qtràn tự do<br>(m³/s)</th>
+
+          <th>a1<br>(cm)</th>
+          <th>a2<br>(cm)</th>
+          <th>a3<br>(cm)</th>
+          <th>a4<br>(cm)</th>
+          <th>Q tràn sự cố<br>(m³/s)</th>
+
+          <th>a<br>(cm)</th>
+          <th>Cột nước đầu kênh<br>(m)</th>
+          <th>Q cống<br>(m³/s)</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+
+    <div class="sign">
+      <div class="col">
+        <b>Người cập nhật</b><br/>
+        <span class="muted">(Ký, ghi rõ họ tên)</span><br/><br/><br/><br/>
+        <span id="sign_ncn"></span>
+      </div>
+      <div class="col">
+        <b>Người duyệt</b><br/>
+        <span class="muted">(Ký, ghi rõ họ tên)</span><br/><br/><br/><br/>
+        <span id="sign_nd"></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 3 });
+
+    document.getElementById('subTitle').textContent = params.get('thang') ? ('Tháng ' + params.get('thang')) : 'Tháng …/…';
+    document.getElementById('mapp').textContent = params.get('id') || '—';
+    document.getElementById('now').textContent = new Date().toLocaleString('vi-VN');
+
+    function normalize(rec){
+      if(rec.a==null && rec.van3!=null) rec.a = rec.van3;
+      if(!rec.ngay && rec.ngaybaocao) rec.ngay = rec.ngaybaocao;
+      const keysNum = ["ctmnht","dtht","luongmua","htrn","qtd","a1","a2","a3","a4","qtsc","a","hnkenh","qcong"];
+      keysNum.forEach(k=>{
+        if(rec[k]!==undefined && rec[k]!=="" && !isNaN(rec[k])) rec[k]=Number(rec[k]);
+      });
+      return rec;
+    }
+    function cell(val, isNum=false){
+      if(val==null || val==="") return "—";
+      return isNum ? nf.format(val) : val;
+    }
+    function appendRow(tbody, r){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${cell(r.ngay)}</td>
+        <td>${cell(r.ctmnht, true)}</td>
+        <td>${cell(r.dtht, true)}</td>
+        <td>${cell(r.luongmua, true)}</td>
+        <td>${cell(r.htrn, true)}</td>
+        <td>${cell(r.qtd, true)}</td>
+        <td>${cell(r.a1, true)}</td>
+        <td>${cell(r.a2, true)}</td>
+        <td>${cell(r.a3, true)}</td>
+        <td>${cell(r.a4, true)}</td>
+        <td>${cell(r.qtsc, true)}</td>
+        <td>${cell(r.a, true)}</td>
+        <td>${cell(r.hnkenh, true)}</td>
+        <td>${cell(r.qcong, true)}</td>
+        <td>${cell(r.nguoicapnhat)}</td>
+        <td>${cell(r.kyten)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    const tbody = document.getElementById('tbody');
+    let rows = [];
+
+    if(params.get('data')){
+      try{ rows = JSON.parse(params.get('data')); if(!Array.isArray(rows)) rows = []; }
+      catch(e){ rows = []; }
+    }
+    if(rows.length === 0){
+      const one = normalize({
+        ngay: params.get('ngay') || params.get('ngaybaocao') || "",
+        ctmnht: params.get('ctmnht'), dtht: params.get('dtht'), luongmua: params.get('luongmua'),
+        htrn: params.get('htrn'), qtd: params.get('qtd'),
+        a1: params.get('a1'), a2: params.get('a2'), a3: params.get('a3'), a4: params.get('a4'),
+        qtsc: params.get('qtsc'), a: params.get('a') ?? params.get('van3'),
+        hnkenh: params.get('hnkenh'), qcong: params.get('qcong'),
+        nguoicapnhat: params.get('nguoicapnhat'), kyten: params.get('kyten')
+      });
+      appendRow(tbody, one);
+      document.getElementById('sign_ncn').textContent = one.nguoicapnhat || "";
+      document.getElementById('sign_nd').textContent  = one.kyten || "";
+    } else {
+      rows.map(normalize).forEach(r=>appendRow(tbody, r));
+      const last = rows[rows.length-1] || {};
+      document.getElementById('sign_ncn').textContent = (last.nguoicapnhat||"");
+      document.getElementById('sign_nd').textContent  = (last.kyten||"");
+    }
+
+    document.getElementById('btnPdf').addEventListener('click', () => {
+      const opt = {
+        margin: [5, 5, 5, 5],
+        filename: `nhat-ky-van-hanh-${params.get('id')||'phieu'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
+      html2pdf().from(document.getElementById('printArea')).set(opt).save();
+    });
+
+    document.getElementById('btnLink').addEventListener('click', ()=>{
+      const url = new URL(location.href.split('#')[0]);
+      const keep = ["id","thang","data","ngay","ngaybaocao","ctmnht","dtht","luongmua","htrn","qtd","a1","a2","a3","a4","qtsc","a","van3","hnkenh","qcong","nguoicapnhat","kyten"];
+      const out = new URLSearchParams();
+      keep.forEach(k=>{ const v=params.get(k); if(v!=null && v!=="") out.set(k,v); });
+      url.search = out.toString();
+      navigator.clipboard.writeText(url.toString()).then(()=>alert("Đã sao chép liên kết có dữ liệu!"));
+    });
+  </script>
+</body>
+</html>
