@@ -180,10 +180,8 @@
         {key:'mucNuoc', label:'Mực nước (m)'},
         {key:'dungTich', label:'Dung tích (Triệu m³)'},
         {key:'luongMua', label:'Lượng mưa (mm)'},
-        {key:'hTran', label:'Htràn (cm)'}, group:'Thông số vận hành tràn xả lũ'},
-        {key:'qTranTuDo', label:'Qtràn tự do (m³/s)'}, group:'Thông số vận hành tràn xả lũ'},
-        {key:'a', label:'a (m)', group:'Thông số vận hành cống lấy nước'},
-        {key:'cotNuocDauKenh', label:'Cột nước đầu kênh (m)'}, group:'Thông số vận hành cống lấy nước'},
+        {key:'hTran', label:'Htràn (cm)', group:'Thông số vận hành tràn xả lũ'},
+        {key:'qTranTuDo', label:'Qtràn tự do (m³/s)', group:'Thông số vận hành tràn xả lũ'},
         {key:'qcong', label:'Qcống (m³/s)', group:'Thông số vận hành cống lấy nước'},
         {key:'nguoiVanHanh', label:'Họ, tên người vận hành'},
         {key:'nguoiKiemTra', label:'Họ, tên người kiểm tra'},
@@ -395,7 +393,7 @@
         let v=row[c.key];
         if (v===undefined && c.key==='qcong') v=row.qCong;
         if (v===undefined && c.key==='qCong') v=row.qcong;
-        const numericKeys = ['mucNuoc','dungTich','luongMua','hTran','hTran1','hTran2','qTranTuDo','qTranSuCo','a','a1','a2','a3','cotNuocDauKenh','qCong','qcong','qtran1','qtran2'];
+        const numericKeys = ['mucNuoc','dungTich','luongMua','hTran','hTran1','hTran2','qTranTuDo','qTranSuCo','a','a1','a2','a3','cotNuocDauKenh','qcong','qcong','qtran1','qtran2'];
         return numericKeys.includes(c.key) ? fmtNum(v) : (v||'');
       }));
 
