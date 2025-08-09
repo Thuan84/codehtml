@@ -14,6 +14,9 @@
   <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Bold.js"></script>
   <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Italic.js"></script>
 
+  <!-- Thư viện nén chuỗi để giảm dung lượng cache -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+
   <style>
     :root { --header-bg:#1EA48D; --border:#ccc; --hover:#f1f3f5; }
     body{ font-family:'Times New Roman',Times,serif; background:#f4f4f4; margin:0; padding:20px; color:#000; font-size:14pt;}
@@ -80,18 +83,60 @@
     // ---------- URL web app ----------
     const WEBAPP_BASE = 'https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec';
 
-    // ---------- Config hiển thị theo sheet ----------
+    // ---------- Tiện ích ----------
     function qp(name){ const u=new URL(location.href); return u.searchParams.get(name); }
+
+    // Cache có nén + fallback
+    const CACHE = {
+      get(key){
+        try{
+          const packed = localStorage.getItem(key) || sessionStorage.getItem(key);
+          if (!packed) return null;
+          const json = LZString.decompressFromUTF16(packed);
+          return json ? JSON.parse(json) : null;
+        }catch(e){
+          console.warn('Cache get error:', e);
+          return null;
+        }
+      },
+      set(key, obj){
+        try{
+          const json = JSON.stringify(obj);
+          const packed = LZString.compressToUTF16(json);
+          // thử localStorage trước
+          try{
+            localStorage.setItem(key, packed);
+            return true;
+          }catch(e1){
+            // dọn key cũ rồi thử lại
+            try { localStorage.removeItem(key); localStorage.setItem(key, packed); return true; }
+            catch(e2){
+              // fallback sessionStorage
+              try { sessionStorage.setItem(key, packed); return true; }
+              catch(e3){
+                console.warn('Cache disabled, quota exceeded.', e1, e2, e3);
+                return false;
+              }
+            }
+          }
+        }catch(e){
+          console.warn('Cache pack error:', e);
+          return false;
+        }
+      }
+    };
+
+    // ---------- Config hiển thị theo sheet ----------
     const SHEET = (qp('sheet') || 'HoThanhSon').trim();
 
     const TITLES = {
-      HoThanhSon: 'NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC THÀNH SƠN',
-      HoNuocNgot: 'NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT',
-      HoOngKinh:  'NHẬT KÝ VẬN HÀNH HỒ CHỨA ÔNG KÍNH'
+      HoThanhSon: 'NHẬT KÝ VẬN HÀNH HỒ THÀNH SƠN',
+      HoNuocNgot: 'NHẬT KÝ VẬN HÀNH HỒ NƯỚC NGỌT',
+      HoOngKinh:  'NHẬT KÝ VẬN HÀNH HỒ ÔNG KINH'
     };
     document.getElementById('page-title').textContent = TITLES[SHEET] || `NHẬT KÝ VẬN HÀNH HỒ CHỨA (${SHEET})`;
 
-    // Định nghĩa cột cho từng sheet (key phải khớp backend)
+    // Cột hiển thị theo sheet (key khớp backend)
     const COLUMN_SETS = {
       HoThanhSon: [
         {key:'stt', label:'STT'},
@@ -145,7 +190,7 @@
     };
     const COLUMNS = COLUMN_SETS[SHEET] || COLUMN_SETS.HoThanhSon;
 
-    // Tạo header 2 hàng (nhóm cột nếu có group)
+    // Header 2 hàng (nhóm cột)
     function buildHeaders() {
       const row1 = document.getElementById('thead-row-1');
       const row2 = document.getElementById('thead-row-2');
@@ -272,7 +317,7 @@
     monthSel.addEventListener('change', ()=>{ if (monthSel.value!=='all') quarterSel.value='all'; });
     quarterSel.addEventListener('change', ()=>{ if (quarterSel.value!=='all') monthSel.value='all'; });
 
-    // ---------- Fetch ----------
+    // ---------- Fetch + Cache (có nén) ----------
     const API_URL = `${WEBAPP_BASE}?sheet=${encodeURIComponent(SHEET)}`;
     const CACHE_KEY = `nhatky_cache_${SHEET}`;
 
@@ -291,21 +336,20 @@
 
     buildHeaders();
 
-    const old = localStorage.getItem(CACHE_KEY);
-    if (old) processData(JSON.parse(old));
+    const cached = CACHE.get(CACHE_KEY);
+    if (cached) processData(cached);
 
     fetch(API_URL)
       .then(r => r.ok ? r.json() : Promise.reject(new Error(`Lỗi mạng: ${r.status}`)))
       .then(dt => {
         const res = typeof dt==='string' ? JSON.parse(dt) : dt;
         if (res && res.error) throw new Error(res.message || 'API báo lỗi');
-        const txt = JSON.stringify(res);
-        if (txt!==old) localStorage.setItem(CACHE_KEY, txt);
+        CACHE.set(CACHE_KEY, res);   // sẽ tự nén + fallback
         processData(res);
       })
       .catch(err=>{
         console.error(err);
-        if (!old) showError(`Không thể tải dữ liệu: ${err.message||err}`);
+        if (!cached) showError(`Không thể tải dữ liệu: ${err.message||err}`);
       });
 
     // ---------- Xuất Excel ----------
