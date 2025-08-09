@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Nhật ký vận hành hồ chứa</title>
+
+  <!-- Xuất file -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- Font Việt cho jsPDF -->
+  <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Regular.js"></script>
+  <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Bold.js"></script>
+  <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Italic.js"></script>
+
+  <style>
+    :root { --header-bg:#1EA48D; --border:#ccc; --hover:#f1f3f5; }
+    body{ font-family:'Times New Roman',Times,serif; background:#f4f4f4; margin:0; padding:20px; color:#000; font-size:14pt;}
+    .container{ max-width:1600px; margin:0 auto; background:#fff; padding:30px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,.08);}
+    h1{ font-size:16pt; font-weight:bold; text-align:center; text-transform:uppercase; margin:0 0 6px;}
+    .subtitle{ text-align:center; font-weight:bold; font-size:14pt; margin-bottom:18px;}
+    .controls{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px; padding:12px; border:1px solid #ddd; border-radius:6px; background:#fdfdff;}
+    .controls .group{ display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+    label{ font-weight:bold;}
+    select,button{ padding:8px 12px; border:1px solid #ccc; border-radius:5px; background:#fff; font-size:13pt; cursor:pointer;}
+    button{ color:#fff; border:none; }
+    #export-excel{ background:#218838;} #export-pdf{ background:#c82333;}
+    table{ width:100%; border-collapse:collapse; font-size:13pt; margin-top:12px;}
+    th,td{ border:1px solid var(--border); padding:8px 10px; text-align:center; vertical-align:middle;}
+    th{ background:var(--header-bg); position:sticky; top:0; z-index:1;}
+    tbody tr:hover{ background:var(--hover);}
+    .status{ color:#555; padding:36px; text-align:center; font-style:italic;}
+    .error{ color:#b00020; background:#ffeeee; border:1px solid #ffcccc; padding:12px; border-radius:5px; margin-top:12px;}
+    .loader{ padding:50px; text-align:center;}
+    .spinner{ width:40px; height:40px; border:5px solid #f3f3f3; border-top:5px solid #3498db; border-radius:50%; animation:spin 1s linear infinite; display:inline-block;}
+    @keyframes spin{ to{ transform:rotate(360deg)} }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 id="page-title">NHẬT KÝ VẬN HÀNH HỒ CHỨA</h1>
+    <div id="subtitle" class="subtitle"></div>
+
+    <div class="controls">
+      <div class="group">
+        <label for="year">Năm:</label>
+        <select id="year"><option value="all">Tất cả</option></select>
+        <label for="quarter">Quý:</label>
+        <select id="quarter">
+          <option value="all">Tất cả</option>
+          <option value="1">Quý 1</option><option value="2">Quý 2</option>
+          <option value="3">Quý 3</option><option value="4">Quý 4</option>
+        </select>
+        <label for="month">Tháng:</label>
+        <select id="month">
+          <option value="all">Tất cả</option>
+          <script>for(let i=1;i<=12;i++)document.write(`<option value="${i}">Tháng ${i}</option>`);</script>
+        </select>
+      </div>
+      <div class="group">
+        <button id="export-excel">Xuất Excel</button>
+        <button id="export-pdf">Xuất PDF</button>
+      </div>
+    </div>
+
+    <table id="data-table">
+      <thead><tr id="thead-row-1"></tr><tr id="thead-row-2"></tr></thead>
+      <tbody id="tbody">
+        <tr><td colspan="15">
+          <div class="loader"><div class="spinner"></div><div class="status">Đang tải dữ liệu...</div></div>
+        </td></tr>
+      </tbody>
+    </table>
+
+    <div id="error" class="error" style="display:none;"></div>
+  </div>
+
+  <script>
+    // ---------- URL web app ----------
+    const WEBAPP_BASE = 'https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec';
+
+    // ---------- Config hiển thị theo sheet ----------
+    function qp(name){ const u=new URL(location.href); return u.searchParams.get(name); }
+    const SHEET = (qp('sheet') || 'HoThanhSon').trim();
+
+    const TITLES = {
+      HoThanhSon: 'NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC THÀNH SƠN',
+      HoNuocNgot: 'NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT',
+      HoOngKinh:  'NHẬT KÝ VẬN HÀNH HỒ CHỨA ÔNG KÍNH'
+    };
+    document.getElementById('page-title').textContent = TITLES[SHEET] || `NHẬT KÝ VẬN HÀNH HỒ CHỨA (${SHEET})`;
+
+    // Định nghĩa cột cho từng sheet (key phải khớp backend)
+    const COLUMN_SETS = {
+      HoThanhSon: [
+        {key:'stt', label:'STT'},
+        {key:'ngayGio', label:'Ngày, giờ'},
+        {key:'mucNuoc', label:'Mực nước (m)'},
+        {key:'dungTich', label:'Dung tích (Triệu m³)'},
+        {key:'luongMua', label:'Lượng mưa (mm)'},
+        {key:'hTran1', label:'Htràn 1 (cm)', group:'Tràn xả lũ số 1'},
+        {key:'qtran1', label:'Qtràn 1 (m³/s)', group:'Tràn xả lũ số 1'},
+        {key:'hTran2', label:'Htràn 2 (cm)', group:'Tràn xả lũ số 2'},
+        {key:'qtran2', label:'Qtràn 2 (m³/s)', group:'Tràn xả lũ số 2'},
+        {key:'a', label:'a (m)', group:'Cống lấy nước'},
+        {key:'cotNuocDauKenh', label:'Cột nước đầu kênh (m)', group:'Cống lấy nước'},
+        {key:'qCong', label:'Qcống (m³/s)', group:'Cống lấy nước'},
+        {key:'nguoiVanHanh', label:'Họ, tên người vận hành'},
+        {key:'nguoiKiemTra', label:'Họ, tên người kiểm tra'},
+        {key:'chuKy', label:'Chữ ký'}
+      ],
+      HoNuocNgot: [
+        {key:'stt', label:'STT'},
+        {key:'ngayGio', label:'Ngày, giờ'},
+        {key:'mucNuoc', label:'Mực nước (m)'},
+        {key:'dungTich', label:'Dung tích (Triệu m³)'},
+        {key:'luongMua', label:'Lượng mưa (mm)'},
+        {key:'hTran', label:'Htràn (cm)', group:'Tràn tự do'},
+        {key:'qTranTuDo', label:'Qtràn tự do (m³/s)', group:'Tràn tự do'},
+        {key:'a1', label:'a1 (cm)', group:'Tràn sự cố'},
+        {key:'a2', label:'a2 (cm)', group:'Tràn sự cố'},
+        {key:'a3', label:'a3 (cm)', group:'Tràn sự cố'},
+        {key:'qTranSuCo', label:'Qtràn sự cố (m³/s)', group:'Tràn sự cố'},
+        {key:'a', label:'a (m)', group:'Cống lấy nước'},
+        {key:'cotNuocDauKenh', label:'Cột nước đầu kênh (m)', group:'Cống lấy nước'},
+        {key:'qcong', label:'Qcống (m³/s)', group:'Cống lấy nước'},
+        {key:'nguoiVanHanh', label:'Họ, tên người vận hành'},
+        {key:'nguoiKiemTra', label:'Họ, tên người kiểm tra'},
+        {key:'chuKy', label:'Chữ ký'}
+      ],
+      HoOngKinh: [
+        {key:'stt', label:'STT'},
+        {key:'ngayGio', label:'Ngày, giờ'},
+        {key:'mucNuoc', label:'Mực nước (m)'},
+        {key:'dungTich', label:'Dung tích (Triệu m³)'},
+        {key:'luongMua', label:'Lượng mưa (mm)'},
+        {key:'hTran', label:'Htràn (cm)'},
+        {key:'qTranTuDo', label:'Qtràn tự do (m³/s)'},
+        {key:'cotNuocDauKenh', label:'Cột nước đầu kênh (m)'},
+        {key:'nguoiVanHanh', label:'Họ, tên người vận hành'},
+        {key:'nguoiKiemTra', label:'Họ, tên người kiểm tra'},
+        {key:'chuKy', label:'Chữ ký'}
+      ]
+    };
+    const COLUMNS = COLUMN_SETS[SHEET] || COLUMN_SETS.HoThanhSon;
+
+    // Tạo header 2 hàng (nhóm cột nếu có group)
+    function buildHeaders() {
+      const row1 = document.getElementById('thead-row-1');
+      const row2 = document.getElementById('thead-row-2');
+      row1.innerHTML = ''; row2.innerHTML = '';
+
+      const groups = {};
+      COLUMNS.forEach(col => {
+        if (!col.group) {
+          const th = document.createElement('th');
+          th.textContent = col.label;
+          th.rowSpan = 2;
+          row1.appendChild(th);
+        } else {
+          if (!groups[col.group]) groups[col.group] = [];
+          groups[col.group].push(col);
+        }
+      });
+
+      Object.keys(groups).forEach(g => {
+        const thGroup = document.createElement('th');
+        thGroup.textContent = g;
+        thGroup.colSpan = groups[g].length;
+        row1.appendChild(thGroup);
+
+        groups[g].forEach(col => {
+          const th = document.createElement('th');
+          th.textContent = col.label;
+          row2.appendChild(th);
+        });
+      });
+    }
+
+    // ---------- Utils ----------
+    function fmtNum(v){
+      if (v===null || v===undefined || v==='') return '';
+      const n = parseFloat(v);
+      if (isNaN(n)) return v;
+      return n.toLocaleString('vi-VN',{minimumFractionDigits:0, maximumFractionDigits:3});
+    }
+
+    function showError(msg){
+      const err = document.getElementById('error');
+      err.textContent = msg;
+      err.style.display = 'block';
+      document.getElementById('tbody').innerHTML =
+        `<tr><td colspan="15" class="status">${msg}</td></tr>`;
+    }
+
+    // ---------- Render ----------
+    const tbody = document.getElementById('tbody');
+    function renderRows(data){
+      tbody.innerHTML = '';
+      if (!data || data.length===0){
+        tbody.innerHTML = `<tr><td colspan="15" class="status">Không có dữ liệu phù hợp với bộ lọc.</td></tr>`;
+        return;
+      }
+      data.forEach((row, i) => {
+        const tr = document.createElement('tr');
+        const cells = COLUMNS.map(col=>{
+          let val = row[col.key];
+          if (val===undefined) {
+            if (col.key==='qcong') val = row.qCong; // chấp nhận cả qCong
+            if (col.key==='qCong') val = row.qcong; // và ngược lại
+          }
+          const numericKeys = ['mucNuoc','dungTich','luongMua','hTran','hTran1','hTran2','qTranTuDo','qTranSuCo','a','a1','a2','a3','cotNuocDauKenh','qCong','qcong','qtran1','qtran2'];
+          const display = numericKeys.includes(col.key) ? fmtNum(val) : (val || (col.key==='stt' ? i+1 : ''));
+          return `<td>${display}</td>`;
+        }).join('');
+        tr.innerHTML = cells;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ---------- Lọc ----------
+    const yearSel = document.getElementById('year');
+    const quarterSel = document.getElementById('quarter');
+    const monthSel = document.getElementById('month');
+    const subtitle = document.getElementById('subtitle');
+
+    function populateYears(data){
+      const years = [...new Set(
+        data.map(r=>{
+          if (!r.ngayGio) return null;
+          const p = String(r.ngayGio).split(' ')[0].split('/');
+          return p.length===3 ? p[2] : null;
+        }).filter(Boolean)
+      )].sort((a,b)=>b-a);
+      yearSel.innerHTML = '<option value="all">Tất cả</option>';
+      years.forEach(y=>{
+        const o=document.createElement('option'); o.value=y; o.textContent=`Năm ${y}`;
+        yearSel.appendChild(o);
+      });
+    }
+
+    function applyFilters(){
+      const y = yearSel.value;
+      const q = quarterSel.value;
+      const m = monthSel.value;
+
+      const out = allData.filter(r=>{
+        if (!r.ngayGio) return false;
+        const p = String(r.ngayGio).split(' ')[0].split('/');
+        if (p.length!==3) return false;
+        const [d,mm,yy] = p.map(Number);
+        if ([d,mm,yy].some(isNaN)) return false;
+        const dt = new Date(yy, mm-1, d);
+        if (y!=='all' && dt.getFullYear()!=y) return false;
+        if (m!=='all') return (dt.getMonth()+1)==m;
+        if (q!=='all') return Math.floor((dt.getMonth()+3)/3)==q;
+        return true;
+      });
+
+      let sub = '';
+      if (m!=='all' && y!=='all') sub = `Tháng ${m} năm ${y}`;
+      else if (y!=='all') sub = `Năm ${y}`;
+      else { const c=new Date(); sub = `Tháng ${c.getMonth()+1} năm ${c.getFullYear()}`; }
+      subtitle.textContent = sub;
+
+      filteredData = out;
+      renderRows(out);
+    }
+
+    [yearSel, quarterSel, monthSel].forEach(el=>el.addEventListener('change', applyFilters));
+    monthSel.addEventListener('change', ()=>{ if (monthSel.value!=='all') quarterSel.value='all'; });
+    quarterSel.addEventListener('change', ()=>{ if (quarterSel.value!=='all') monthSel.value='all'; });
+
+    // ---------- Fetch ----------
+    const API_URL = `${WEBAPP_BASE}?sheet=${encodeURIComponent(SHEET)}`;
+    const CACHE_KEY = `nhatky_cache_${SHEET}`;
+
+    let allData = [];
+    let filteredData = [];
+
+    function processData(data){
+      if (!Array.isArray(data)){
+        showError('Dữ liệu trả về không hợp lệ.');
+        return;
+      }
+      allData = data;
+      populateYears(allData);
+      applyFilters();
+    }
+
+    buildHeaders();
+
+    const old = localStorage.getItem(CACHE_KEY);
+    if (old) processData(JSON.parse(old));
+
+    fetch(API_URL)
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(`Lỗi mạng: ${r.status}`)))
+      .then(dt => {
+        const res = typeof dt==='string' ? JSON.parse(dt) : dt;
+        if (res && res.error) throw new Error(res.message || 'API báo lỗi');
+        const txt = JSON.stringify(res);
+        if (txt!==old) localStorage.setItem(CACHE_KEY, txt);
+        processData(res);
+      })
+      .catch(err=>{
+        console.error(err);
+        if (!old) showError(`Không thể tải dữ liệu: ${err.message||err}`);
+      });
+
+    // ---------- Xuất Excel ----------
+    document.getElementById('export-excel').addEventListener('click', ()=>{
+      if (!filteredData.length) return alert('Không có dữ liệu để xuất.');
+      const headers = COLUMNS.map(c=>c.label);
+      const rows = filteredData.map((row, i)=>{
+        return COLUMNS.map(c=>{
+          if (c.key==='stt') return i+1;
+          let v = row[c.key];
+          if (v===undefined && c.key==='qcong') v=row.qCong;
+          if (v===undefined && c.key==='qCong') v=row.qcong;
+          const numericKeys = ['mucNuoc','dungTich','luongMua','hTran','hTran1','hTran2','qTranTuDo','qTranSuCo','a','a1','a2','a3','cotNuocDauKenh','qCong','qcong','qtran1','qtran2'];
+          return numericKeys.includes(c.key) && v!=='' && v!=null ? parseFloat(v) : (v||'');
+        });
+      });
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+      ws['!cols'] = headers.map((_,i)=>({ wch: Math.max(...[headers,...rows].map(r=> (r[i]??'').toString().length )) + 2 }));
+      XLSX.utils.book_append_sheet(wb, ws, SHEET);
+      XLSX.writeFile(wb, `NhatKyVanHanh_${SHEET}.xlsx`);
+    });
+
+    // ---------- Xuất PDF ----------
+    document.getElementById('export-pdf').addEventListener('click', ()=>{
+      if (!filteredData.length) return alert('Không có dữ liệu để xuất.');
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('landscape','pt','a4');
+      const FONT = 'LiberationSerif';
+      doc.setFont(FONT);
+
+      doc.setFontSize(16); doc.setFont(FONT,'bold');
+      doc.text(document.getElementById('page-title').textContent, doc.internal.pageSize.getWidth()/2, 40, {align:'center'});
+      doc.setFontSize(14); doc.setFont(FONT,'bold');
+      const sub = (document.getElementById('subtitle').textContent||'');
+      doc.text(sub, doc.internal.pageSize.getWidth()/2, 60, {align:'center'});
+
+      const head = [COLUMNS.map(c=>c.label)];
+      const body = filteredData.map((row,i)=> COLUMNS.map(c=>{
+        if (c.key==='stt') return i+1;
+        let v=row[c.key];
+        if (v===undefined && c.key==='qcong') v=row.qCong;
+        if (v===undefined && c.key==='qCong') v=row.qcong;
+        const numericKeys = ['mucNuoc','dungTich','luongMua','hTran','hTran1','hTran2','qTranTuDo','qTranSuCo','a','a1','a2','a3','cotNuocDauKenh','qCong','qcong','qtran1','qtran2'];
+        return numericKeys.includes(c.key) ? fmtNum(v) : (v||'');
+      }));
+
+      doc.autoTable({
+        head, body, startY:80, theme:'grid',
+        headStyles:{ font:FONT, fontStyle:'bold', fillColor:[242,242,242], textColor:[0,0,0], lineColor:[0,0,0], lineWidth:.5, fontSize:8, halign:'center', valign:'middle' },
+        styles:{ font:FONT, lineColor:[0,0,0], lineWidth:.5, fontSize:8, cellPadding:4 }
+      });
+      const safe = sub.replace(/[^\p{L}\p{N}_-]+/gu,'_');
+      doc.save(`NhatKyVanHanh_${SHEET}_${safe||'all'}.pdf`);
+    });
+  </script>
+</body>
+</html>
