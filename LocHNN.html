@@ -5,17 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nhật ký vận hành hồ chứa nước ngọt</title>
 
-  <!-- Xuất PDF -->
+  <!-- PDF + Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
   <style>
     :root{
       --ink:#0f172a;
       --muted:#64748b;
-      --brand:#1EA48D;   /* theo yêu cầu */
+      --brand:#1EA48D;   /* yêu cầu */
       --line:#1EA48D;    /* viền bảng */
       --bg:#f6f8fa;
       --card:#ffffff;
+      --radius:12px;
     }
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
@@ -27,10 +29,10 @@
     /* Toolbar */
     .toolbar{
       position:sticky; top:0; z-index:20;
-      backdrop-filter: blur(8px);
       display:flex; gap:10px; align-items:center;
-      padding:10px 16px; background:rgba(255,255,255,.9);
+      padding:10px 16px; background:rgba(255,255,255,.92);
       border-bottom:1px solid #e5e7eb;
+      backdrop-filter: blur(8px);
     }
     .brand{ display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px; }
     .dot{ width:10px; height:10px; border-radius:50%; background:var(--brand); box-shadow:0 0 0 3px rgba(30,164,141,.15); }
@@ -50,18 +52,12 @@
       box-shadow:0 12px 35px rgba(2,6,23,.07);
     }
 
-    /* Heading box (kẻ khung phần tiêu đề) */
-    .heading-box{
-      border:2px solid var(--brand);
-      border-radius:14px;
-      padding:14px 16px;
-      margin-bottom:14px;
-    }
+    /* Heading (không kẻ khung to quanh H1 nữa) */
     h1{
-      margin:0; text-align:center; font-size:22pt; line-height:1.25; letter-spacing:.5px;
+      margin:0 0 6px 0; text-align:center; font-size:22pt; line-height:1.25; letter-spacing:.3px;
       font-weight:900; color:#0b1b23;
     }
-    .subhead{ margin-top:6px; text-align:center; font-size:12pt; color:var(--muted); }
+    .subhead{ text-align:center; font-size:12pt; color:var(--muted); margin-bottom:12px; }
 
     /* Filters bar */
     .filters{
@@ -82,13 +78,30 @@
     .table-wrap{
       border-radius:14px; overflow:hidden; border:1px solid var(--line);
     }
-    table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:11pt; background:#fff; }
+    table{
+      width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:11pt; background:#fff;
+    }
+
+    /* ===== KẺ KHUNG RIÊNG CHO KHỐI 2 HÀNG TIÊU ĐỀ ===== */
     thead th{
       background:var(--brand); color:#fff; font-weight:800;
-      padding:10px 8px; border-right:1px solid var(--line); border-bottom:1px solid var(--line);
-      position:sticky; top:0; z-index:1;
+      padding:10px 8px;
+      border-right:1px solid var(--line); /* vẽ vạch dọc trong header */
     }
     thead tr th:last-child{ border-right:0; }
+
+    /* viền quanh cả khối header (2 hàng) */
+    thead tr:first-child th{ border-top:2px solid var(--brand); }
+    thead tr:last-child  th{ border-bottom:2px solid var(--brand); }
+    thead tr th:first-child{ border-left:2px solid var(--brand); }
+    thead tr th:last-child { border-right:2px solid var(--brand); }
+
+    /* bo góc khối header */
+    thead tr:first-child th:first-child { border-top-left-radius: var(--radius); }
+    thead tr:first-child th:last-child  { border-top-right-radius: var(--radius); }
+    thead tr:last-child  th:first-child { border-bottom-left-radius: var(--radius); }
+    thead tr:last-child  th:last-child  { border-bottom-right-radius: var(--radius); }
+
     tbody td{
       padding:8px 8px; text-align:center; vertical-align:middle;
       border-right:1px solid var(--line); border-bottom:1px solid var(--line);
@@ -108,6 +121,7 @@
       .sheet{ margin:0; padding:0; width:100%; min-height:auto; box-shadow:none; border-radius:0; }
       .table-wrap{ border-radius:0; }
       .filters{ border:1px solid #999; }
+      thead th{ position:static; } /* tránh dính sticky khi in */
     }
   </style>
 </head>
@@ -118,18 +132,15 @@
     <div class="spacer"></div>
     <button class="btn" onclick="window.print()">In</button>
     <button class="btn primary" id="btnPdf">Xuất PDF</button>
+    <button class="btn" id="btnExcel">Xuất Excel (theo bộ lọc)</button>
     <button class="btn" id="btnLink">Sao chép liên kết</button>
   </div>
 
-  <!-- Trang in -->
   <div id="printArea" class="sheet">
-    <!-- Tiêu đề có khung -->
-    <div class="heading-box">
-      <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</h1>
-      <div class="subhead" id="subTitle">Tháng …/…</div>
-    </div>
+    <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</h1>
+    <div class="subhead" id="subTitle">Tháng …/…</div>
 
-    <!-- Bộ lọc Năm / Quý / Tháng -->
+    <!-- Bộ lọc -->
     <div class="filters">
       <span class="label">Bộ lọc:</span>
       <label for="yearSel">Năm</label>
@@ -275,7 +286,6 @@
       filtered = allData.filter(r => {
         const d = parseVNDateTime(r.ngayGio);
         if (!d) return false;
-
         if (y !== 'all' && String(d.getFullYear()) !== String(y)) return false;
 
         if (m !== 'all'){
@@ -306,7 +316,7 @@
       }
     }
 
-    // Liên kết bộ lọc (chọn tháng thì reset quý và ngược lại)
+    // Liên kết bộ lọc
     monthSel.addEventListener('change', () => { if (monthSel.value !== 'all') quarterSel.value = 'all'; applyFilters(); });
     quarterSel.addEventListener('change', () => { if (quarterSel.value !== 'all') monthSel.value = 'all'; applyFilters(); });
     yearSel.addEventListener('change', applyFilters);
@@ -328,7 +338,7 @@
         tbody.innerHTML = `<tr><td class="state" colspan="15">Lỗi tải dữ liệu: ${err.message || err}</td></tr>`;
       });
 
-    // Xuất PDF
+    // PDF
     document.getElementById('btnPdf').addEventListener('click', () => {
       const opt = {
         margin: [8, 8, 8, 8],
@@ -338,6 +348,67 @@
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
       };
       html2pdf().from(document.getElementById('printArea')).set(opt).save();
+    });
+
+    // Excel theo bộ lọc hiện tại (2 hàng tiêu đề + merge nhóm)
+    document.getElementById('btnExcel').addEventListener('click', () => {
+      if (!filtered.length){
+        alert('Không có dữ liệu để xuất.');
+        return;
+      }
+
+      // Header 2 hàng
+      const H1 = [
+        "Ngày, giờ","Mực nước (m)","Dung tích (Triệu m³)","Lượng mưa (mm)",
+        "Thông số vận hành tràn tự do","",
+        "Thông số vận hành tràn sự cố","","","",
+        "Thông số vận hành cống lấy nước","","",
+        "Họ, tên người vận hành","Chữ ký"
+      ];
+      const H2 = [
+        "","","","",
+        "H tràn (cm)","Q tràn tự do (m³/s)",
+        "a1 (cm)","a2 (cm)","a3 (cm)","Q tràn sự cố (m³/s)",
+        "a (cm)","Cột nước đầu kênh (m)","Q cống (m³/s)",
+        "",""
+      ];
+
+      const rows = filtered.map(r => ([
+        r.ngayGio || "",
+        num(r.mucNuoc), num(r.dungTich), num(r.luongMua),
+        num(r.hTran), num(r.qTranTuDo),
+        num(r.a1), num(r.a2), num(r.a3), num(r.qTranSuCo),
+        num(r.a), num(r.cotNuocDauKenh), num(r.qcong),
+        r.nguoiVanHanh || "", ""
+      ]));
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet([H1, H2, ...rows]);
+
+      // Merge nhóm
+      ws['!merges'] = [
+        { s:{r:0,c:0}, e:{r:1,c:0} },
+        { s:{r:0,c:1}, e:{r:1,c:1} },
+        { s:{r:0,c:2}, e:{r:1,c:2} },
+        { s:{r:0,c:3}, e:{r:1,c:3} },
+        { s:{r:0,c:13}, e:{r:1,c:13} },
+        { s:{r:0,c:14}, e:{r:1,c:14} },
+        { s:{r:0,c:4}, e:{r:0,c:5} },   // tràn tự do
+        { s:{r:0,c:6}, e:{r:0,c:9} },   // tràn sự cố
+        { s:{r:0,c:10}, e:{r:0,c:12} }, // cống
+      ];
+
+      // Auto width
+      const allForWidth = [H1, H2, ...rows.map(r => r.map(v => v==null?"":String(v)))];
+      ws['!cols'] = H1.map((_, ci) => {
+        const maxLen = allForWidth.reduce((m, row) => Math.max(m, (row[ci]||"").toString().length), 0);
+        return { wch: Math.min(Math.max(10, maxLen + 2), 32) };
+      });
+
+      XLSX.utils.book_append_sheet(wb, ws, "NhatKy_HoNuocNgot");
+      XLSX.writeFile(wb, "NhatKyVanHanh_HoNuocNgot.xlsx");
+
+      function num(v){ const n = Number(v); return Number.isNaN(n) ? "" : n; }
     });
 
     // Sao chép liên kết
