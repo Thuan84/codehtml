@@ -3,189 +3,336 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Nhật ký vận hành hồ chứa nước ngọt - A4 ngang</title>
+  <title>Nhật ký vận hành hồ chứa nước ngọt</title>
 
+  <!-- Xuất PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <style>
-    :root{ --text:#111; --muted:#555; --line:#333; --primary:#0b5ed7; }
-    *{box-sizing:border-box}
-    body{ font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif; color:var(--text); margin:0; background:#f7f7f7; }
-    .toolbar{ position:sticky; top:0; z-index:10; display:flex; gap:8px; align-items:center; padding:10px 14px; background:#fff; border-bottom:1px solid #e5e5e5; }
-    .toolbar .spacer{flex:1}
-    button{ padding:8px 14px; border:1px solid #ddd; border-radius:8px; background:#fff; cursor:pointer; font-weight:600; }
-    button.primary{ background:var(--primary); color:#fff; border-color:var(--primary) }
-    button:active{ transform:translateY(1px) }
-
-    /* Khổ ngang A4 */
-    .sheet{
-      width: 297mm;
-      min-height: 210mm;
-      margin:16px auto;
-      background:#fff;
-      color:#000;
-      box-shadow:0 2px 10px rgba(0,0,0,.08);
-      padding:12mm 10mm;
+    :root{
+      --ink:#0f172a;
+      --muted:#64748b;
+      --brand:#1EA48D;   /* theo yêu cầu */
+      --line:#1EA48D;    /* viền bảng */
+      --bg:#f6f8fa;
+      --card:#ffffff;
     }
-    h1{ text-align:center; margin:0 0 6mm; font-size:20pt; }
-    .subhead{ text-align:center; margin-top:-5mm; margin-bottom:6mm; color:var(--muted); font-size:11pt; }
-    .meta{ display:flex; justify-content:space-between; margin-bottom:6mm; font-size:11pt; }
-    table{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:10pt; }
-    th,td{ border:1px solid var(--line); padding:4px; text-align:center; vertical-align:middle; word-wrap:break-word; }
-    th{ font-weight:700 }
-    .group{ background:#f1f5ff; }
-    .sign{ display:flex; justify-content:space-between; gap:16mm; margin-top:12mm; font-size:11pt; }
-    .sign .col{ flex:1; text-align:center }
-    .muted{ color:var(--muted); font-style:italic }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0; font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color:var(--ink); background:var(--bg);
+    }
+
+    /* Toolbar */
+    .toolbar{
+      position:sticky; top:0; z-index:20;
+      backdrop-filter: blur(8px);
+      display:flex; gap:10px; align-items:center;
+      padding:10px 16px; background:rgba(255,255,255,.9);
+      border-bottom:1px solid #e5e7eb;
+    }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px; }
+    .dot{ width:10px; height:10px; border-radius:50%; background:var(--brand); box-shadow:0 0 0 3px rgba(30,164,141,.15); }
+    .spacer{ flex:1; }
+    .btn{
+      appearance:none; border-radius:10px; padding:8px 14px; font-weight:700; cursor:pointer;
+      border:1px solid #e5e7eb; background:#fff; transition: all .15s ease;
+    }
+    .btn:hover{ transform: translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.06); }
+    .btn:active{ transform: translateY(0); }
+    .btn.primary{ background:var(--brand); color:#fff; border-color:var(--brand); }
+
+    /* A4 landscape canvas */
+    .sheet{
+      width:297mm; min-height:210mm; margin:16px auto; padding:14mm 12mm;
+      background:var(--card); border-radius:16px;
+      box-shadow:0 12px 35px rgba(2,6,23,.07);
+    }
+
+    /* Heading box (kẻ khung phần tiêu đề) */
+    .heading-box{
+      border:2px solid var(--brand);
+      border-radius:14px;
+      padding:14px 16px;
+      margin-bottom:14px;
+    }
+    h1{
+      margin:0; text-align:center; font-size:22pt; line-height:1.25; letter-spacing:.5px;
+      font-weight:900; color:#0b1b23;
+    }
+    .subhead{ margin-top:6px; text-align:center; font-size:12pt; color:var(--muted); }
+
+    /* Filters bar */
+    .filters{
+      display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center;
+      border:1px solid var(--brand);
+      border-radius:12px;
+      padding:10px 12px;
+      background:#f5fffb;
+      margin-bottom:12px;
+    }
+    .filters .label{ font-weight:700; color:#0b1b23; }
+    .filters select{
+      appearance:none; padding:8px 10px; border:1px solid var(--brand); border-radius:10px; background:#fff;
+      min-width:140px; font-weight:600; color:#0b1b23;
+    }
+
+    /* Table */
+    .table-wrap{
+      border-radius:14px; overflow:hidden; border:1px solid var(--line);
+    }
+    table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:11pt; background:#fff; }
+    thead th{
+      background:var(--brand); color:#fff; font-weight:800;
+      padding:10px 8px; border-right:1px solid var(--line); border-bottom:1px solid var(--line);
+      position:sticky; top:0; z-index:1;
+    }
+    thead tr th:last-child{ border-right:0; }
+    tbody td{
+      padding:8px 8px; text-align:center; vertical-align:middle;
+      border-right:1px solid var(--line); border-bottom:1px solid var(--line);
+      color:#0f172a;
+    }
+    tbody tr td:last-child{ border-right:0; }
+    tbody tr:nth-child(even){ background:#fcfffe; }
+    tbody tr:hover{ background:#f2fbf8; }
+
+    /* State row */
+    .state{ text-align:center; padding:24px; color:var(--muted); font-style:italic; }
 
     @media print{
-      @page { size: A4 landscape; margin: 10mm; }
-      .toolbar{ display:none !important }
-      body{ background:#fff }
-      .sheet{ margin:0; box-shadow:none; padding:0; width:100%; min-height:auto; }
+      @page{ size: A4 landscape; margin:10mm; }
+      body{ background:#fff; }
+      .toolbar{ display:none !important; }
+      .sheet{ margin:0; padding:0; width:100%; min-height:auto; box-shadow:none; border-radius:0; }
+      .table-wrap{ border-radius:0; }
+      .filters{ border:1px solid #999; }
     }
   </style>
 </head>
 <body>
+  <!-- Toolbar -->
   <div class="toolbar">
-    <div><b>Nhật ký vận hành</b></div>
+    <div class="brand"><span class="dot"></span>Nhật ký vận hành – Hồ Nước Ngọt</div>
     <div class="spacer"></div>
-    <button onclick="window.print()">In</button>
-    <button class="primary" id="btnPdf">Xuất PDF</button>
-    <button id="btnLink">Sao chép liên kết dữ liệu</button>
+    <button class="btn" onclick="window.print()">In</button>
+    <button class="btn primary" id="btnPdf">Xuất PDF</button>
+    <button class="btn" id="btnLink">Sao chép liên kết</button>
   </div>
 
+  <!-- Trang in -->
   <div id="printArea" class="sheet">
-    <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</h1>
-    <div class="subhead" id="subTitle">Tháng …/…</div>
-
-    <div class="meta">
-      <div><b>Mã phiếu:</b> <span id="mapp">—</span></div>
-      <div><b>In lúc:</b> <span id="now">—</span></div>
+    <!-- Tiêu đề có khung -->
+    <div class="heading-box">
+      <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</h1>
+      <div class="subhead" id="subTitle">Tháng …/…</div>
     </div>
 
-    <table>
-      <thead>
-        <tr class="group">
-          <th rowspan="2">Ngày báo cáo</th>
-          <th rowspan="2">CTMNHT<br>(m)</th>
-          <th rowspan="2">DTHT<br>(Triệu m³)</th>
-          <th rowspan="2">Lượng mưa<br>(mm)</th>
+    <!-- Bộ lọc Năm / Quý / Tháng -->
+    <div class="filters">
+      <span class="label">Bộ lọc:</span>
+      <label for="yearSel">Năm</label>
+      <select id="yearSel"><option value="all">Tất cả</option></select>
 
-          <th colspan="2">Thông số vận hành tràn tự do</th>
-          <th colspan="5">Thông số vận hành tràn sự cố</th>
-          <th colspan="3">Thông số vận hành cống lấy nước</th>
+      <label for="quarterSel">Quý</label>
+      <select id="quarterSel">
+        <option value="all">Tất cả</option>
+        <option value="1">Quý 1</option>
+        <option value="2">Quý 2</option>
+        <option value="3">Quý 3</option>
+        <option value="4">Quý 4</option>
+      </select>
 
-          <th rowspan="2">Người cập nhật</th>
-          <th rowspan="2">Ký tên</th>
-        </tr>
-        <tr>
-          <th>Htràn<br>(cm)</th>
-          <th>Qtràn tự do<br>(m³/s)</th>
+      <label for="monthSel">Tháng</label>
+      <select id="monthSel">
+        <option value="all">Tất cả</option>
+        <script>for(let i=1;i<=12;i++)document.write(`<option value="${i}">Tháng ${i}</option>`);</script>
+      </select>
+    </div>
 
-          <th>a1<br>(cm)</th>
-          <th>a2<br>(cm)</th>
-          <th>a3<br>(cm)</th>
-          <th>a4<br>(cm)</th>
-          <th>Q tràn sự cố<br>(m³/s)</th>
+    <!-- Bảng -->
+    <div class="table-wrap">
+      <table id="grid">
+        <thead>
+          <tr>
+            <th rowspan="2" style="min-width:110px">Ngày, giờ</th>
+            <th rowspan="2">Mực nước<br>(m)</th>
+            <th rowspan="2">Dung tích<br>(Triệu m³)</th>
+            <th rowspan="2">Lượng mưa<br>(mm)</th>
 
-          <th>a<br>(cm)</th>
-          <th>Cột nước đầu kênh<br>(m)</th>
-          <th>Q cống<br>(m³/s)</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
+            <th colspan="2">Thông số vận hành tràn tự do</th>
+            <th colspan="4">Thông số vận hành tràn sự cố</th>
+            <th colspan="3">Thông số vận hành cống lấy nước</th>
 
-    <div class="sign">
-      <div class="col">
-        <b>Người cập nhật</b><br/>
-        <span class="muted">(Ký, ghi rõ họ tên)</span><br/><br/><br/><br/>
-        <span id="sign_ncn"></span>
-      </div>
-      <div class="col">
-        <b>Người duyệt</b><br/>
-        <span class="muted">(Ký, ghi rõ họ tên)</span><br/><br/><br/><br/>
-        <span id="sign_nd"></span>
-      </div>
+            <th rowspan="2" style="min-width:180px">Họ, tên người vận hành</th>
+            <th rowspan="2" style="min-width:140px">Chữ ký</th>
+          </tr>
+          <tr>
+            <th>H tràn<br>(cm)</th>
+            <th>Q tràn tự do<br>(m³/s)</th>
+
+            <th>a1<br>(cm)</th>
+            <th>a2<br>(cm)</th>
+            <th>a3<br>(cm)</th>
+            <th>Q tràn sự cố<br>(m³/s)</th>
+
+            <th>a<br>(cm)</th>
+            <th>Cột nước đầu kênh<br>(m)</th>
+            <th>Q cống<br>(m³/s)</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td class="state" colspan="15">Đang tải dữ liệu…</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
   <script>
-    const params = new URLSearchParams(location.search);
+    // ====== Cấu hình API ======
+    const EXEC_URL = "https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec";     // <-- thay bằng URL .../exec
+    const API_URL  = `${EXEC_URL}?sheet=HoNuocNgot`;
+
+    // ====== Phụ đề theo ?thang=MM/YYYY (tùy chọn) ======
+    const params   = new URLSearchParams(location.search);
+    const subTitle = document.getElementById('subTitle');
+    subTitle.textContent = params.get('thang') ? `Tháng ${params.get('thang')}` : 'Tháng …/…';
+
+    // ====== DOM ======
+    const yearSel    = document.getElementById('yearSel');
+    const quarterSel = document.getElementById('quarterSel');
+    const monthSel   = document.getElementById('monthSel');
+    const tbody      = document.getElementById('tbody');
+
+    // ====== State ======
+    let allData = [];
+    let filtered = [];
+
+    // ====== Utils ======
     const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 3 });
+    const cell = (v, num=false) => (v==null || v==="") ? "—" : (num ? nf.format(Number(v)) : v);
 
-    document.getElementById('subTitle').textContent = params.get('thang') ? ('Tháng ' + params.get('thang')) : 'Tháng …/…';
-    document.getElementById('mapp').textContent = params.get('id') || '—';
-    document.getElementById('now').textContent = new Date().toLocaleString('vi-VN');
+    // Parse dd/MM/yyyy HH:mm -> Date|null
+    function parseVNDateTime(s){
+      if (!s || typeof s !== 'string') return null;
+      const [dpart, tpart='00:00'] = s.split(' ');
+      const [dd, mm, yyyy] = dpart.split('/').map(n=>parseInt(n,10));
+      if (!dd || !mm || !yyyy) return null;
+      const [HH='0', MM='0'] = tpart.split(':').map(n=>parseInt(n,10));
+      const date = new Date(yyyy, mm-1, dd, HH, MM);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
 
-    function normalize(rec){
-      if(rec.a==null && rec.van3!=null) rec.a = rec.van3;
-      if(!rec.ngay && rec.ngaybaocao) rec.ngay = rec.ngaybaocao;
-      const keysNum = ["ctmnht","dtht","luongmua","htrn","qtd","a1","a2","a3","a4","qtsc","a","hnkenh","qcong"];
-      keysNum.forEach(k=>{
-        if(rec[k]!==undefined && rec[k]!=="" && !isNaN(rec[k])) rec[k]=Number(rec[k]);
-      });
-      return rec;
-    }
-    function cell(val, isNum=false){
-      if(val==null || val==="") return "—";
-      return isNum ? nf.format(val) : val;
-    }
-    function appendRow(tbody, r){
+    function renderRow(r){
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${cell(r.ngay)}</td>
-        <td>${cell(r.ctmnht, true)}</td>
-        <td>${cell(r.dtht, true)}</td>
-        <td>${cell(r.luongmua, true)}</td>
-        <td>${cell(r.htrn, true)}</td>
-        <td>${cell(r.qtd, true)}</td>
+        <td>${cell(r.ngayGio)}</td>
+        <td>${cell(r.mucNuoc, true)}</td>
+        <td>${cell(r.dungTich, true)}</td>
+        <td>${cell(r.luongMua, true)}</td>
+
+        <td>${cell(r.hTran, true)}</td>
+        <td>${cell(r.qTranTuDo, true)}</td>
+
         <td>${cell(r.a1, true)}</td>
         <td>${cell(r.a2, true)}</td>
         <td>${cell(r.a3, true)}</td>
-        <td>${cell(r.a4, true)}</td>
-        <td>${cell(r.qtsc, true)}</td>
+        <td>${cell(r.qTranSuCo, true)}</td>
+
         <td>${cell(r.a, true)}</td>
-        <td>${cell(r.hnkenh, true)}</td>
+        <td>${cell(r.cotNuocDauKenh, true)}</td>
         <td>${cell(r.qcong, true)}</td>
-        <td>${cell(r.nguoicapnhat)}</td>
-        <td>${cell(r.kyten)}</td>
+
+        <td>${cell(r.nguoiVanHanh)}</td>
+        <td></td>
       `;
-      tbody.appendChild(tr);
+      return tr;
     }
 
-    const tbody = document.getElementById('tbody');
-    let rows = [];
+    function populateYears(list){
+      const years = [...new Set(
+        list.map(r => {
+          const d = parseVNDateTime(r.ngayGio);
+          return d ? d.getFullYear() : null;
+        }).filter(Boolean)
+      )].sort((a,b)=>b-a);
 
-    if(params.get('data')){
-      try{ rows = JSON.parse(params.get('data')); if(!Array.isArray(rows)) rows = []; }
-      catch(e){ rows = []; }
-    }
-    if(rows.length === 0){
-      const one = normalize({
-        ngay: params.get('ngay') || params.get('ngaybaocao') || "",
-        ctmnht: params.get('ctmnht'), dtht: params.get('dtht'), luongmua: params.get('luongmua'),
-        htrn: params.get('htrn'), qtd: params.get('qtd'),
-        a1: params.get('a1'), a2: params.get('a2'), a3: params.get('a3'), a4: params.get('a4'),
-        qtsc: params.get('qtsc'), a: params.get('a') ?? params.get('van3'),
-        hnkenh: params.get('hnkenh'), qcong: params.get('qcong'),
-        nguoicapnhat: params.get('nguoicapnhat'), kyten: params.get('kyten')
+      yearSel.innerHTML = '<option value="all">Tất cả</option>';
+      years.forEach(y => {
+        const op = document.createElement('option');
+        op.value = String(y);
+        op.textContent = `Năm ${y}`;
+        yearSel.appendChild(op);
       });
-      appendRow(tbody, one);
-      document.getElementById('sign_ncn').textContent = one.nguoicapnhat || "";
-      document.getElementById('sign_nd').textContent  = one.kyten || "";
-    } else {
-      rows.map(normalize).forEach(r=>appendRow(tbody, r));
-      const last = rows[rows.length-1] || {};
-      document.getElementById('sign_ncn').textContent = (last.nguoicapnhat||"");
-      document.getElementById('sign_nd').textContent  = (last.kyten||"");
     }
 
+    function applyFilters(){
+      const y = yearSel.value;
+      const q = quarterSel.value;
+      const m = monthSel.value;
+
+      filtered = allData.filter(r => {
+        const d = parseVNDateTime(r.ngayGio);
+        if (!d) return false;
+
+        if (y !== 'all' && String(d.getFullYear()) !== String(y)) return false;
+
+        if (m !== 'all'){
+          if ((d.getMonth()+1) !== Number(m)) return false;
+        } else if (q !== 'all'){
+          const quarter = Math.floor(d.getMonth()/3)+1; // 1..4
+          if (quarter !== Number(q)) return false;
+        }
+        return true;
+      });
+
+      // cập nhật phụ đề theo bộ lọc
+      let sub = '';
+      if (m !== 'all' && y !== 'all') sub = `Tháng ${m} năm ${y}`;
+      else if (y !== 'all') sub = `Năm ${y}`;
+      else {
+        const c = new Date();
+        sub = `Tháng ${c.getMonth()+1} năm ${c.getFullYear()}`;
+      }
+      subTitle.textContent = sub;
+
+      // render
+      if (!filtered.length){
+        tbody.innerHTML = `<tr><td class="state" colspan="15">Không có dữ liệu.</td></tr>`;
+      } else {
+        tbody.innerHTML = "";
+        filtered.forEach(r => tbody.appendChild(renderRow(r)));
+      }
+    }
+
+    // Liên kết bộ lọc (chọn tháng thì reset quý và ngược lại)
+    monthSel.addEventListener('change', () => { if (monthSel.value !== 'all') quarterSel.value = 'all'; applyFilters(); });
+    quarterSel.addEventListener('change', () => { if (quarterSel.value !== 'all') monthSel.value = 'all'; applyFilters(); });
+    yearSel.addEventListener('change', applyFilters);
+
+    // Tải dữ liệu
+    fetch(API_URL, { cache: 'no-store' })
+      .then(res => res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`)))
+      .then(data => {
+        if (!Array.isArray(data) || !data.length){
+          tbody.innerHTML = `<tr><td class="state" colspan="15">Không có dữ liệu.</td></tr>`;
+          return;
+        }
+        allData = data;
+        populateYears(allData);
+        applyFilters();
+      })
+      .catch(err => {
+        console.error(err);
+        tbody.innerHTML = `<tr><td class="state" colspan="15">Lỗi tải dữ liệu: ${err.message || err}</td></tr>`;
+      });
+
+    // Xuất PDF
     document.getElementById('btnPdf').addEventListener('click', () => {
       const opt = {
-        margin: [5, 5, 5, 5],
-        filename: `nhat-ky-van-hanh-${params.get('id')||'phieu'}.pdf`,
+        margin: [8, 8, 8, 8],
+        filename: `nhat-ky-van-hanh-nuocngot.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
@@ -193,13 +340,10 @@
       html2pdf().from(document.getElementById('printArea')).set(opt).save();
     });
 
-    document.getElementById('btnLink').addEventListener('click', ()=>{
-      const url = new URL(location.href.split('#')[0]);
-      const keep = ["id","thang","data","ngay","ngaybaocao","ctmnht","dtht","luongmua","htrn","qtd","a1","a2","a3","a4","qtsc","a","van3","hnkenh","qcong","nguoicapnhat","kyten"];
-      const out = new URLSearchParams();
-      keep.forEach(k=>{ const v=params.get(k); if(v!=null && v!=="") out.set(k,v); });
-      url.search = out.toString();
-      navigator.clipboard.writeText(url.toString()).then(()=>alert("Đã sao chép liên kết có dữ liệu!"));
+    // Sao chép liên kết
+    document.getElementById('btnLink').addEventListener('click', () => {
+      navigator.clipboard.writeText(location.href.split('#')[0])
+        .then(()=>alert("Đã sao chép liên kết!"));
     });
   </script>
 </body>
