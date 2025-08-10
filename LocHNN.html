@@ -5,18 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nhật ký vận hành hồ chứa nước ngọt</title>
 
-  <!-- PDF + Excel -->
+  <!-- PDF + Excel + Chart -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
   <style>
     :root{
       --ink:#0f172a;
       --muted:#64748b;
-      --brand:#1EA48D;   /* yêu cầu */
-      --line:#1EA48D;    /* viền bảng */
-      --bg:#f6f8fa;
-      --card:#ffffff;
+      --brand:#1EA48D;
+      --line:#1EA48D;
+      --bg:#ffffff;   /* nền trắng để full-width trông liền mạch */
       --radius:12px;
     }
     *{ box-sizing:border-box; }
@@ -30,11 +30,10 @@
     .toolbar{
       position:sticky; top:0; z-index:20;
       display:flex; gap:10px; align-items:center;
-      padding:10px 16px; background:rgba(255,255,255,.92);
+      padding:10px 16px; background:#fff;
       border-bottom:1px solid #e5e7eb;
-      backdrop-filter: blur(8px);
     }
-    .brand{ display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.3px; }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:800; }
     .dot{ width:10px; height:10px; border-radius:50%; background:var(--brand); box-shadow:0 0 0 3px rgba(30,164,141,.15); }
     .spacer{ flex:1; }
     .btn{
@@ -45,28 +44,23 @@
     .btn:active{ transform: translateY(0); }
     .btn.primary{ background:var(--brand); color:#fff; border-color:var(--brand); }
 
-    /* A4 landscape canvas */
+    /* ===== VIEW TRÊN PC: FULL-WIDTH, KHÔNG CHỪA RÌA ===== */
     .sheet{
-      width:297mm; min-height:210mm; margin:16px auto; padding:14mm 12mm;
-      background:var(--card); border-radius:16px;
-      box-shadow:0 12px 35px rgba(2,6,23,.07);
+      width:100%;
+      min-height: calc(100vh - 56px); /* trừ chiều cao toolbar */
+      margin:0;                       /* không chừa rìa 2 bên */
+      padding:24px 20px;
+      background:#fff;
     }
 
-    /* Heading (không kẻ khung to quanh H1 nữa) */
-    h1{
-      margin:0 0 6px 0; text-align:center; font-size:22pt; line-height:1.25; letter-spacing:.3px;
-      font-weight:900; color:#0b1b23;
-    }
+    h1{ margin:0 0 6px 0; text-align:center; font-size:22pt; line-height:1.25; font-weight:900; color:#0b1b23; }
     .subhead{ text-align:center; font-size:12pt; color:var(--muted); margin-bottom:12px; }
 
-    /* Filters bar */
+    /* Filters */
     .filters{
       display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center;
-      border:1px solid var(--brand);
-      border-radius:12px;
-      padding:10px 12px;
-      background:#f5fffb;
-      margin-bottom:12px;
+      border:1px solid var(--brand); border-radius:12px;
+      padding:10px 12px; background:#f5fffb; margin-bottom:12px;
     }
     .filters .label{ font-weight:700; color:#0b1b23; }
     .filters select{
@@ -74,59 +68,59 @@
       min-width:140px; font-weight:600; color:#0b1b23;
     }
 
-    /* Table */
-    .table-wrap{
-      border-radius:14px; overflow:hidden; border:1px solid var(--line);
+    /* Charts */
+    .charts{
+      display:grid;
+      grid-template-columns: 2fr 1.2fr;   /* rộng thoáng hơn */
+      gap:16px; margin-bottom:14px;
     }
-    table{
-      width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:11pt; background:#fff;
-    }
+    .card{ border:1px solid var(--brand); border-radius:14px; background:#fff; padding:12px; }
+    .card h3{ margin:0 0 10px; font-size:14pt; color:#0b1b23; }
 
-    /* ===== KẺ KHUNG RIÊNG CHO KHỐI 2 HÀNG TIÊU ĐỀ ===== */
+    /* Table */
+    .table-wrap{ border-radius:14px; overflow:hidden; border:1px solid var(--line); }
+    table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:11pt; background:#fff; }
+
+    /* Kẻ khung riêng cho 2 hàng tiêu đề */
     thead th{
-      background:var(--brand); color:#fff; font-weight:800;
-      padding:10px 8px;
-      border-right:1px solid var(--line); /* vẽ vạch dọc trong header */
+      background:var(--brand); color:#fff; font-weight:800; padding:10px 8px; border-right:1px solid var(--line);
     }
     thead tr th:last-child{ border-right:0; }
-
-    /* viền quanh cả khối header (2 hàng) */
     thead tr:first-child th{ border-top:2px solid var(--brand); }
     thead tr:last-child  th{ border-bottom:2px solid var(--brand); }
     thead tr th:first-child{ border-left:2px solid var(--brand); }
     thead tr th:last-child { border-right:2px solid var(--brand); }
-
-    /* bo góc khối header */
     thead tr:first-child th:first-child { border-top-left-radius: var(--radius); }
     thead tr:first-child th:last-child  { border-top-right-radius: var(--radius); }
     thead tr:last-child  th:first-child { border-bottom-left-radius: var(--radius); }
     thead tr:last-child  th:last-child  { border-bottom-right-radius: var(--radius); }
 
-    tbody td{
-      padding:8px 8px; text-align:center; vertical-align:middle;
-      border-right:1px solid var(--line); border-bottom:1px solid var(--line);
-      color:#0f172a;
-    }
+    tbody td{ padding:8px 8px; text-align:center; vertical-align:middle; border-right:1px solid var(--line); border-bottom:1px solid var(--line); }
     tbody tr td:last-child{ border-right:0; }
     tbody tr:nth-child(even){ background:#fcfffe; }
     tbody tr:hover{ background:#f2fbf8; }
-
-    /* State row */
     .state{ text-align:center; padding:24px; color:var(--muted); font-style:italic; }
 
+    /* ===== IN: A4 LANDSCAPE ===== */
     @media print{
       @page{ size: A4 landscape; margin:10mm; }
-      body{ background:#fff; }
       .toolbar{ display:none !important; }
-      .sheet{ margin:0; padding:0; width:100%; min-height:auto; box-shadow:none; border-radius:0; }
-      .table-wrap{ border-radius:0; }
-      .filters{ border:1px solid #999; }
-      thead th{ position:static; } /* tránh dính sticky khi in */
+      body{ background:#fff; }
+      .sheet{
+        width: 297mm; min-height: 210mm;
+        margin:0; padding:0;
+      }
+      .charts{ grid-template-columns:1fr; gap:10px; }
+      thead th{ position:static; }
+    }
+
+    /* Co giãn đẹp trên màn hình lớn */
+    @media (min-width:1400px){
+      .sheet{ padding-left:40px; padding-right:40px; }
     }
   </style>
 </head>
 <body>
-  <!-- Toolbar -->
   <div class="toolbar">
     <div class="brand"><span class="dot"></span>Nhật ký vận hành – Hồ Nước Ngọt</div>
     <div class="spacer"></div>
@@ -162,6 +156,19 @@
       </select>
     </div>
 
+    <!-- Charts -->
+    <div class="charts">
+      <div class="card">
+        <h3>Lượng mưa theo ngày (sau lọc)</h3>
+        <canvas id="rainChart" height="110"></canvas>
+      </div>
+      <div class="card">
+        <h3>So sánh mực nước hiện tại vs. mực nước chết (50,6 m)</h3>
+        <div id="waterStatus" style="margin:4px 0 6px; font-weight:700;"></div>
+        <canvas id="levelChart" height="110"></canvas>
+      </div>
+    </div>
+
     <!-- Bảng -->
     <div class="table-wrap">
       <table id="grid">
@@ -171,23 +178,19 @@
             <th rowspan="2">Mực nước<br>(m)</th>
             <th rowspan="2">Dung tích<br>(Triệu m³)</th>
             <th rowspan="2">Lượng mưa<br>(mm)</th>
-
             <th colspan="2">Thông số vận hành tràn tự do</th>
             <th colspan="4">Thông số vận hành tràn sự cố</th>
             <th colspan="3">Thông số vận hành cống lấy nước</th>
-
             <th rowspan="2" style="min-width:180px">Họ, tên người vận hành</th>
             <th rowspan="2" style="min-width:140px">Chữ ký</th>
           </tr>
           <tr>
             <th>H tràn<br>(cm)</th>
             <th>Q tràn tự do<br>(m³/s)</th>
-
             <th>a1<br>(cm)</th>
             <th>a2<br>(cm)</th>
             <th>a3<br>(cm)</th>
             <th>Q tràn sự cố<br>(m³/s)</th>
-
             <th>a<br>(cm)</th>
             <th>Cột nước đầu kênh<br>(m)</th>
             <th>Q cống<br>(m³/s)</th>
@@ -201,30 +204,25 @@
   </div>
 
   <script>
-    // ====== Cấu hình API ======
-    const EXEC_URL = "https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec";     // <-- thay bằng URL .../exec
+    const EXEC_URL = "https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec"; // <-- thay bằng URL .../exec
     const API_URL  = `${EXEC_URL}?sheet=HoNuocNgot`;
 
-    // ====== Phụ đề theo ?thang=MM/YYYY (tùy chọn) ======
     const params   = new URLSearchParams(location.search);
     const subTitle = document.getElementById('subTitle');
     subTitle.textContent = params.get('thang') ? `Tháng ${params.get('thang')}` : 'Tháng …/…';
 
-    // ====== DOM ======
     const yearSel    = document.getElementById('yearSel');
     const quarterSel = document.getElementById('quarterSel');
     const monthSel   = document.getElementById('monthSel');
     const tbody      = document.getElementById('tbody');
+    const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 3 });
 
-    // ====== State ======
     let allData = [];
     let filtered = [];
+    let rainChart, levelChart;
 
-    // ====== Utils ======
-    const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 3 });
     const cell = (v, num=false) => (v==null || v==="") ? "—" : (num ? nf.format(Number(v)) : v);
 
-    // Parse dd/MM/yyyy HH:mm -> Date|null
     function parseVNDateTime(s){
       if (!s || typeof s !== 'string') return null;
       const [dpart, tpart='00:00'] = s.split(' ');
@@ -242,19 +240,15 @@
         <td>${cell(r.mucNuoc, true)}</td>
         <td>${cell(r.dungTich, true)}</td>
         <td>${cell(r.luongMua, true)}</td>
-
         <td>${cell(r.hTran, true)}</td>
         <td>${cell(r.qTranTuDo, true)}</td>
-
         <td>${cell(r.a1, true)}</td>
         <td>${cell(r.a2, true)}</td>
         <td>${cell(r.a3, true)}</td>
         <td>${cell(r.qTranSuCo, true)}</td>
-
         <td>${cell(r.a, true)}</td>
         <td>${cell(r.cotNuocDauKenh, true)}</td>
         <td>${cell(r.qcong, true)}</td>
-
         <td>${cell(r.nguoiVanHanh)}</td>
         <td></td>
       `;
@@ -263,72 +257,103 @@
 
     function populateYears(list){
       const years = [...new Set(
-        list.map(r => {
-          const d = parseVNDateTime(r.ngayGio);
-          return d ? d.getFullYear() : null;
-        }).filter(Boolean)
+        list.map(r => { const d = parseVNDateTime(r.ngayGio); return d ? d.getFullYear() : null; }).filter(Boolean)
       )].sort((a,b)=>b-a);
-
       yearSel.innerHTML = '<option value="all">Tất cả</option>';
-      years.forEach(y => {
-        const op = document.createElement('option');
-        op.value = String(y);
-        op.textContent = `Năm ${y}`;
-        yearSel.appendChild(op);
-      });
+      years.forEach(y => { const op = document.createElement('option'); op.value = String(y); op.textContent = `Năm ${y}`; yearSel.appendChild(op); });
     }
 
     function applyFilters(){
-      const y = yearSel.value;
-      const q = quarterSel.value;
-      const m = monthSel.value;
+      const y = yearSel.value, q = quarterSel.value, m = monthSel.value;
+      filtered = allData
+        .map(r => ({...r, __d: parseVNDateTime(r.ngayGio)}))
+        .filter(r => r.__d)
+        .filter(r => (y==='all' || String(r.__d.getFullYear())===String(y)))
+        .filter(r => {
+          if (m!=='all') return (r.__d.getMonth()+1)===Number(m);
+          if (q!=='all'){ const quarter = Math.floor(r.__d.getMonth()/3)+1; return quarter===Number(q); }
+          return true;
+        })
+        .sort((a,b)=>a.__d-b.__d);
 
-      filtered = allData.filter(r => {
-        const d = parseVNDateTime(r.ngayGio);
-        if (!d) return false;
-        if (y !== 'all' && String(d.getFullYear()) !== String(y)) return false;
-
-        if (m !== 'all'){
-          if ((d.getMonth()+1) !== Number(m)) return false;
-        } else if (q !== 'all'){
-          const quarter = Math.floor(d.getMonth()/3)+1; // 1..4
-          if (quarter !== Number(q)) return false;
-        }
-        return true;
-      });
-
-      // cập nhật phụ đề theo bộ lọc
+      // subtitle
       let sub = '';
-      if (m !== 'all' && y !== 'all') sub = `Tháng ${m} năm ${y}`;
-      else if (y !== 'all') sub = `Năm ${y}`;
-      else {
-        const c = new Date();
-        sub = `Tháng ${c.getMonth()+1} năm ${c.getFullYear()}`;
-      }
+      if (m!=='all' && y!=='all') sub = `Tháng ${m} năm ${y}`;
+      else if (y!=='all') sub = `Năm ${y}`;
+      else { const c=new Date(); sub = `Tháng ${c.getMonth()+1} năm ${c.getFullYear()}`; }
       subTitle.textContent = sub;
 
-      // render
+      // table
       if (!filtered.length){
         tbody.innerHTML = `<tr><td class="state" colspan="15">Không có dữ liệu.</td></tr>`;
       } else {
         tbody.innerHTML = "";
         filtered.forEach(r => tbody.appendChild(renderRow(r)));
       }
+
+      updateCharts();
     }
 
-    // Liên kết bộ lọc
+    // ----- Charts -----
+    function updateCharts(){
+      // 1) MƯA THEO NGÀY: gộp theo yyyy-mm-dd, cộng tổng mm
+      const dailyMap = new Map();
+      filtered.forEach(r => {
+        const d = r.__d;
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        dailyMap.set(key, (dailyMap.get(key)||0) + (Number(r.luongMua)||0));
+      });
+      const dailyKeys = Array.from(dailyMap.keys()).sort();
+      const labels = dailyKeys.map(k => {
+        const [y,m,d] = k.split('-'); return `${d}/${m}`;
+      });
+      const rain = dailyKeys.map(k => dailyMap.get(k));
+
+      if (rainChart) rainChart.destroy();
+      const ctx1 = document.getElementById('rainChart').getContext('2d');
+      rainChart = new Chart(ctx1, {
+        type: 'bar',
+        data: { labels, datasets: [{ label: 'Lượng mưa theo ngày (mm)', data: rain }]},
+        options: {
+          responsive:true,
+          plugins:{ legend:{ display:true }, tooltip:{ mode:'index', intersect:false }},
+          interaction:{ mode:'nearest', intersect:false },
+          scales: {
+            x: { ticks:{ autoSkip:true, maxRotation:0 } },
+            y: { beginAtZero:true }
+          }
+        }
+      });
+
+      // 2) So sánh mực nước hiện tại vs 50.6
+      const DEAD = 50.6;
+      const latest = filtered.length ? Number(filtered[filtered.length-1].mucNuoc) : null;
+      const status = document.getElementById('waterStatus');
+      status.textContent = (latest==null || Number.isNaN(latest))
+        ? 'Không có dữ liệu mực nước.'
+        : (latest >= DEAD
+            ? `Hiện tại ${latest.toFixed(2)} m — CAO HƠN mực nước chết ${ (latest - DEAD).toFixed(2) } m`
+            : `Hiện tại ${latest.toFixed(2)} m — THẤP HƠN mực nước chết ${ (DEAD - latest).toFixed(2) } m`);
+
+      if (levelChart) levelChart.destroy();
+      const ctx2 = document.getElementById('levelChart').getContext('2d');
+      levelChart = new Chart(ctx2, {
+        type: 'bar',
+        data: { labels: ['Mực nước chết (50,6)', 'Hiện tại'], datasets: [{ label: 'Mực nước (m)', data: [DEAD, latest??0] }] },
+        options: { responsive:true, plugins:{ legend:{ display:false }}, scales:{ y:{ beginAtZero:false } } }
+      });
+    }
+
+    // events
     monthSel.addEventListener('change', () => { if (monthSel.value !== 'all') quarterSel.value = 'all'; applyFilters(); });
     quarterSel.addEventListener('change', () => { if (quarterSel.value !== 'all') monthSel.value = 'all'; applyFilters(); });
     yearSel.addEventListener('change', applyFilters);
 
-    // Tải dữ liệu
+    // fetch data
     fetch(API_URL, { cache: 'no-store' })
       .then(res => res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`)))
       .then(data => {
-        if (!Array.isArray(data) || !data.length){
-          tbody.innerHTML = `<tr><td class="state" colspan="15">Không có dữ liệu.</td></tr>`;
-          return;
-        }
+        if (!Array.isArray(data) || !data.length){ tbody.innerHTML = `<tr><td class="state" colspan="15">Không có dữ liệu.</td></tr>`; return; }
         allData = data;
         populateYears(allData);
         applyFilters();
@@ -340,24 +365,14 @@
 
     // PDF
     document.getElementById('btnPdf').addEventListener('click', () => {
-      const opt = {
-        margin: [8, 8, 8, 8],
-        filename: `nhat-ky-van-hanh-nuocngot.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-      };
+      const opt = { margin:[8,8,8,8], filename:`nhat-ky-van-hanh-nuocngot.pdf`, image:{ type:'jpeg', quality:0.98 }, html2canvas:{ scale:2, useCORS:true }, jsPDF:{ unit:'mm', format:'a4', orientation:'landscape' } };
       html2pdf().from(document.getElementById('printArea')).set(opt).save();
     });
 
-    // Excel theo bộ lọc hiện tại (2 hàng tiêu đề + merge nhóm)
+    // Excel theo bộ lọc (2 hàng header + merge)
     document.getElementById('btnExcel').addEventListener('click', () => {
-      if (!filtered.length){
-        alert('Không có dữ liệu để xuất.');
-        return;
-      }
+      if (!filtered.length){ alert('Không có dữ liệu để xuất.'); return; }
 
-      // Header 2 hàng
       const H1 = [
         "Ngày, giờ","Mực nước (m)","Dung tích (Triệu m³)","Lượng mưa (mm)",
         "Thông số vận hành tràn tự do","",
@@ -372,7 +387,6 @@
         "a (cm)","Cột nước đầu kênh (m)","Q cống (m³/s)",
         "",""
       ];
-
       const rows = filtered.map(r => ([
         r.ngayGio || "",
         num(r.mucNuoc), num(r.dungTich), num(r.luongMua),
@@ -384,21 +398,12 @@
 
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet([H1, H2, ...rows]);
-
-      // Merge nhóm
       ws['!merges'] = [
-        { s:{r:0,c:0}, e:{r:1,c:0} },
-        { s:{r:0,c:1}, e:{r:1,c:1} },
-        { s:{r:0,c:2}, e:{r:1,c:2} },
-        { s:{r:0,c:3}, e:{r:1,c:3} },
-        { s:{r:0,c:13}, e:{r:1,c:13} },
-        { s:{r:0,c:14}, e:{r:1,c:14} },
-        { s:{r:0,c:4}, e:{r:0,c:5} },   // tràn tự do
-        { s:{r:0,c:6}, e:{r:0,c:9} },   // tràn sự cố
-        { s:{r:0,c:10}, e:{r:0,c:12} }, // cống
+        { s:{r:0,c:0}, e:{r:1,c:0} }, { s:{r:0,c:1}, e:{r:1,c:1} },
+        { s:{r:0,c:2}, e:{r:1,c:2} }, { s:{r:0,c:3}, e:{r:1,c:3} },
+        { s:{r:0,c:13}, e:{r:1,c:13} }, { s:{r:0,c:14}, e:{r:1,c:14} },
+        { s:{r:0,c:4}, e:{r:0,c:5} }, { s:{r:0,c:6}, e:{r:0,c:9} }, { s:{r:0,c:10}, e:{r:0,c:12} },
       ];
-
-      // Auto width
       const allForWidth = [H1, H2, ...rows.map(r => r.map(v => v==null?"":String(v)))];
       ws['!cols'] = H1.map((_, ci) => {
         const maxLen = allForWidth.reduce((m, row) => Math.max(m, (row[ci]||"").toString().length), 0);
@@ -411,10 +416,8 @@
       function num(v){ const n = Number(v); return Number.isNaN(n) ? "" : n; }
     });
 
-    // Sao chép liên kết
     document.getElementById('btnLink').addEventListener('click', () => {
-      navigator.clipboard.writeText(location.href.split('#')[0])
-        .then(()=>alert("Đã sao chép liên kết!"));
+      navigator.clipboard.writeText(location.href.split('#')[0]).then(()=>alert("Đã sao chép liên kết!"));
     });
   </script>
 </body>
