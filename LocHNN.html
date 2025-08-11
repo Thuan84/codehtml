@@ -87,7 +87,7 @@
     .table-wrap{ border-radius:14px; overflow:hidden; border:1px solid var(--line); }
     table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:11pt; background:#fff; }
 
-    /* Kẻ khung riêng cho 2 hàng tiêu đề */
+    /* Kẻ khung riêng cho 2 hàng tiêu đề (màn hình) */
     thead th{
       background:var(--brand); color:#fff; font-weight:800; padding:10px 8px; border-right:1px solid var(--line);
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
@@ -130,6 +130,16 @@
         word-wrap: break-word;     /* xuống dòng khi chữ dài */
         white-space: normal;
       }
+
+      /* ======= TIÊU ĐỀ CỘT KHI IN: NỀN TRẮNG + CHỮ ĐẬM ======= */
+      thead th{
+        background:#ffffff !important;
+        color:#000000 !important;
+        font-weight:800 !important;
+        border:1px solid #000 !important;
+      }
+      thead tr:first-child th{ border-top-width:2px !important; }
+      thead tr:last-child  th{ border-bottom-width:2px !important; }
 
       /* Căn giữa số, căn trái chữ */
       tbody td{ text-align: center; }
@@ -260,6 +270,7 @@
     let filtered = [];
     let rainChart, levelChart;
 
+    // ===== Helpers =====
     const cell = (v, num=false) => (v==null || v==="") ? "—" : (num ? nf.format(Number(v)) : v);
 
     function parseVNDateTime(s){
@@ -272,45 +283,48 @@
       return Number.isNaN(date.getTime()) ? null : date;
     }
 
-    function renderRow(r){
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${cell(r.ngayGio)}</td>
-        <td>${cell(r.mucNuoc, true)}</td>
-        <td>${cell(r.dungTich, true)}</td>
-        <td>${cell(r.luongMua, true)}</td>
-        <td>${cell(r.hTran, true)}</td>
-        <td>${cell(r.qTranTuDo, true)}</td>
-        <td>${cell(r.a1, true)}</td>
-        <td>${cell(r.a2, true)}</td>
-        <td>${cell(r.a3, true)}</td>
-        <td>${cell(r.qTranSuCo, true)}</td>
-        <td>${cell(r.a, true)}</td>
-        <td>${cell(r.cotNuocDauKenh, true)}</td>
-        <td>${cell(r.qcong, true)}</td>
-        <td class="text-left">${cell(r.nguoiVanHanh)}</td>
-        <td class="text-left"></td>
+    function buildRowHTML(r){
+      return `
+        <tr>
+          <td>${cell(r.ngayGio)}</td>
+          <td>${cell(r.mucNuoc, true)}</td>
+          <td>${cell(r.dungTich, true)}</td>
+          <td>${cell(r.luongMua, true)}</td>
+          <td>${cell(r.hTran, true)}</td>
+          <td>${cell(r.qTranTuDo, true)}</td>
+          <td>${cell(r.a1, true)}</td>
+          <td>${cell(r.a2, true)}</td>
+          <td>${cell(r.a3, true)}</td>
+          <td>${cell(r.qTranSuCo, true)}</td>
+          <td>${cell(r.a, true)}</td>
+          <td>${cell(r.cotNuocDauKenh, true)}</td>
+          <td>${cell(r.qcong, true)}</td>
+          <td class="text-left">${cell(r.nguoiVanHanh)}</td>
+          <td class="text-left"></td>
+        </tr>
       `;
-      return tr;
     }
 
     function populateYears(list){
-      const years = [...new Set(
-        list.map(r => { const d = parseVNDateTime(r.ngayGio); return d ? d.getFullYear() : null; }).filter(Boolean)
-      )].sort((a,b)=>b-a);
+      const years = [...new Set(list.map(r => r.__y).filter(Boolean))].sort((a,b)=>b-a);
       yearSel.innerHTML = '<option value="all">Tất cả</option>';
-      years.forEach(y => { const op = document.createElement('option'); op.value = String(y); op.textContent = `Năm ${y}`; yearSel.appendChild(op); });
+      years.forEach(y => {
+        const op = document.createElement('option');
+        op.value = String(y);
+        op.textContent = `Năm ${y}`;
+        yearSel.appendChild(op);
+      });
     }
 
-    function applyFilters(){
+    function applyFiltersCore(){
       const y = yearSel.value, q = quarterSel.value, m = monthSel.value;
+
       filtered = allData
-        .map(r => ({...r, __d: parseVNDateTime(r.ngayGio)}))
         .filter(r => r.__d)
-        .filter(r => (y==='all' || String(r.__d.getFullYear())===String(y)))
+        .filter(r => (y==='all' || String(r.__y)===String(y)))
         .filter(r => {
-          if (m!=='all') return (r.__d.getMonth()+1)===Number(m);
-          if (q!=='all'){ const quarter = Math.floor(r.__d.getMonth()/3)+1; return quarter===Number(q); }
+          if (m!=='all') return r.__m===Number(m);
+          if (q!=='all') return r.__q===Number(q);
           return true;
         })
         .sort((a,b)=>a.__d-b.__d);
@@ -324,16 +338,25 @@
         subTitle.textContent = sub;
       }
 
-      // table
+      // table render 1 lần
       if (!filtered.length){
         tbody.innerHTML = `<tr><td class="state" colspan="15">Không có dữ liệu.</td></tr>`;
       } else {
-        tbody.innerHTML = "";
-        filtered.forEach(r => tbody.appendChild(renderRow(r)));
+        tbody.innerHTML = filtered.map(r => r.__rowHTML).join('');
       }
 
-      updateCharts(); // vẫn giữ chart cho màn hình (ẩn khi in)
+      updateCharts(); // vẽ chart cho màn hình (ẩn khi in)
     }
+
+    // Debounce để tránh render liên tục khi thay nhanh
+    function debounce(fn, delay=80){
+      let t;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(null, args), delay);
+      };
+    }
+    const applyFilters = debounce(applyFiltersCore, 80);
 
     // ========= UPDATECHARTS (mưa theo ngày + line mực nước theo ngày với đường 50,6) =========
     function updateCharts(){
@@ -387,7 +410,7 @@
       const DEAD = 50.6;
       const deadLine = dayKeys.map(() => DEAD);
 
-      // Rain chart (bar)
+      // Destroy chart cũ để tránh leak
       if (rainChart) rainChart.destroy();
       const ctx1 = document.getElementById('rainChart').getContext('2d');
       rainChart = new Chart(ctx1, {
@@ -401,7 +424,6 @@
         }
       });
 
-      // Water level line + dead line
       if (levelChart) levelChart.destroy();
       const ctx2 = document.getElementById('levelChart').getContext('2d');
       levelChart = new Chart(ctx2, {
@@ -432,7 +454,7 @@
     }
     // ===========================================================================================
 
-    // events
+    // events (debounced)
     monthSel.addEventListener('change', () => { if (monthSel.value !== 'all') quarterSel.value = 'all'; applyFilters(); });
     quarterSel.addEventListener('change', () => { if (quarterSel.value !== 'all') monthSel.value = 'all'; applyFilters(); });
     yearSel.addEventListener('change', applyFilters);
@@ -441,10 +463,27 @@
     fetch(API_URL, { cache: 'no-store' })
       .then(res => res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`)))
       .then(data => {
-        if (!Array.isArray(data) || !data.length){ tbody.innerHTML = `<tr><td class="state" colspan="15">Không có dữ liệu.</td></tr>`; return; }
-        allData = data;
+        if (!Array.isArray(data) || !data.length){
+          tbody.innerHTML = `<tr><td class="state" colspan="15">Không có dữ liệu.</td></tr>`;
+          return;
+        }
+
+        // Tiền xử lý 1 lần để tăng tốc filter
+        allData = data.map(r => {
+          const d = parseVNDateTime(r.ngayGio);
+          const y = d ? d.getFullYear() : null;
+          const m = d ? (d.getMonth()+1) : null;
+          const q = d ? (Math.floor((m-1)/3)+1) : null;
+          const base = {
+            ...r,
+            __d: d, __y: y, __m: m, __q: q
+          };
+          base.__rowHTML = buildRowHTML(base);
+          return base;
+        });
+
         populateYears(allData);
-        applyFilters();
+        applyFiltersCore(); // lần đầu không cần debounce
       })
       .catch(err => {
         console.error(err);
