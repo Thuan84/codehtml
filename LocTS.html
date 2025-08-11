@@ -1,24 +1,12 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Nhật ký vận hành hồ chứa - Hồ Thành Sơn</title>
-
-  <!-- Thư viện xuất file -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-
-  <!-- Chart.js cho biểu đồ -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-
-  <!-- Font Việt cho jsPDF -->
-  <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Regular.js"></script>
-  <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Bold.js"></script>
-  <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Italic.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
-    :root { --header-bg:#1EA48D; --border-color:#ccc; --hover-bg:#f1f3f5; }
+    :root { --header-bg:#1EA48D; --border-color:#ccc; --hover-bg:#f1f3f5; --card-bg:#fafafa; }
     body{
       font-family:"Times New Roman",Times,serif; background:#f4f4f4; color:#000;
       margin:0; padding:20px; font-size:14pt;
@@ -28,12 +16,12 @@
       box-shadow:0 2px 5px rgba(0,0,0,0.1);
     }
     h1{ font-size:16pt; font-weight:bold; text-align:center; text-transform:uppercase; margin-bottom:5px; }
-    .subtitle{ text-align:center; font-weight:bold; font-size:14pt; margin-bottom:20px; }
+    .subtitle{ text-align:center; font-weight:bold; font-size:14pt; margin-bottom:16px; }
     .controls-container{
       display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
-      gap:15px; margin-bottom:20px; padding:15px; background:#fdfdff; border-radius:6px; border:1px solid #ccc;
+      gap:12px; margin-bottom:12px; padding:12px; background:#fdfdff; border-radius:6px; border:1px solid #ccc;
     }
-    .filters,.exports{ display:flex; gap:15px; align-items:center; }
+    .filters,.exports{ display:flex; gap:10px; align-items:center; }
     .filters label{ font-weight:bold; }
     .filters select,.exports button{
       padding:8px 12px; border-radius:5px; border:1px solid #ccc; background:#fff;
@@ -44,34 +32,40 @@
     #export-excel{ background:#218838; }
     #export-pdf{ background:#c82333; }
 
+    .metrics{
+      display:grid; grid-template-columns: repeat(5, minmax(200px,1fr));
+      gap:12px; margin:0 0 10px 0;
+    }
+    .metric{
+      background:var(--card-bg); border:1px solid #e5e7eb; border-radius:8px; padding:10px;
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .metric .label{ font-size:12pt; color:#333; }
+    .metric .value{ font-size:18pt; font-weight:bold; }
+
     .charts{
-      display:grid; grid-template-columns: 1fr; gap:20px; margin-top:10px;
+      display:grid; grid-template-columns: 1fr; gap:16px; margin-top:6px;
     }
     .chart-card{
-      border:1px solid #ddd; border-radius:8px; padding:16px; background:#fafafa;
+      border:1px solid #ddd; border-radius:8px; padding:12px; background:#fafafa;
     }
-    .chart-title{ font-weight:bold; margin:0 0 12px 0; font-size:14pt; text-align:center; }
-    canvas{ width:100%; height:380px; }
+    .chart-title{ font-weight:bold; margin:0 0 10px 0; font-size:14pt; text-align:center; }
+    .chart-card canvas{
+      display:block; width:100% !important; height:380px !important; max-height:380px !important;
+    }
 
-    table{ border-collapse:collapse; width:100%; font-size:13pt; margin-top:15px; }
+    table{ border-collapse:collapse; width:100%; font-size:13pt; margin-top:12px; }
     th,td{ border:1px solid var(--border-color); padding:8px 10px; text-align:center; vertical-align:middle; }
     th{ background:var(--header-bg); color:#000; font-weight:bold; position:sticky; top:0; z-index:1; }
     tbody tr:nth-child(even){ background:#fff; }
     tbody tr:hover{ background:var(--hover-bg); }
 
-    .status-message{ color:#555; padding:40px; text-align:center; font-style:italic; font-size:14pt; }
-    .error-message{ color:red; padding:15px; background:#ffeeee; border:1px solid #ffcccc; margin-top:15px; border-radius:5px; }
-    .loader-container{ padding:50px; text-align:center; }
-    .spinner{
-      border:5px solid #f3f3f3; border-top:5px solid #3498db; border-radius:50%;
-      width:40px; height:40px; animation:spin 1s linear infinite; display:inline-block; margin-bottom:10px;
-    }
-    @keyframes spin{ 0%{ transform:rotate(0deg);} 100%{ transform:rotate(360deg);} }
+    .status-message{ color:#555; padding:20px; text-align:center; font-style:italic; font-size:14pt; }
+    .error-message{ color:#b00020; padding:12px; background:#ffeeee; border:1px solid #ffcccc; margin-top:10px; border-radius:5px; }
+    .loader{ padding:18px; text-align:center; }
 
-    /* Mở rộng hơn trên màn hình lớn */
-    @media (min-width: 1600px){
-      .container{ max-width: 1800px; }
-    }
+    @media (min-width: 1600px){ .container{ max-width: 1800px; } }
+    @media (max-width: 1100px){ .metrics{ grid-template-columns: 1fr 1fr; } }
   </style>
 </head>
 <body>
@@ -101,7 +95,16 @@
       </div>
     </div>
 
-    <!-- KHU VỰC BIỂU ĐỒ -->
+    <!-- Thẻ thống kê mưa -->
+    <div class="metrics">
+      <div class="metric"><div class="label">Tổng lượng mưa (kỳ lọc)</div><div class="value" id="m-total">—</div></div>
+      <div class="metric"><div class="label">Ngày có mưa / Tổng ngày</div><div class="value"><span id="m-rainy-days">—</span>/<span id="m-days">—</span></div></div>
+      <div class="metric"><div class="label">TB theo ngày trong kỳ</div><div class="value" id="m-avg-day">—</div></div>
+      <div class="metric"><div class="label">TB theo ngày có mưa</div><div class="value" id="m-avg-rainy">—</div></div>
+      <div class="metric"><div class="label">Mưa lớn nhất (ngày)</div><div class="value"><span id="m-max">—</span> <span id="m-max-date" style="font-size:12pt;font-weight:normal;"></span></div></div>
+    </div>
+
+    <!-- Biểu đồ -->
     <div class="charts">
       <div class="chart-card">
         <p class="chart-title">Lượng mưa theo từng ngày (tổng mm/ngày)</p>
@@ -113,6 +116,7 @@
       </div>
     </div>
 
+    <!-- Bảng -->
     <table id="data-table">
       <thead>
         <tr>
@@ -139,390 +143,395 @@
         </tr>
       </thead>
       <tbody id="table-body">
-        <tr><td colspan="15">
-          <div class="loader-container">
-            <div class="spinner"></div>
-            <div class="status-message">Đang tải dữ liệu...</div>
-          </div>
-        </td></tr>
+        <tr><td colspan="15"><div class="loader">Đang tải dữ liệu...</div></td></tr>
       </tbody>
     </table>
+
     <div id="error-message" class="error-message" style="display:none;"></div>
   </div>
 
   <script>
-    // ======== CẤU HÌNH API ========
+    // ================== CẤU HÌNH & TRẠNG THÁI ==================
     const EXEC_URL = "https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec";
     const SHEET = "HoThanhSon";
-    const API_URL = `${EXEC_URL}?sheet=${encodeURIComponent(SHEET)}`;
 
-    // ======== BIẾN TOÀN CỤC ========
-    let allData = [];
+    // Bộ lọc mặc định = tháng/năm hiện tại để giảm payload lượt đầu
+    const NOW = new Date();
+    let selectedYear = NOW.getFullYear().toString();
+    let selectedQuarter = "all";
+    let selectedMonth = String(NOW.getMonth() + 1);
+
+    let allData = [];       // fallback khi server chưa hỗ trợ lọc
     let filteredData = [];
+    let currentFetchCtrl = null;
 
+    // Charts
+    let rainChart = null;
+    let waterLevelChart = null;
+    const DEAD_LEVEL = 27.5;
+
+    // DOM refs
     const yearFilter    = document.getElementById('year-filter');
     const quarterFilter = document.getElementById('quarter-filter');
     const monthFilter   = document.getElementById('month-filter');
     const tableBody     = document.getElementById('table-body');
     const errorDiv      = document.getElementById('error-message');
     const subtitleDiv   = document.getElementById('subtitle');
-    const totalColumns  = 15;
 
-    // Biểu đồ (Chart instances)
-    let rainChart = null;
-    let waterLevelChart = null;
+    // Metrics
+    const elTotal = document.getElementById('m-total');
+    const elRainyDays = document.getElementById('m-rainy-days');
+    const elDays = document.getElementById('m-days');
+    const elAvgDay = document.getElementById('m-avg-day');
+    const elAvgRainy = document.getElementById('m-avg-rainy');
+    const elMax = document.getElementById('m-max');
+    const elMaxDate = document.getElementById('m-max-date');
 
-    // Tham chiếu mực nước chết
-    const DEAD_LEVEL = 27.5;
+    // ================== TIỆN ÍCH ==================
+    function buildApiUrl() {
+      const p = new URLSearchParams({ sheet: SHEET });
+      if (selectedYear !== 'all')   p.set('year', selectedYear);
+      if (selectedMonth !== 'all')  p.set('month', selectedMonth);
+      if (selectedQuarter !== 'all')p.set('quarter', selectedQuarter);
+      // gợi ý backend: trả về đã lọc nếu có thể
+      return `${EXEC_URL}?${p.toString()}`;
+    }
 
-    // ======== HÀM PHỤ TRỢ ========
     function showError(message){
       errorDiv.textContent = message;
       errorDiv.style.display = 'block';
-      tableBody.innerHTML = `<tr><td colspan="${totalColumns}" class="status-message error-message">${message}</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="15" class="status-message">${message}</td></tr>`;
     }
 
-    function formatNumberWithComma(value){
-      if (value === null || value === undefined || value === '') return '';
-      const num = Number(value);
-      if (Number.isNaN(num)) return value;
-      return num.toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 3 });
-    }
-
-    // Parse dd/MM/yyyy HH:mm an toàn, trả về Date hoặc null
     function parseVNDateTime(s){
       if (!s || typeof s !== 'string') return null;
       const [dpart, tpart='00:00'] = s.split(' ');
       const [dd, mm, yyyy] = dpart.split('/').map(n=>parseInt(n,10));
       if (!dd || !mm || !yyyy) return null;
       const [HH='0', MM='0'] = tpart.split(':').map(n=>parseInt(n,10));
-      const date = new Date(yyyy, mm-1, dd, HH, MM);
-      return Number.isNaN(date.getTime()) ? null : date;
+      const d = new Date(yyyy, mm-1, dd, HH, MM);
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+    function ymd(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+    function formatNum(v, max=3){
+      if (v === null || v === undefined || v === '') return '';
+      const n = Number(v); if (Number.isNaN(n)) return v;
+      return n.toLocaleString('vi-VN', {maximumFractionDigits:max});
     }
 
-    // Chuẩn hóa về chuỗi ngày yyyy-mm-dd
-    function ymd(d){
-      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
-
+    // ================== RENDER BẢNG (tối ưu) ==================
     function renderTable(data){
-      tableBody.innerHTML = '';
       if (!Array.isArray(data) || data.length === 0){
-        tableBody.innerHTML = `<tr><td colspan="${totalColumns}" class="status-message">Không có dữ liệu phù hợp với bộ lọc.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="15" class="status-message">Không có dữ liệu phù hợp với bộ lọc.</td></tr>`;
         return;
       }
-
-      data.forEach((row, index) => {
-        // Các field: ngayGio, mucNuoc, dungTich, luongMua, hTran1, qtran1, hTran2, qtran2, a, cotNuocDauKenh, qCong, nguoiVanHanh, nguoiKiemTra
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${row.ngayGio || ''}</td>
-          <td>${formatNumberWithComma(row.mucNuoc)}</td>
-          <td>${formatNumberWithComma(row.dungTich)}</td>
-          <td>${formatNumberWithComma(row.luongMua)}</td>
-          <td>${formatNumberWithComma(row.hTran1)}</td>
-          <td>${formatNumberWithComma(row.qtran1)}</td>
-          <td>${formatNumberWithComma(row.hTran2)}</td>
-          <td>${formatNumberWithComma(row.qtran2)}</td>
-          <td>${formatNumberWithComma(row.a)}</td>
-          <td>${formatNumberWithComma(row.cotNuocDauKenh)}</td>
-          <td>${formatNumberWithComma(row.qCong)}</td>
-          <td>${row.nguoiVanHanh || ''}</td>
-          <td>${row.nguoiKiemTra || ''}</td>
+      let html = '';
+      for (let i=0;i<data.length;i++){
+        const r = data[i];
+        html += `<tr>
+          <td>${i+1}</td>
+          <td>${r.ngayGio || ''}</td>
+          <td>${formatNum(r.mucNuoc)}</td>
+          <td>${formatNum(r.dungTich)}</td>
+          <td>${formatNum(r.luongMua)}</td>
+          <td>${formatNum(r.hTran1)}</td>
+          <td>${formatNum(r.qtran1)}</td>
+          <td>${formatNum(r.hTran2)}</td>
+          <td>${formatNum(r.qtran2)}</td>
+          <td>${formatNum(r.a)}</td>
+          <td>${formatNum(r.cotNuocDauKenh)}</td>
+          <td>${formatNum(r.qCong)}</td>
+          <td>${r.nguoiVanHanh || ''}</td>
+          <td>${r.nguoiKiemTra || ''}</td>
           <td></td>
-        `;
-        tableBody.appendChild(tr);
-      });
+        </tr>`;
+      }
+      tableBody.innerHTML = html;
     }
 
+    // ================== POPULATE NĂM ==================
     function populateYearFilter(data){
-      const years = [...new Set(
-        data.map(r => {
-          const d = parseVNDateTime(r.ngayGio);
-          return d ? d.getFullYear() : null;
-        }).filter(Boolean)
-      )].sort((a,b)=>b-a);
+      const years = [...new Set(data.map(r=>{
+        const d = parseVNDateTime(r.ngayGio); return d? d.getFullYear(): null;
+      }).filter(Boolean))].sort((a,b)=>b-a);
 
+      const cur = yearFilter.value;
       yearFilter.innerHTML = '<option value="all">Tất cả</option>';
-      years.forEach(y => {
+      for (const y of years){
         const op = document.createElement('option');
-        op.value = String(y);
-        op.textContent = `Năm ${y}`;
+        op.value = String(y); op.textContent = `Năm ${y}`;
         yearFilter.appendChild(op);
+      }
+      // cố gắng chọn selectedYear nếu có
+      if (years.includes(Number(selectedYear))) yearFilter.value = selectedYear;
+      else if (cur) yearFilter.value = cur;
+    }
+
+    // ================== GOM THEO NGÀY & THỐNG KÊ ==================
+    function aggregateDaily(data){
+      const map = new Map(); // yyyy-mm-dd -> { rainSum, wlSum, wlCount }
+      for (const r of data){
+        const d = parseVNDateTime(r.ngayGio);
+        if (!d) continue;
+        const key = ymd(d);
+        const rain = Number(r.luongMua) || 0;
+        const wl   = Number(r.mucNuoc);
+        const prev = map.get(key) || { rainSum:0, wlSum:0, wlCount:0 };
+        prev.rainSum += rain;
+        if (!Number.isNaN(wl)) { prev.wlSum += wl; prev.wlCount++; }
+        map.set(key, prev);
+      }
+      const labels = Array.from(map.keys()).sort((a,b)=> new Date(a)-new Date(b));
+      const rainPerDay = labels.map(k => map.get(k).rainSum);
+      const wlAvgPerDay = labels.map(k => {
+        const o = map.get(k); return o.wlCount ? o.wlSum/o.wlCount : null;
+      });
+      return { labels, rainPerDay, wlAvgPerDay };
+    }
+
+    function renderRainStats(){
+      const { labels, rainPerDay } = aggregateDaily(filteredData);
+      const total = rainPerDay.reduce((s,v)=>s+(Number(v)||0),0);
+      const days = labels.length;
+      const rainyDays = rainPerDay.filter(v => (Number(v)||0) > 0).length;
+      const avgPerDay = days ? total/days : 0;
+      const avgPerRainy = rainyDays ? total/rainyDays : 0;
+
+      let maxVal = 0, maxDate = '';
+      rainPerDay.forEach((v,i)=>{ if ((Number(v)||0) > maxVal){ maxVal = Number(v)||0; maxDate = labels[i]; } });
+
+      elTotal.textContent = total.toLocaleString('vi-VN', {maximumFractionDigits:1});
+      elDays.textContent = String(days);
+      elRainyDays.textContent = String(rainyDays);
+      elAvgDay.textContent = avgPerDay.toLocaleString('vi-VN', {maximumFractionDigits:2});
+      elAvgRainy.textContent = avgPerRainy.toLocaleString('vi-VN', {maximumFractionDigits:2});
+      elMax.textContent = maxVal.toLocaleString('vi-VN', {maximumFractionDigits:1});
+      elMaxDate.textContent = maxDate ? `(${maxDate})` : '';
+    }
+
+    // ================== CHARTS (lazy-load Chart.js) ==================
+    let ChartLibLoaded = false;
+    function loadScriptOnce(src){
+      return new Promise((resolve, reject)=>{
+        const s = document.createElement('script');
+        s.src = src; s.async = true;
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    async function ensureChartJs(){
+      if (!ChartLibLoaded){
+        await loadScriptOnce('https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js');
+        ChartLibLoaded = true;
+      }
+    }
+
+    function niceMax(val){
+      if (!isFinite(val) || val <= 0) return 10;
+      const mags = [5, 10, 20, 25, 50, 100, 200, 250, 500, 1000];
+      const target = val * 1.1;
+      for (const m of mags){ if (target <= m) return m; }
+      return Math.ceil(target/100)*100;
+    }
+
+    async function updateCharts(){
+      await ensureChartJs();
+
+      const { labels, rainPerDay, wlAvgPerDay } = aggregateDaily(filteredData);
+
+      if (rainChart) { rainChart.destroy(); rainChart = null; }
+      if (waterLevelChart) { waterLevelChart.destroy(); waterLevelChart = null; }
+
+      const maxRain = rainPerDay.reduce((m,v)=>Math.max(m, v||0), 0);
+      const yMaxRain = niceMax(maxRain);
+
+      const wlVals = wlAvgPerDay.filter(v=>Number.isFinite(v));
+      const wlMin = wlVals.length ? Math.min(...wlVals) : 0;
+      const wlMax = wlVals.length ? Math.max(...wlVals) : 0;
+      const yMinWL = wlVals.length ? Math.floor((wlMin - 0.5)*10)/10 : undefined;
+      const yMaxWL = wlVals.length ? Math.ceil((wlMax + 0.5)*10)/10 : undefined;
+
+      const rainCtx = document.getElementById('rainChart').getContext('2d');
+      // Biểu đồ mưa: bar
+      // eslint-disable-next-line no-undef
+      rainChart = new Chart(rainCtx, {
+        type: 'bar',
+        data: { labels, datasets: [{ label:'Lượng mưa (mm/ngày)', data: rainPerDay, borderWidth:1 }] },
+        options: {
+          responsive:true, maintainAspectRatio:false, animation:false,
+          plugins:{ legend:{ display:true } },
+          scales:{
+            x:{ title:{ display:true, text:'Ngày' }, ticks:{ autoSkip:true, maxRotation:0 } },
+            y:{ title:{ display:true, text:'mm' }, beginAtZero:true, suggestedMax:yMaxRain }
+          }
+        }
+      });
+
+      const wlCtx = document.getElementById('waterLevelChart').getContext('2d');
+      const deadLine = labels.map(()=>DEAD_LEVEL);
+      // eslint-disable-next-line no-undef
+      waterLevelChart = new Chart(wlCtx, {
+        type:'line',
+        data:{
+          labels,
+          datasets:[
+            { label:'Mực nước TB (m/ngày)', data: wlAvgPerDay, tension:0.3, fill:false, pointRadius:3 },
+            { label:`Mực nước chết (${DEAD_LEVEL} m)`, data: deadLine, borderDash:[6,6], tension:0, fill:false, pointRadius:0 }
+          ]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false, animation:false,
+          plugins:{ legend:{ display:true } },
+          scales:{
+            x:{ title:{ display:true, text:'Ngày' }, ticks:{ autoSkip:true, maxRotation:0 } },
+            y:{ title:{ display:true, text:'m' }, beginAtZero:false, suggestedMin:yMinWL, suggestedMax:yMaxWL }
+          }
+        }
       });
     }
 
+    // ================== ÁP DỤNG BỘ LỌC & TẢI DỮ LIỆU ==================
     function applyFiltersAndRender(){
       const y = yearFilter.value;
       const q = quarterFilter.value;
       const m = monthFilter.value;
 
-      filteredData = allData.filter(r => {
+      selectedYear = y;
+      selectedQuarter = (m !== 'all') ? 'all' : q; // nếu chọn Tháng thì bỏ Quý
+      selectedMonth = (q !== 'all') ? 'all' : m;   // nếu chọn Quý thì bỏ Tháng
+
+      fetchAndRender();
+    }
+
+    yearFilter.addEventListener('change', applyFiltersAndRender);
+    quarterFilter.addEventListener('change', ()=>{ if (quarterFilter.value !== 'all') monthFilter.value = 'all'; applyFiltersAndRender(); });
+    monthFilter.addEventListener('change', ()=>{ if (monthFilter.value !== 'all') quarterFilter.value = 'all'; applyFiltersAndRender(); });
+
+    function setSubtitle(){
+      if (selectedMonth !== 'all' && selectedYear !== 'all') subtitleDiv.textContent = `Tháng ${selectedMonth} năm ${selectedYear}`;
+      else if (selectedYear !== 'all') subtitleDiv.textContent = `Năm ${selectedYear}`;
+      else {
+        const c = new Date();
+        subtitleDiv.textContent = `Tháng ${c.getMonth()+1} năm ${c.getFullYear()}`;
+      }
+    }
+
+    async function fetchAndRender(){
+      setSubtitle();
+
+      // Hủy request trước nếu còn đang chạy
+      if (currentFetchCtrl) currentFetchCtrl.abort();
+      currentFetchCtrl = new AbortController();
+
+      const url = buildApiUrl();
+
+      tableBody.innerHTML = `<tr><td colspan="15"><div class="loader">Đang tải dữ liệu...</div></td></tr>`;
+      errorDiv.style.display = 'none';
+
+      try{
+        const res = await fetch(url, { cache: 'no-store', signal: currentFetchCtrl.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+
+        // Nếu backend đã lọc: dùng thẳng json; nếu chưa: lưu allData và lọc client
+        if (Array.isArray(json) && json.length && (selectedYear!=='all' || selectedMonth!=='all' || selectedQuarter!=='all')) {
+          // đoán: backend đã lọc
+          filteredData = json;
+          // để populate năm: cần đủ data — fallback: nếu ít dữ liệu, giữ nguyên danh sách năm hiện có
+          if (!allData.length) allData = json;
+        } else if (Array.isArray(json)) {
+          allData = json;
+          filteredData = clientFilter(allData);
+        } else {
+          throw new Error('Dữ liệu trả về không hợp lệ');
+        }
+
+        populateYearFilter(allData);
+        renderTable(filteredData);
+        renderRainStats();
+        updateCharts();
+
+      }catch(err){
+        if (err.name === 'AbortError') return; // đã hủy do đổi lọc
+        console.error('Lỗi tải dữ liệu:', err);
+        showError(`Không thể tải dữ liệu. Lỗi: ${err.message || err}`);
+      }
+    }
+
+    function clientFilter(data){
+      return data.filter(r=>{
         const d = parseVNDateTime(r.ngayGio);
         if (!d) return false;
-        if (y !== 'all' && String(d.getFullYear()) !== String(y)) return false;
-
-        if (m !== 'all'){
-          if ((d.getMonth()+1) !== Number(m)) return false;
-        } else if (q !== 'all'){
-          const quarter = Math.floor(d.getMonth()/3)+1; // 1..4
-          if (quarter !== Number(q)) return false;
+        if (selectedYear !== 'all' && String(d.getFullYear()) !== selectedYear) return false;
+        if (selectedMonth !== 'all' && (d.getMonth()+1) !== Number(selectedMonth)) return false;
+        if (selectedQuarter !== 'all'){
+          const q = Math.floor(d.getMonth()/3)+1;
+          if (q !== Number(selectedQuarter)) return false;
         }
         return true;
       });
-
-      // Subtitle
-      let subtitleText = '';
-      if (m !== 'all' && y !== 'all') subtitleText = `Tháng ${m} năm ${y}`;
-      else if (y !== 'all')          subtitleText = `Năm ${y}`;
-      else {
-        const c = new Date();
-        subtitleText = `Tháng ${c.getMonth()+1} năm ${c.getFullYear()}`;
-      }
-      subtitleDiv.textContent = subtitleText;
-
-      renderTable(filteredData);
-      updateCharts(); // Cập nhật biểu đồ sau khi render bảng
     }
 
-    [yearFilter, quarterFilter, monthFilter].forEach(el => el.addEventListener('change', applyFiltersAndRender));
-    monthFilter.addEventListener('change', () => { if (monthFilter.value !== 'all') quarterFilter.value = 'all'; });
-    quarterFilter.addEventListener('change', () => { if (quarterFilter.value !== 'all') monthFilter.value = 'all'; });
+    // ===== XLSX, PDF lazy-load khi bấm nút =====
+    function loadScript(src){ return new Promise((resolve, reject)=>{ const s = document.createElement('script'); s.src = src; s.onload = resolve; s.onerror = reject; document.head.appendChild(s); }); }
 
-    // ======== TẠO DỮ LIỆU NGÀY: Tổng mưa/ngày, TB mực nước/ngày ========
-    function aggregateDaily(data){
-      const map = new Map(); // key: yyyy-mm-dd -> { rainSum, wlSum, wlCount }
-
-      data.forEach(r => {
-        const d = parseVNDateTime(r.ngayGio);
-        if (!d) return;
-        const key = ymd(d);
-
-        const rain = Number(r.luongMua) || 0;
-        const wl   = Number(r.mucNuoc);
-        const prev = map.get(key) || { rainSum:0, wlSum:0, wlCount:0 };
-
-        prev.rainSum += rain;
-        if (!Number.isNaN(wl)) { prev.wlSum += wl; prev.wlCount += 1; }
-
-        map.set(key, prev);
-      });
-
-      const labels = Array.from(map.keys()).sort((a,b) => new Date(a) - new Date(b));
-      const rainPerDay = labels.map(k => map.get(k).rainSum);
-      const wlAvgPerDay = labels.map(k => {
-        const o = map.get(k);
-        return o.wlCount ? o.wlSum / o.wlCount : null;
-      });
-
-      return { labels, rainPerDay, wlAvgPerDay };
-    }
-
-    // ======== VẼ/CẬP NHẬT BIỂU ĐỒ ========
-    function updateCharts(){
-      const { labels, rainPerDay, wlAvgPerDay } = aggregateDaily(filteredData);
-
-      // Hủy chart cũ nếu có
-      if (rainChart) { rainChart.destroy(); rainChart = null; }
-      if (waterLevelChart) { waterLevelChart.destroy(); waterLevelChart = null; }
-
-      // Biểu đồ lượng mưa theo ngày (cột)
-      const rainCtx = document.getElementById('rainChart').getContext('2d');
-      rainChart = new Chart(rainCtx, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Lượng mưa (mm/ngày)',
-            data: rainPerDay,
-            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: true },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => ` ${ctx.parsed.y?.toLocaleString('vi-VN')} mm`
-              }
-            }
-          },
-          scales: {
-            x: {
-              title: { display: true, text: 'Ngày' },
-              ticks: { autoSkip: true, maxRotation: 0 }
-            },
-            y: {
-              title: { display: true, text: 'mm' },
-              beginAtZero: true
-            }
-          }
-        }
-      });
-
-      // Biểu đồ mực nước TB theo ngày + đường tham chiếu 27.5 m
-      const wlCtx = document.getElementById('waterLevelChart').getContext('2d');
-      const deadLine = labels.map(() => DEAD_LEVEL);
-
-      waterLevelChart = new Chart(wlCtx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Mực nước TB (m/ngày)',
-              data: wlAvgPerDay,
-              tension: 0.3,
-              fill: false,
-              pointRadius: 3
-            },
-            {
-              label: `Mực nước chết (${DEAD_LEVEL} m)`,
-              data: deadLine,
-              borderDash: [6, 6],
-              tension: 0,
-              fill: false,
-              pointRadius: 0
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: true },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => {
-                  const val = ctx.parsed.y;
-                  return ctx.datasetIndex === 0
-                    ? ` ${val?.toLocaleString('vi-VN', {maximumFractionDigits:3})} m`
-                    : ` ${val} m`;
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              title: { display: true, text: 'Ngày' },
-              ticks: { autoSkip: true, maxRotation: 0 }
-            },
-            y: {
-              title: { display: true, text: 'm' },
-              beginAtZero: false
-            }
-          }
-        }
-      });
-    }
-
-    // ======== TẢI DỮ LIỆU (không dùng localStorage để tránh quota) ========
-    function processData(data){
-      if (!Array.isArray(data) || data.length === 0){
-        tableBody.innerHTML = `<tr><td colspan="${totalColumns}" class="status-message">Không có dữ liệu để hiển thị.</td></tr>`;
-        return;
-      }
-      allData = data;
-      populateYearFilter(allData);
-      applyFiltersAndRender();
-    }
-
-    fetch(API_URL, { cache: 'no-store' })
-      .then(res => res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`)))
-      .then(json => {
-        if (json && json.error) throw new Error(json.message || 'Lỗi từ API');
-        processData(json);
-      })
-      .catch(err => {
-        console.error('Lỗi tải dữ liệu:', err);
-        showError(`Không thể tải dữ liệu. Lỗi: ${err.message || err}`);
-      });
-
-    // ======== XUẤT EXCEL ========
-    document.getElementById('export-excel').addEventListener('click', () => {
+    document.getElementById('export-excel').addEventListener('click', async () => {
       if (!filteredData.length) return alert('Không có dữ liệu để xuất.');
-      const headers = [
-        "STT","Ngày, giờ","Mực nước (m)","Dung tích (Triệu m³)","Lượng mưa (mm)",
-        "Htràn 1 (cm)","Qtràn 1 (m³/s)","Htràn 2 (cm)","Qtràn 2 (m³/s)",
-        "a (cm)","Cột nước đầu kênh (m)","Qcống (m³/s)",
-        "Họ, tên người vận hành","Họ, tên người kiểm tra"
-      ];
+      await loadScript('https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js');
 
-      const rows = filteredData.map((r, i) => ([
-        i+1,
-        r.ngayGio || '',
-        r.mucNuoc ?? '',
-        r.dungTich ?? '',
-        r.luongMua ?? '',
-        r.hTran1 ?? '',
-        r.qtran1 ?? '',
-        r.hTran2 ?? '',
-        r.qtran2 ?? '',
-        r.a ?? '',
-        r.cotNuocDauKenh ?? '',
-        r.qCong ?? '',
-        r.nguoiVanHanh || '',
-        r.nguoiKiemTra || ''
-      ]));
+      const headers = ["STT","Ngày, giờ","Mực nước (m)","Dung tích (Triệu m³)","Lượng mưa (mm)","Htràn 1 (cm)","Qtràn 1 (m³/s)","Htràn 2 (cm)","Qtràn 2 (m³/s)","a (cm)","Cột nước đầu kênh (m)","Qcống (m³/s)","Họ, tên người vận hành","Họ, tên người kiểm tra"];
+      const rows = filteredData.map((r,i)=>[i+1,r.ngayGio||'',r.mucNuoc??'',r.dungTich??'',r.luongMua??'',r.hTran1??'',r.qtran1??'',r.hTran2??'',r.qtran2??'',r.a??'',r.cotNuocDauKenh??'',r.qCong??'',r.nguoiVanHanh||'',r.nguoiKiemTra||'']);
 
+      // eslint-disable-next-line no-undef
       const wb = XLSX.utils.book_new();
+      // eslint-disable-next-line no-undef
       const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-
-      // Auto width
       ws['!cols'] = headers.map((_, ci) => {
-        const maxLen = [headers, ...rows].reduce((max, row) => {
-          const v = row[ci] == null ? '' : String(row[ci]);
-          return Math.max(max, v.length);
-        }, 0);
+        const maxLen = [headers, ...rows].reduce((m, row) => Math.max(m, String(row[ci] ?? '').length), 0);
         return { wch: Math.min(Math.max(10, maxLen + 2), 40) };
       });
-
+      // eslint-disable-next-line no-undef
       XLSX.utils.book_append_sheet(wb, ws, "NhatKyHoThanhSon");
+      // eslint-disable-next-line no-undef
       XLSX.writeFile(wb, "NhatKyVanHanh_HoThanhSon.xlsx");
     });
 
-    // ======== XUẤT PDF ========
-    document.getElementById('export-pdf').addEventListener('click', () => {
+    document.getElementById('export-pdf').addEventListener('click', async () => {
       if (!filteredData.length) return alert('Không có dữ liệu để xuất.');
-      try{
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('landscape', 'pt', 'a4');
-        const FONT = "LiberationSerif";
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js');
+      await loadScript('https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Regular.js');
+      await loadScript('https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Bold.js');
 
-        doc.setFont(FONT);
-        doc.setFontSize(16);
-        doc.setFont(FONT, 'bold');
-        doc.text("NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC THÀNH SƠN", doc.internal.pageSize.getWidth()/2, 40, { align:'center' });
+      // eslint-disable-next-line no-undef
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('landscape','pt','a4');
+      const FONT = "LiberationSerif";
 
-        doc.setFontSize(14);
-        doc.setFont(FONT, 'bold');
-        const subtitle = (document.getElementById('subtitle').textContent || '').trim();
-        doc.text(subtitle, doc.internal.pageSize.getWidth()/2, 60, { align:'center' });
+      doc.setFont(FONT); doc.setFontSize(16); doc.setFont(FONT, 'bold');
+      doc.text("NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC THÀNH SƠN", doc.internal.pageSize.getWidth()/2, 40, {align:'center'});
 
-        doc.autoTable({
-          html: '#data-table',
-          startY: 80,
-          theme: 'grid',
-          headStyles: {
-            font: FONT, fontStyle: 'bold', fillColor: [242,242,242], textColor:[0,0,0],
-            lineColor:[0,0,0], lineWidth:0.5, fontSize:8, halign:'center', valign:'middle'
-          },
-          styles: { font: FONT, fontStyle:'normal', lineColor:[0,0,0], lineWidth:0.5, fontSize:8, cellPadding:4 },
-          alternateRowStyles: { fillColor:[255,255,255] },
-          margin: { top:80 }
-        });
+      doc.setFontSize(14); doc.setFont(FONT, 'bold');
+      const subtitle = (document.getElementById('subtitle').textContent || '').trim();
+      doc.text(subtitle, doc.internal.pageSize.getWidth()/2, 60, {align:'center'});
 
-        doc.save(`NhatKyVanHanh_HoThanhSon_${subtitle.replace(/\s+/g,'_').replace(/:/g,'')}.pdf`);
-      }catch(e){
-        console.error("Lỗi tạo PDF:", e);
-        alert("Có lỗi khi tạo PDF: " + e.message);
-      }
+      // eslint-disable-next-line no-undef
+      doc.autoTable({ html:'#data-table', startY:80, theme:'grid',
+        headStyles:{ font:FONT, fontStyle:'bold', fillColor:[242,242,242], textColor:[0,0,0], lineColor:[0,0,0], lineWidth:0.5, fontSize:8, halign:'center', valign:'middle' },
+        styles:{ font:FONT, fontStyle:'normal', lineColor:[0,0,0], lineWidth:0.5, fontSize:8, cellPadding:4 },
+        alternateRowStyles:{ fillColor:[255,255,255] }, margin:{ top:80 }
+      });
+      doc.save(`NhatKyVanHanh_HoThanhSon_${subtitle.replace(/\s+/g,'_').replace(/:/g,'')}.pdf`);
     });
+
+    // ================== KHỞI TẠO ==================
+    (function init(){
+      // đặt giao diện theo mặc định
+      monthFilter.value = selectedMonth;
+      // yearFilter sẽ được set sau khi có data
+      fetchAndRender();
+    })();
   </script>
 </body>
 </html>
