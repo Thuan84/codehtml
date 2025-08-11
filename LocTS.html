@@ -151,26 +151,28 @@
   </div>
 
   <script>
-    // ================== CẤU HÌNH & TRẠNG THÁI ==================
+    // ================== CẤU HÌNH ==================
     const EXEC_URL = "https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec";
     const SHEET = "HoThanhSon";
+    const DEAD_LEVEL = 27.5;
 
-    // Bộ lọc mặc định = tháng/năm hiện tại để giảm payload lượt đầu
-    const NOW = new Date();
-    let selectedYear = NOW.getFullYear().toString();
-    let selectedQuarter = "all";
-    let selectedMonth = String(NOW.getMonth() + 1);
+    // ================== TRẠNG THÁI BỘ LỌC ==================
+    // Khởi tạo an toàn: all/all/all để tránh rỗng nếu năm hiện tại không có dữ liệu
+    let selectedYear = 'all';
+    let selectedQuarter = 'all';
+    let selectedMonth = 'all';
 
-    let allData = [];       // fallback khi server chưa hỗ trợ lọc
+    // ================== BIẾN TOÀN CỤC ==================
+    let allData = [];
     let filteredData = [];
     let currentFetchCtrl = null;
 
-    // Charts
+    // Chart instances (lazy load Chart.js)
     let rainChart = null;
     let waterLevelChart = null;
-    const DEAD_LEVEL = 27.5;
+    let ChartLibLoaded = false;
 
-    // DOM refs
+    // DOM
     const yearFilter    = document.getElementById('year-filter');
     const quarterFilter = document.getElementById('quarter-filter');
     const monthFilter   = document.getElementById('month-filter');
@@ -188,21 +190,6 @@
     const elMaxDate = document.getElementById('m-max-date');
 
     // ================== TIỆN ÍCH ==================
-    function buildApiUrl() {
-      const p = new URLSearchParams({ sheet: SHEET });
-      if (selectedYear !== 'all')   p.set('year', selectedYear);
-      if (selectedMonth !== 'all')  p.set('month', selectedMonth);
-      if (selectedQuarter !== 'all')p.set('quarter', selectedQuarter);
-      // gợi ý backend: trả về đã lọc nếu có thể
-      return `${EXEC_URL}?${p.toString()}`;
-    }
-
-    function showError(message){
-      errorDiv.textContent = message;
-      errorDiv.style.display = 'block';
-      tableBody.innerHTML = `<tr><td colspan="15" class="status-message">${message}</td></tr>`;
-    }
-
     function parseVNDateTime(s){
       if (!s || typeof s !== 'string') return null;
       const [dpart, tpart='00:00'] = s.split(' ');
@@ -213,14 +200,30 @@
       return Number.isNaN(d.getTime()) ? null : d;
     }
     function ymd(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-
     function formatNum(v, max=3){
       if (v === null || v === undefined || v === '') return '';
       const n = Number(v); if (Number.isNaN(n)) return v;
-      return n.toLocaleString('vi-VN', {maximumFractionDigits:max});
+      return n.toLocaleString('vi-VN', { maximumFractionDigits:max });
     }
 
-    // ================== RENDER BẢNG (tối ưu) ==================
+    // Chỉ gửi month/quarter khi đã cố định year
+    function buildApiUrl() {
+      const p = new URLSearchParams({ sheet: SHEET });
+      if (selectedYear !== 'all') p.set('year', selectedYear);
+      if (selectedYear !== 'all') {
+        if (selectedMonth !== 'all')   p.set('month', selectedMonth);
+        else if (selectedQuarter !== 'all') p.set('quarter', selectedQuarter);
+      }
+      return `${EXEC_URL}?${p.toString()}`;
+    }
+
+    function showError(message){
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      tableBody.innerHTML = `<tr><td colspan="15" class="status-message">${message}</td></tr>`;
+    }
+
+    // ================== RENDER BẢNG ==================
     function renderTable(data){
       if (!Array.isArray(data) || data.length === 0){
         tableBody.innerHTML = `<tr><td colspan="15" class="status-message">Không có dữ liệu phù hợp với bộ lọc.</td></tr>`;
@@ -250,25 +253,33 @@
       tableBody.innerHTML = html;
     }
 
-    // ================== POPULATE NĂM ==================
+    // ================== YEAR DROPDOWN ==================
     function populateYearFilter(data){
-      const years = [...new Set(data.map(r=>{
-        const d = parseVNDateTime(r.ngayGio); return d? d.getFullYear(): null;
-      }).filter(Boolean))].sort((a,b)=>b-a);
+      const years = [...new Set(
+        data.map(r => { const d = parseVNDateTime(r.ngayGio); return d ? d.getFullYear() : null; })
+          .filter(Boolean)
+      )].sort((a,b)=>b-a);
 
-      const cur = yearFilter.value;
+      const prev = yearFilter.value;  // giữ lựa chọn hiện tại
       yearFilter.innerHTML = '<option value="all">Tất cả</option>';
-      for (const y of years){
+      years.forEach(y => {
         const op = document.createElement('option');
-        op.value = String(y); op.textContent = `Năm ${y}`;
+        op.value = String(y);
+        op.textContent = `Năm ${y}`;
         yearFilter.appendChild(op);
+      });
+
+      if (prev && (prev === 'all' || years.includes(Number(prev)))) {
+        yearFilter.value = prev;
+      } else if (years.includes(Number(selectedYear))) {
+        yearFilter.value = selectedYear;
+      } else {
+        yearFilter.value = 'all';
+        selectedYear = 'all';
       }
-      // cố gắng chọn selectedYear nếu có
-      if (years.includes(Number(selectedYear))) yearFilter.value = selectedYear;
-      else if (cur) yearFilter.value = cur;
     }
 
-    // ================== GOM THEO NGÀY & THỐNG KÊ ==================
+    // ================== AGGREGATE & METRICS ==================
     function aggregateDaily(data){
       const map = new Map(); // yyyy-mm-dd -> { rainSum, wlSum, wlCount }
       for (const r of data){
@@ -310,8 +321,7 @@
       elMaxDate.textContent = maxDate ? `(${maxDate})` : '';
     }
 
-    // ================== CHARTS (lazy-load Chart.js) ==================
-    let ChartLibLoaded = false;
+    // ================== CHARTS (lazy-load) ==================
     function loadScriptOnce(src){
       return new Promise((resolve, reject)=>{
         const s = document.createElement('script');
@@ -326,7 +336,6 @@
         ChartLibLoaded = true;
       }
     }
-
     function niceMax(val){
       if (!isFinite(val) || val <= 0) return 10;
       const mags = [5, 10, 20, 25, 50, 100, 200, 250, 500, 1000];
@@ -334,7 +343,6 @@
       for (const m of mags){ if (target <= m) return m; }
       return Math.ceil(target/100)*100;
     }
-
     async function updateCharts(){
       await ensureChartJs();
 
@@ -352,10 +360,8 @@
       const yMinWL = wlVals.length ? Math.floor((wlMin - 0.5)*10)/10 : undefined;
       const yMaxWL = wlVals.length ? Math.ceil((wlMax + 0.5)*10)/10 : undefined;
 
-      const rainCtx = document.getElementById('rainChart').getContext('2d');
-      // Biểu đồ mưa: bar
       // eslint-disable-next-line no-undef
-      rainChart = new Chart(rainCtx, {
+      rainChart = new Chart(document.getElementById('rainChart').getContext('2d'), {
         type: 'bar',
         data: { labels, datasets: [{ label:'Lượng mưa (mm/ngày)', data: rainPerDay, borderWidth:1 }] },
         options: {
@@ -368,10 +374,9 @@
         }
       });
 
-      const wlCtx = document.getElementById('waterLevelChart').getContext('2d');
       const deadLine = labels.map(()=>DEAD_LEVEL);
       // eslint-disable-next-line no-undef
-      waterLevelChart = new Chart(wlCtx, {
+      waterLevelChart = new Chart(document.getElementById('waterLevelChart').getContext('2d'), {
         type:'line',
         data:{
           labels,
@@ -391,74 +396,48 @@
       });
     }
 
-    // ================== ÁP DỤNG BỘ LỌC & TẢI DỮ LIỆU ==================
-    function applyFiltersAndRender(){
-      const y = yearFilter.value;
-      const q = quarterFilter.value;
-      const m = monthFilter.value;
-
-      selectedYear = y;
-      selectedQuarter = (m !== 'all') ? 'all' : q; // nếu chọn Tháng thì bỏ Quý
-      selectedMonth = (q !== 'all') ? 'all' : m;   // nếu chọn Quý thì bỏ Tháng
-
-      fetchAndRender();
-    }
-
-    yearFilter.addEventListener('change', applyFiltersAndRender);
-    quarterFilter.addEventListener('change', ()=>{ if (quarterFilter.value !== 'all') monthFilter.value = 'all'; applyFiltersAndRender(); });
-    monthFilter.addEventListener('change', ()=>{ if (monthFilter.value !== 'all') quarterFilter.value = 'all'; applyFiltersAndRender(); });
-
+    // ================== SUBTITLE ==================
     function setSubtitle(){
-      if (selectedMonth !== 'all' && selectedYear !== 'all') subtitleDiv.textContent = `Tháng ${selectedMonth} năm ${selectedYear}`;
-      else if (selectedYear !== 'all') subtitleDiv.textContent = `Năm ${selectedYear}`;
-      else {
+      if (selectedYear !== 'all' && selectedMonth !== 'all') {
+        subtitleDiv.textContent = `Tháng ${selectedMonth} năm ${selectedYear}`;
+      } else if (selectedYear !== 'all' && selectedQuarter !== 'all') {
+        subtitleDiv.textContent = `Quý ${selectedQuarter} năm ${selectedYear}`;
+      } else if (selectedYear !== 'all') {
+        subtitleDiv.textContent = `Năm ${selectedYear}`;
+      } else {
         const c = new Date();
         subtitleDiv.textContent = `Tháng ${c.getMonth()+1} năm ${c.getFullYear()}`;
       }
     }
 
-    async function fetchAndRender(){
-      setSubtitle();
+    // ================== ÁP DỤNG BỘ LỌC ==================
+    function applyFiltersAndRender(){
+      const y = yearFilter.value;
+      let q = quarterFilter.value;
+      let m = monthFilter.value;
 
-      // Hủy request trước nếu còn đang chạy
-      if (currentFetchCtrl) currentFetchCtrl.abort();
-      currentFetchCtrl = new AbortController();
+      // loại trừ lẫn nhau
+      if (m !== 'all') q = 'all';
+      if (q !== 'all') m = 'all';
 
-      const url = buildApiUrl();
+      selectedYear = y;
+      selectedQuarter = q;
+      selectedMonth  = m;
 
-      tableBody.innerHTML = `<tr><td colspan="15"><div class="loader">Đang tải dữ liệu...</div></td></tr>`;
-      errorDiv.style.display = 'none';
-
-      try{
-        const res = await fetch(url, { cache: 'no-store', signal: currentFetchCtrl.signal });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-
-        // Nếu backend đã lọc: dùng thẳng json; nếu chưa: lưu allData và lọc client
-        if (Array.isArray(json) && json.length && (selectedYear!=='all' || selectedMonth!=='all' || selectedQuarter!=='all')) {
-          // đoán: backend đã lọc
-          filteredData = json;
-          // để populate năm: cần đủ data — fallback: nếu ít dữ liệu, giữ nguyên danh sách năm hiện có
-          if (!allData.length) allData = json;
-        } else if (Array.isArray(json)) {
-          allData = json;
-          filteredData = clientFilter(allData);
-        } else {
-          throw new Error('Dữ liệu trả về không hợp lệ');
-        }
-
-        populateYearFilter(allData);
-        renderTable(filteredData);
-        renderRainStats();
-        updateCharts();
-
-      }catch(err){
-        if (err.name === 'AbortError') return; // đã hủy do đổi lọc
-        console.error('Lỗi tải dữ liệu:', err);
-        showError(`Không thể tải dữ liệu. Lỗi: ${err.message || err}`);
-      }
+      fetchAndRender();
     }
 
+    yearFilter.addEventListener('change', applyFiltersAndRender);
+    quarterFilter.addEventListener('change', () => {
+      if (quarterFilter.value !== 'all') monthFilter.value = 'all';
+      applyFiltersAndRender();
+    });
+    monthFilter.addEventListener('change', () => {
+      if (monthFilter.value !== 'all') quarterFilter.value = 'all';
+      applyFiltersAndRender();
+    });
+
+    // ================== LỌC CLIENT ==================
     function clientFilter(data){
       return data.filter(r=>{
         const d = parseVNDateTime(r.ngayGio);
@@ -473,8 +452,60 @@
       });
     }
 
-    // ===== XLSX, PDF lazy-load khi bấm nút =====
-    function loadScript(src){ return new Promise((resolve, reject)=>{ const s = document.createElement('script'); s.src = src; s.onload = resolve; s.onerror = reject; document.head.appendChild(s); }); }
+    // ================== TẢI & HIỂN THỊ ==================
+    async function fetchAndRender(){
+      setSubtitle();
+
+      if (currentFetchCtrl) currentFetchCtrl.abort();
+      currentFetchCtrl = new AbortController();
+
+      const url = buildApiUrl();
+      tableBody.innerHTML = `<tr><td colspan="15"><div class="loader">Đang tải dữ liệu...</div></td></tr>`;
+      errorDiv.style.display = 'none';
+
+      try{
+        const res = await fetch(url, { cache: 'no-store', signal: currentFetchCtrl.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        let json = await res.json();
+
+        // Nếu backend trả rỗng khi đang có month/quarter -> thử lại chỉ với year (hoặc all)
+        if (Array.isArray(json) && json.length === 0 && (selectedMonth !== 'all' || selectedQuarter !== 'all')) {
+          const p = new URLSearchParams({ sheet: SHEET });
+          if (selectedYear !== 'all') p.set('year', selectedYear);
+          const fallbackUrl = `${EXEC_URL}?${p.toString()}`;
+          const res2 = await fetch(fallbackUrl, { cache: 'no-store', signal: currentFetchCtrl.signal });
+          if (res2.ok) json = await res2.json();
+        }
+
+        if (Array.isArray(json)) {
+          // nếu chưa có allData, dùng json để populate năm
+          if (!allData.length || selectedYear === 'all') allData = json;
+          // luôn lọc client thêm để đảm bảo đúng
+          filteredData = clientFilter(json);
+        } else {
+          throw new Error('Dữ liệu trả về không hợp lệ');
+        }
+
+        populateYearFilter(allData);
+        renderTable(filteredData);
+        renderRainStats();
+        updateCharts();
+
+      }catch(err){
+        if (err.name === 'AbortError') return;
+        console.error('Lỗi tải dữ liệu:', err);
+        showError(`Không thể tải dữ liệu. Lỗi: ${err.message || err}`);
+      }
+    }
+
+    // ================== XUẤT EXCEL/PDF (lazy-load) ==================
+    function loadScript(src){
+      return new Promise((resolve, reject)=>{
+        const s = document.createElement('script');
+        s.src = src; s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
 
     document.getElementById('export-excel').addEventListener('click', async () => {
       if (!filteredData.length) return alert('Không có dữ liệu để xuất.');
@@ -487,10 +518,12 @@
       const wb = XLSX.utils.book_new();
       // eslint-disable-next-line no-undef
       const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
       ws['!cols'] = headers.map((_, ci) => {
         const maxLen = [headers, ...rows].reduce((m, row) => Math.max(m, String(row[ci] ?? '').length), 0);
         return { wch: Math.min(Math.max(10, maxLen + 2), 40) };
       });
+
       // eslint-disable-next-line no-undef
       XLSX.utils.book_append_sheet(wb, ws, "NhatKyHoThanhSon");
       // eslint-disable-next-line no-undef
@@ -527,9 +560,9 @@
 
     // ================== KHỞI TẠO ==================
     (function init(){
-      // đặt giao diện theo mặc định
-      monthFilter.value = selectedMonth;
-      // yearFilter sẽ được set sau khi có data
+      yearFilter.value = 'all';
+      quarterFilter.value = 'all';
+      monthFilter.value = 'all';
       fetchAndRender();
     })();
   </script>
