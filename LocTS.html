@@ -6,72 +6,140 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
-    :root { --header-bg:#1EA48D; --border-color:#ccc; --hover-bg:#f1f3f5; --card-bg:#fafafa; }
+    :root{
+      --header-bg:#1EA48D; --border-color:#e5e7eb; --hover-bg:#f1f3f5; --card-bg:#ffffff;
+      --teal:#1EA48D; --blue:#2563eb; --indigo:#4f46e5; --purple:#7c3aed; --orange:#ea580c;
+    }
+    html, body { height:100%; }
     body{
-      font-family:"Times New Roman",Times,serif; background:#f4f4f4; color:#000;
-      margin:0; padding:20px; font-size:14pt;
+      font-family:"Times New Roman",Times,serif; background:#fff; color:#0f172a;
+      margin:0; padding:0; font-size:14pt;
     }
     .container{
-      max-width:1600px; margin:0 auto; background:#fff; padding:30px; border-radius:5px;
-      box-shadow:0 2px 5px rgba(0,0,0,0.1);
+      width:100%; max-width:none; margin:0; background:#fff; padding:20px 24px;
+      box-sizing:border-box;
     }
-    h1{ font-size:16pt; font-weight:bold; text-align:center; text-transform:uppercase; margin-bottom:5px; }
-    .subtitle{ text-align:center; font-weight:bold; font-size:14pt; margin-bottom:16px; }
+    .fullpage .container{ padding:12px 16px; }
+
+    h1{ font-size:16pt; font-weight:bold; text-align:center; text-transform:uppercase; margin:4px 0 6px 0; }
+    .subtitle{ text-align:center; font-weight:bold; font-size:14pt; margin:0 0 10px 0; }
+
     .controls-container{
       display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
-      gap:12px; margin-bottom:12px; padding:12px; background:#fdfdff; border-radius:6px; border:1px solid #ccc;
+      gap:12px; margin:0 0 10px 0; padding:10px; background:#fdfdff; border-radius:10px; border:1px solid #e5e7eb;
     }
-    .filters,.exports{ display:flex; gap:10px; align-items:center; }
+    .filters,.exports{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .filters label{ font-weight:bold; }
     .filters select,.exports button{
-      padding:8px 12px; border-radius:5px; border:1px solid #ccc; background:#fff;
+      padding:8px 12px; border-radius:8px; border:1px solid #d1d5db; background:#fff;
       font-family:"Times New Roman",Times,serif; font-size:13pt; cursor:pointer;
     }
-    .exports button{ font-weight:bold; color:#fff; border:none; transition:opacity .2s; }
-    .exports button:hover{ opacity:.9; }
+    .exports button{ font-weight:bold; color:#fff; border:none; transition:transform .08s ease, opacity .2s; }
+    .exports button:hover{ opacity:.95; transform: translateY(-1px); }
     #export-excel{ background:#218838; }
-    #export-pdf{ background:#c82333; }
+    #print-page{ background:#c82333; }
+    #toggle-fullscreen{ background:#0b5ed7; }
 
+    /* ===== Metrics: căn giữa hiện đại ===== */
     .metrics{
-      display:grid; grid-template-columns: repeat(5, minmax(200px,1fr));
-      gap:12px; margin:0 0 10px 0;
+      display:grid; grid-template-columns: repeat(5, minmax(220px,1fr));
+      gap:12px; margin:0 0 8px 0;
     }
     .metric{
-      background:var(--card-bg); border:1px solid #e5e7eb; border-radius:8px; padding:10px;
-      display:flex; flex-direction:column; gap:6px;
+      position:relative; overflow:hidden;
+      background: linear-gradient(180deg, #ffffff, #fafafa);
+      border:1px solid rgba(15,23,42,.06);
+      border-radius:14px; padding:16px 14px;
+      box-shadow: 0 6px 14px rgba(2,8,23,.06);
+      display:flex; flex-direction:column; gap:8px;
+      isolation:isolate;
+      align-items:center;      /* căn giữa ngang */
+      text-align:center;       /* chữ ở giữa */
     }
-    .metric .label{ font-size:12pt; color:#333; }
-    .metric .value{ font-size:18pt; font-weight:bold; }
+    .metric::before{
+      content:""; position:absolute; inset:-40% -20% auto auto; height:180px; width:280px;
+      border-radius:50%;
+      background: var(--accent-fade, rgba(30,164,141,.10));
+      filter: blur(18px);
+      z-index:-1;
+    }
+    .metric::after{
+      content:""; position:absolute; left:0; top:0; bottom:0; width:5px;
+      background: var(--accent, #1EA48D); opacity:.9;
+    }
+    .metric .label{
+      font-size:12pt; color:#334155; font-weight:700; letter-spacing:.2px;
+      line-height:1.25;
+    }
+    .metric .value{
+      font-size:24pt; font-weight:800; color:#0f172a; line-height:1.1;
+      font-variant-numeric: tabular-nums;
+      word-break:break-word;
+    }
+    .m-total{ --accent:var(--teal);   --accent-fade: rgba(30,164,141,.12); }
+    .m-ratio{ --accent:var(--blue);   --accent-fade: rgba(37,99,235,.12); }
+    .m-avg-d{ --accent:var(--indigo); --accent-fade: rgba(79,70,229,.12); }
+    .m-avg-r{ --accent:var(--purple); --accent-fade: rgba(124,58,237,.12); }
+    .m-max  { --accent:var(--orange); --accent-fade: rgba(234,88,12,.12); }
 
-    .charts{
-      display:grid; grid-template-columns: 1fr; gap:16px; margin-top:6px;
-    }
-    .chart-card{
-      border:1px solid #ddd; border-radius:8px; padding:12px; background:#fafafa;
-    }
-    .chart-title{ font-weight:bold; margin:0 0 10px 0; font-size:14pt; text-align:center; }
-    .chart-card canvas{
-      display:block; width:100% !important; height:380px !important; max-height:380px !important;
-    }
+    .charts{ display:grid; grid-template-columns: 1fr; gap:14px; margin-top:4px; }
+    .chart-card{ border:1px solid #e5e7eb; border-radius:12px; padding:10px; background:#fafafa; }
+    .chart-title{ font-weight:bold; margin:0 0 8px 0; font-size:14pt; text-align:center; }
+    .chart-card canvas{ display:block; width:100% !important; height:380px !important; max-height:380px !important; }
 
-    table{ border-collapse:collapse; width:100%; font-size:13pt; margin-top:12px; }
-    th,td{ border:1px solid var(--border-color); padding:8px 10px; text-align:center; vertical-align:middle; }
+    table{ border-collapse:collapse; width:100%; font-size:13pt; margin-top:10px; table-layout:auto; }
+    th,td{ border:1px solid var(--border-color); padding:6px 8px; text-align:center; vertical-align:middle; }
     th{ background:var(--header-bg); color:#000; font-weight:bold; position:sticky; top:0; z-index:1; }
     tbody tr:nth-child(even){ background:#fff; }
     tbody tr:hover{ background:var(--hover-bg); }
 
-    .status-message{ color:#555; padding:20px; text-align:center; font-style:italic; font-size:14pt; }
-    .error-message{ color:#b00020; padding:12px; background:#ffeeee; border:1px solid #ffcccc; margin-top:10px; border-radius:5px; }
-    .loader{ padding:18px; text-align:center; }
+    .status-message{ color:#555; padding:16px; text-align:center; font-style:italic; font-size:14pt; }
+    .error-message{ color:#b00020; padding:10px; background:#ffeeee; border:1px solid #ffcccc; margin-top:8px; border-radius:5px; }
 
-    @media (min-width: 1600px){ .container{ max-width: 1800px; } }
-    @media (max-width: 1100px){ .metrics{ grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 1500px){ .metrics{ grid-template-columns: 1fr 1fr; } }
+
+    /* ===== PRINT STYLES ===== */
+    @media print {
+      @page { size: A4 landscape; margin: 12mm; }
+
+      .no-print,
+      .controls-container,
+      #toggle-fullscreen { display: none !important; }
+
+      body { background: #fff !important; color: #000 !important; }
+      .container { padding: 0 !important; }
+
+      th {
+        position: static !important;
+        background: #e6f4f1 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      thead { display: table-header-group; }
+      tfoot { display: table-footer-group; }
+
+      table { page-break-inside: auto; }
+      tr    { page-break-inside: avoid; page-break-after: auto; }
+
+      .metric, .chart-card { box-shadow: none !important; }
+
+      .print-only { display: block !important; }
+    }
+    .print-only { display: none; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC THÀNH SƠN</h1>
     <div id="subtitle" class="subtitle"></div>
+
+    <!-- Header dùng riêng cho bản in -->
+    <div id="print-header" class="print-only" style="text-align:center; margin:8px 0 12px 0;">
+      <div style="font-weight:700; font-size:16pt;">NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC THÀNH SƠN</div>
+      <div id="print-subtitle" style="font-weight:600; font-size:13pt;"></div>
+      <div id="print-date" style="font-size:11pt; opacity:.8;"></div>
+    </div>
 
     <div class="controls-container">
       <div class="filters">
@@ -89,22 +157,23 @@
           <script>for(let i=1;i<=12;i++)document.write(`<option value="${i}">Tháng ${i}</option>`);</script>
         </select>
       </div>
-      <div class="exports">
+      <div class="exports no-print">
+        <button id="toggle-fullscreen" title="Bật/Tắt toàn màn hình">Toàn màn hình</button>
         <button id="export-excel">Xuất Excel</button>
-        <button id="export-pdf">Xuất PDF</button>
+        <button id="print-page">In</button>
       </div>
     </div>
 
-    <!-- Thẻ thống kê mưa -->
+    <!-- Metrics -->
     <div class="metrics">
-      <div class="metric"><div class="label">Tổng lượng mưa (kỳ lọc)</div><div class="value" id="m-total">—</div></div>
-      <div class="metric"><div class="label">Ngày có mưa / Tổng ngày</div><div class="value"><span id="m-rainy-days">—</span>/<span id="m-days">—</span></div></div>
-      <div class="metric"><div class="label">TB theo ngày trong kỳ</div><div class="value" id="m-avg-day">—</div></div>
-      <div class="metric"><div class="label">TB theo ngày có mưa</div><div class="value" id="m-avg-rainy">—</div></div>
-      <div class="metric"><div class="label">Mưa lớn nhất (ngày)</div><div class="value"><span id="m-max">—</span> <span id="m-max-date" style="font-size:12pt;font-weight:normal;"></span></div></div>
+      <div class="metric m-total"><div class="label">Tổng lượng mưa (kỳ lọc)</div><div class="value" id="m-total">—</div></div>
+      <div class="metric m-ratio"><div class="label">Ngày có mưa / Tổng ngày</div><div class="value"><span id="m-rainy-days">—</span>/<span id="m-days">—</span></div></div>
+      <div class="metric m-avg-d"><div class="label">TB theo ngày trong kỳ</div><div class="value" id="m-avg-day">—</div></div>
+      <div class="metric m-avg-r"><div class="label">TB theo ngày có mưa</div><div class="value" id="m-avg-rainy">—</div></div>
+      <div class="metric m-max"><div class="label">Mưa lớn nhất (ngày)</div><div class="value"><span id="m-max">—</span> <span id="m-max-date" style="font-size:12pt;font-weight:600;"></span></div></div>
     </div>
 
-    <!-- Biểu đồ -->
+    <!-- Charts -->
     <div class="charts">
       <div class="chart-card">
         <p class="chart-title">Lượng mưa theo từng ngày (tổng mm/ngày)</p>
@@ -116,7 +185,7 @@
       </div>
     </div>
 
-    <!-- Bảng -->
+    <!-- Table -->
     <table id="data-table">
       <thead>
         <tr>
@@ -151,36 +220,24 @@
   </div>
 
   <script>
-    // ================== CẤU HÌNH ==================
+    /* ================== CẤU HÌNH ================== */
     const EXEC_URL = "https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec";
     const SHEET = "HoThanhSon";
     const DEAD_LEVEL = 27.5;
 
-    // ================== TRẠNG THÁI BỘ LỌC ==================
-    // Khởi tạo an toàn: all/all/all để tránh rỗng nếu năm hiện tại không có dữ liệu
-    let selectedYear = 'all';
-    let selectedQuarter = 'all';
-    let selectedMonth = 'all';
+    /* ================== STATE ================== */
+    let selectedYear = 'all', selectedQuarter = 'all', selectedMonth = 'all';
+    let allData = [], filteredData = [], currentFetchCtrl = null;
+    const cacheByScope = new Map();
+    let rainChart = null, waterLevelChart = null, ChartLibLoaded = false;
 
-    // ================== BIẾN TOÀN CỤC ==================
-    let allData = [];
-    let filteredData = [];
-    let currentFetchCtrl = null;
-
-    // Chart instances (lazy load Chart.js)
-    let rainChart = null;
-    let waterLevelChart = null;
-    let ChartLibLoaded = false;
-
-    // DOM
-    const yearFilter    = document.getElementById('year-filter');
+    /* ================== DOM ================== */
+    const yearFilter = document.getElementById('year-filter');
     const quarterFilter = document.getElementById('quarter-filter');
-    const monthFilter   = document.getElementById('month-filter');
-    const tableBody     = document.getElementById('table-body');
-    const errorDiv      = document.getElementById('error-message');
-    const subtitleDiv   = document.getElementById('subtitle');
-
-    // Metrics
+    const monthFilter = document.getElementById('month-filter');
+    const tableBody = document.getElementById('table-body');
+    const errorDiv = document.getElementById('error-message');
+    const subtitleDiv = document.getElementById('subtitle');
     const elTotal = document.getElementById('m-total');
     const elRainyDays = document.getElementById('m-rainy-days');
     const elDays = document.getElementById('m-days');
@@ -189,7 +246,7 @@
     const elMax = document.getElementById('m-max');
     const elMaxDate = document.getElementById('m-max-date');
 
-    // ================== TIỆN ÍCH ==================
+    /* ================== UTIL ================== */
     function parseVNDateTime(s){
       if (!s || typeof s !== 'string') return null;
       const [dpart, tpart='00:00'] = s.split(' ');
@@ -205,25 +262,31 @@
       const n = Number(v); if (Number.isNaN(n)) return v;
       return n.toLocaleString('vi-VN', { maximumFractionDigits:max });
     }
-
-    // Chỉ gửi month/quarter khi đã cố định year
-    function buildApiUrl() {
+    function buildApiUrl(year='all', month='all', quarter='all') {
       const p = new URLSearchParams({ sheet: SHEET });
-      if (selectedYear !== 'all') p.set('year', selectedYear);
-      if (selectedYear !== 'all') {
-        if (selectedMonth !== 'all')   p.set('month', selectedMonth);
-        else if (selectedQuarter !== 'all') p.set('quarter', selectedQuarter);
+      if (year !== 'all') p.set('year', year);
+      if (year !== 'all') {
+        if (month !== 'all')   p.set('month', month);
+        else if (quarter !== 'all') p.set('quarter', quarter);
       }
       return `${EXEC_URL}?${p.toString()}`;
     }
-
+    function loadScript(src){
+      return new Promise((resolve, reject)=>{
+        const s = document.createElement('script');
+        s.src = src; s.async = true; s.crossOrigin = "anonymous";
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error(`Không tải được script: ${src}`));
+        document.head.appendChild(s);
+      });
+    }
     function showError(message){
       errorDiv.textContent = message;
       errorDiv.style.display = 'block';
       tableBody.innerHTML = `<tr><td colspan="15" class="status-message">${message}</td></tr>`;
     }
 
-    // ================== RENDER BẢNG ==================
+    /* ================== TABLE ================== */
     function renderTable(data){
       if (!Array.isArray(data) || data.length === 0){
         tableBody.innerHTML = `<tr><td colspan="15" class="status-message">Không có dữ liệu phù hợp với bộ lọc.</td></tr>`;
@@ -253,14 +316,10 @@
       tableBody.innerHTML = html;
     }
 
-    // ================== YEAR DROPDOWN ==================
+    /* ================== YEAR DROPDOWN ================== */
     function populateYearFilter(data){
-      const years = [...new Set(
-        data.map(r => { const d = parseVNDateTime(r.ngayGio); return d ? d.getFullYear() : null; })
-          .filter(Boolean)
-      )].sort((a,b)=>b-a);
-
-      const prev = yearFilter.value;  // giữ lựa chọn hiện tại
+      const years = [...new Set(data.map(r => r._y).filter(v => v!=null))].sort((a,b)=>b-a);
+      const prev = yearFilter.value;
       yearFilter.innerHTML = '<option value="all">Tất cả</option>';
       years.forEach(y => {
         const op = document.createElement('option');
@@ -268,7 +327,6 @@
         op.textContent = `Năm ${y}`;
         yearFilter.appendChild(op);
       });
-
       if (prev && (prev === 'all' || years.includes(Number(prev)))) {
         yearFilter.value = prev;
       } else if (years.includes(Number(selectedYear))) {
@@ -279,11 +337,11 @@
       }
     }
 
-    // ================== AGGREGATE & METRICS ==================
+    /* ================== AGGREGATE & METRICS ================== */
     function aggregateDaily(data){
       const map = new Map(); // yyyy-mm-dd -> { rainSum, wlSum, wlCount }
       for (const r of data){
-        const d = parseVNDateTime(r.ngayGio);
+        const d = r._dt;
         if (!d) continue;
         const key = ymd(d);
         const rain = Number(r.luongMua) || 0;
@@ -300,7 +358,6 @@
       });
       return { labels, rainPerDay, wlAvgPerDay };
     }
-
     function renderRainStats(){
       const { labels, rainPerDay } = aggregateDaily(filteredData);
       const total = rainPerDay.reduce((s,v)=>s+(Number(v)||0),0);
@@ -321,31 +378,22 @@
       elMaxDate.textContent = maxDate ? `(${maxDate})` : '';
     }
 
-    // ================== CHARTS (lazy-load) ==================
-    function loadScriptOnce(src){
-      return new Promise((resolve, reject)=>{
-        const s = document.createElement('script');
-        s.src = src; s.async = true;
-        s.onload = resolve; s.onerror = reject;
-        document.head.appendChild(s);
-      });
-    }
+    /* ================== CHARTS ================== */
     async function ensureChartJs(){
       if (!ChartLibLoaded){
-        await loadScriptOnce('https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js');
+        await loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js');
         ChartLibLoaded = true;
       }
     }
     function niceMax(val){
       if (!isFinite(val) || val <= 0) return 10;
-      const mags = [5, 10, 20, 25, 50, 100, 200, 250, 500, 1000];
+      const mags = [5,10,20,25,50,100,200,250,500,1000];
       const target = val * 1.1;
       for (const m of mags){ if (target <= m) return m; }
       return Math.ceil(target/100)*100;
     }
     async function updateCharts(){
       await ensureChartJs();
-
       const { labels, rainPerDay, wlAvgPerDay } = aggregateDaily(filteredData);
 
       if (rainChart) { rainChart.destroy(); rainChart = null; }
@@ -396,7 +444,7 @@
       });
     }
 
-    // ================== SUBTITLE ==================
+    /* ================== SUBTITLE ================== */
     function setSubtitle(){
       if (selectedYear !== 'all' && selectedMonth !== 'all') {
         subtitleDiv.textContent = `Tháng ${selectedMonth} năm ${selectedYear}`;
@@ -410,87 +458,71 @@
       }
     }
 
-    // ================== ÁP DỤNG BỘ LỌC ==================
-    function applyFiltersAndRender(){
-      const y = yearFilter.value;
-      let q = quarterFilter.value;
-      let m = monthFilter.value;
-
-      // loại trừ lẫn nhau
-      if (m !== 'all') q = 'all';
-      if (q !== 'all') m = 'all';
-
-      selectedYear = y;
-      selectedQuarter = q;
-      selectedMonth  = m;
-
-      fetchAndRender();
-    }
-
-    yearFilter.addEventListener('change', applyFiltersAndRender);
-    quarterFilter.addEventListener('change', () => {
-      if (quarterFilter.value !== 'all') monthFilter.value = 'all';
-      applyFiltersAndRender();
-    });
-    monthFilter.addEventListener('change', () => {
-      if (monthFilter.value !== 'all') quarterFilter.value = 'all';
-      applyFiltersAndRender();
-    });
-
-    // ================== LỌC CLIENT ==================
+    /* ================== FILTER ================== */
     function clientFilter(data){
       return data.filter(r=>{
-        const d = parseVNDateTime(r.ngayGio);
-        if (!d) return false;
-        if (selectedYear !== 'all' && String(d.getFullYear()) !== selectedYear) return false;
-        if (selectedMonth !== 'all' && (d.getMonth()+1) !== Number(selectedMonth)) return false;
-        if (selectedQuarter !== 'all'){
-          const q = Math.floor(d.getMonth()/3)+1;
-          if (q !== Number(selectedQuarter)) return false;
-        }
+        if (selectedYear !== 'all' && String(r._y) !== selectedYear) return false;
+        if (selectedMonth !== 'all' && r._m !== Number(selectedMonth)) return false;
+        if (selectedQuarter !== 'all' && r._q !== Number(selectedQuarter)) return false;
         return true;
       });
     }
 
-    // ================== TẢI & HIỂN THỊ ==================
-    async function fetchAndRender(){
-      setSubtitle();
-
+    /* ================== LOAD DATA ================== */
+    function normalizeRows(rows){
+      for (const r of rows){
+        const d = parseVNDateTime(r.ngayGio);
+        r._dt = d;
+        if (d){ r._y = d.getFullYear(); r._m = d.getMonth()+1; r._q = Math.floor(d.getMonth()/3)+1; }
+        else { r._y = r._m = r._q = null; }
+      }
+      return rows;
+    }
+    function scopeKey(y){ return (y === 'all') ? 'all' : `year:${y}`; }
+    async function loadScope(y){
+      const key = scopeKey(y);
+      if (cacheByScope.has(key)) return cacheByScope.get(key);
+      const url = (y==='all') ? buildApiUrl('all','all','all') : buildApiUrl(y,'all','all');
       if (currentFetchCtrl) currentFetchCtrl.abort();
       currentFetchCtrl = new AbortController();
+      const res = await fetch(url, { cache:'no-store', signal: currentFetchCtrl.signal });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (!Array.isArray(json)) throw new Error('Dữ liệu trả về không hợp lệ');
+      const norm = normalizeRows(json);
+      cacheByScope.set(key, norm);
+      return norm;
+    }
 
-      const url = buildApiUrl();
-      tableBody.innerHTML = `<tr><td colspan="15"><div class="loader">Đang tải dữ liệu...</div></td></tr>`;
+    /* ================== APPLY (debounce) ================== */
+    let filterTimer = null;
+    function scheduleApply(){ clearTimeout(filterTimer); filterTimer = setTimeout(applyFiltersAndRender, 80); }
+    function applyFiltersAndRender(){
+      const y = yearFilter.value;
+      let q = quarterFilter.value;
+      let m = monthFilter.value;
+      if (m !== 'all') q = 'all';
+      if (q !== 'all') m = 'all';
+      selectedYear = y; selectedQuarter = q; selectedMonth = m;
+      fetchAndRender();
+    }
+    yearFilter.addEventListener('change', scheduleApply);
+    quarterFilter.addEventListener('change', () => { if (quarterFilter.value !== 'all') monthFilter.value = 'all'; scheduleApply(); });
+    monthFilter.addEventListener('change', () => { if (monthFilter.value !== 'all') quarterFilter.value = 'all'; scheduleApply(); });
+
+    /* ================== FETCH & RENDER ================== */
+    async function fetchAndRender(){
+      setSubtitle();
       errorDiv.style.display = 'none';
-
+      tableBody.innerHTML = `<tr><td colspan="15"><div class="loader">Đang tải dữ liệu...</div></td></tr>`;
       try{
-        const res = await fetch(url, { cache: 'no-store', signal: currentFetchCtrl.signal });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        let json = await res.json();
-
-        // Nếu backend trả rỗng khi đang có month/quarter -> thử lại chỉ với year (hoặc all)
-        if (Array.isArray(json) && json.length === 0 && (selectedMonth !== 'all' || selectedQuarter !== 'all')) {
-          const p = new URLSearchParams({ sheet: SHEET });
-          if (selectedYear !== 'all') p.set('year', selectedYear);
-          const fallbackUrl = `${EXEC_URL}?${p.toString()}`;
-          const res2 = await fetch(fallbackUrl, { cache: 'no-store', signal: currentFetchCtrl.signal });
-          if (res2.ok) json = await res2.json();
-        }
-
-        if (Array.isArray(json)) {
-          // nếu chưa có allData, dùng json để populate năm
-          if (!allData.length || selectedYear === 'all') allData = json;
-          // luôn lọc client thêm để đảm bảo đúng
-          filteredData = clientFilter(json);
-        } else {
-          throw new Error('Dữ liệu trả về không hợp lệ');
-        }
-
-        populateYearFilter(allData);
+        const scopeData = await loadScope(selectedYear);
+        if (!allData.length || selectedYear === 'all'){ allData = scopeData; populateYearFilter(allData); }
+        else { populateYearFilter(allData); }
+        filteredData = clientFilter(scopeData);
         renderTable(filteredData);
         renderRainStats();
         updateCharts();
-
       }catch(err){
         if (err.name === 'AbortError') return;
         console.error('Lỗi tải dữ liệu:', err);
@@ -498,67 +530,62 @@
       }
     }
 
-    // ================== XUẤT EXCEL/PDF (lazy-load) ==================
-    function loadScript(src){
-      return new Promise((resolve, reject)=>{
-        const s = document.createElement('script');
-        s.src = src; s.onload = resolve; s.onerror = reject;
-        document.head.appendChild(s);
-      });
-    }
-
+    /* ================== EXPORT EXCEL ================== */
     document.getElementById('export-excel').addEventListener('click', async () => {
       if (!filteredData.length) return alert('Không có dữ liệu để xuất.');
       await loadScript('https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js');
-
       const headers = ["STT","Ngày, giờ","Mực nước (m)","Dung tích (Triệu m³)","Lượng mưa (mm)","Htràn 1 (cm)","Qtràn 1 (m³/s)","Htràn 2 (cm)","Qtràn 2 (m³/s)","a (cm)","Cột nước đầu kênh (m)","Qcống (m³/s)","Họ, tên người vận hành","Họ, tên người kiểm tra"];
       const rows = filteredData.map((r,i)=>[i+1,r.ngayGio||'',r.mucNuoc??'',r.dungTich??'',r.luongMua??'',r.hTran1??'',r.qtran1??'',r.hTran2??'',r.qtran2??'',r.a??'',r.cotNuocDauKenh??'',r.qCong??'',r.nguoiVanHanh||'',r.nguoiKiemTra||'']);
-
       // eslint-disable-next-line no-undef
       const wb = XLSX.utils.book_new();
       // eslint-disable-next-line no-undef
       const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-
       ws['!cols'] = headers.map((_, ci) => {
         const maxLen = [headers, ...rows].reduce((m, row) => Math.max(m, String(row[ci] ?? '').length), 0);
         return { wch: Math.min(Math.max(10, maxLen + 2), 40) };
       });
-
       // eslint-disable-next-line no-undef
       XLSX.utils.book_append_sheet(wb, ws, "NhatKyHoThanhSon");
       // eslint-disable-next-line no-undef
       XLSX.writeFile(wb, "NhatKyVanHanh_HoThanhSon.xlsx");
     });
 
-    document.getElementById('export-pdf').addEventListener('click', async () => {
-      if (!filteredData.length) return alert('Không có dữ liệu để xuất.');
-      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js');
-      await loadScript('https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Regular.js');
-      await loadScript('https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Bold.js');
-
-      // eslint-disable-next-line no-undef
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF('landscape','pt','a4');
-      const FONT = "LiberationSerif";
-
-      doc.setFont(FONT); doc.setFontSize(16); doc.setFont(FONT, 'bold');
-      doc.text("NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC THÀNH SƠN", doc.internal.pageSize.getWidth()/2, 40, {align:'center'});
-
-      doc.setFontSize(14); doc.setFont(FONT, 'bold');
-      const subtitle = (document.getElementById('subtitle').textContent || '').trim();
-      doc.text(subtitle, doc.internal.pageSize.getWidth()/2, 60, {align:'center'});
-
-      // eslint-disable-next-line no-undef
-      doc.autoTable({ html:'#data-table', startY:80, theme:'grid',
-        headStyles:{ font:FONT, fontStyle:'bold', fillColor:[242,242,242], textColor:[0,0,0], lineColor:[0,0,0], lineWidth:0.5, fontSize:8, halign:'center', valign:'middle' },
-        styles:{ font:FONT, fontStyle:'normal', lineColor:[0,0,0], lineWidth:0.5, fontSize:8, cellPadding:4 },
-        alternateRowStyles:{ fillColor:[255,255,255] }, margin:{ top:80 }
-      });
-      doc.save(`NhatKyVanHanh_HoThanhSon_${subtitle.replace(/\s+/g,'_').replace(/:/g,'')}.pdf`);
+    /* ================== IN (thay cho xuất PDF) ================== */
+    document.getElementById('print-page').addEventListener('click', () => {
+      const sub = (document.getElementById('subtitle').textContent || '').trim();
+      document.getElementById('print-subtitle').textContent = sub ? sub : '';
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2,'0');
+      const mm = String(now.getMonth()+1).padStart(2,'0');
+      const yyyy = now.getFullYear();
+      document.getElementById('print-date').textContent = `In lúc: ${dd}/${mm}/${yyyy}`;
+      window.print();
     });
 
-    // ================== KHỞI TẠO ==================
+    /* ================== FULLSCREEN ================== */
+    const btnFs = document.getElementById('toggle-fullscreen');
+    btnFs.addEventListener('click', async () => {
+      const docEl = document.documentElement;
+      if (!document.fullscreenElement) {
+        try{
+          await docEl.requestFullscreen();
+          document.body.classList.add('fullpage');
+          btnFs.textContent = 'Thoát toàn màn hình';
+        }catch(e){ console.warn('Không thể vào fullscreen:', e); }
+      } else {
+        try{ await document.exitFullscreen(); }catch(e){}
+        document.body.classList.remove('fullpage');
+        btnFs.textContent = 'Toàn màn hình';
+      }
+    });
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+        document.body.classList.remove('fullpage');
+        btnFs.textContent = 'Toàn màn hình';
+      }
+    });
+
+    /* ================== INIT ================== */
     (function init(){
       yearFilter.value = 'all';
       quarterFilter.value = 'all';
