@@ -16,7 +16,7 @@
       --muted:#64748b;
       --brand:#1EA48D;
       --line:#1EA48D;
-      --bg:#ffffff;   /* full-width desktop nhìn liền mạch */
+      --bg:#ffffff;
       --radius:12px;
     }
     *{ box-sizing:border-box; }
@@ -73,6 +73,16 @@
     }
     .card{ border:1px solid var(--brand); border-radius:14px; background:#fff; padding:12px; }
     .card h3{ margin:0 0 10px; font-size:14pt; color:#0b1b23; }
+
+    /* Rain stats pills */
+    .stats{ display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 10px; }
+    .stat{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px; border:1px solid var(--brand); border-radius:999px;
+      background:#f5fffb; font-weight:700;
+    }
+    .stat .k{ color:var(--muted); font-weight:600; }
+    .stat .v{ color:#0b1b23; }
 
     /* Table */
     .table-wrap{ border-radius:14px; overflow:hidden; border:1px solid var(--line); }
@@ -153,6 +163,10 @@
     <div class="charts">
       <div class="card">
         <h3>Lượng mưa theo ngày (sau lọc)</h3>
+        <!-- DÒNG THỐNG KÊ LƯỢNG MƯA THEO BỘ LỌC -->
+        <div id="rainStats" class="stats">
+          <!-- sẽ được fill bằng JS -->
+        </div>
         <canvas id="rainChart" height="110"></canvas>
       </div>
       <div class="card">
@@ -284,7 +298,7 @@
         filtered.forEach(r => tbody.appendChild(renderRow(r)));
       }
 
-      updateCharts(); // <<<<< dùng phiên bản mới theo yêu cầu
+      updateCharts(); // phiên bản mới có tính toán lượng mưa theo bộ lọc
     }
 
     // ========= UPDATECHARTS (mưa theo ngày + line mực nước theo ngày với đường 50,6) =========
@@ -311,6 +325,36 @@
         const v = levelByDay.get(k);
         return (v==null || Number.isNaN(v)) ? null : v;
       });
+
+      // ====== TÍNH TOÁN LƯỢNG MƯA THEO BỘ LỌC ======
+      const rainStatsEl = document.getElementById('rainStats');
+      if (!dayKeys.length){
+        rainStatsEl.innerHTML = `<div class="stat"><span class="k">Lượng mưa:</span><span class="v">Không có dữ liệu trong khoảng lọc</span></div>`;
+      } else {
+        const total = rainDaily.reduce((a,b)=>a+(Number(b)||0),0);
+        const days  = rainDaily.length;
+        const rainyDays = rainDaily.filter(v=>Number(v)>0).length;
+        const avgPerDay = days ? total/days : 0;
+        const avgPerRainyDay = rainyDays ? total/rainyDays : 0;
+        // Tìm max
+        let maxVal = -Infinity, maxIdx = -1;
+        for (let i=0;i<rainDaily.length;i++){
+          const v = Number(rainDaily[i])||0;
+          if (v>maxVal){ maxVal=v; maxIdx=i; }
+        }
+        const maxDayLabel = maxIdx>=0 ? dayLabels[maxIdx] : '—';
+
+        rainStatsEl.innerHTML = `
+          <div class="stat"><span class="k">Tổng:</span><span class="v">${nf.format(total)} mm</span></div>
+          <div class="stat"><span class="k">Số ngày (lọc):</span><span class="v">${days}</span></div>
+          <div class="stat"><span class="k">Số ngày mưa:</span><span class="v">${rainyDays}</span></div>
+          <div class="stat"><span class="k">TB/ngày:</span><span class="v">${nf.format(avgPerDay)} mm</span></div>
+          <div class="stat"><span class="k">TB/ngày có mưa:</span><span class="v">${nf.format(avgPerRainyDay)} mm</span></div>
+          <div class="stat"><span class="k">Mưa lớn nhất:</span><span class="v">${nf.format(maxVal>0?maxVal:0)} mm (${maxDayLabel})</span></div>
+        `;
+      }
+      // ==============================================
+
       const DEAD = 50.6;
       const deadLine = dayKeys.map(() => DEAD);
 
@@ -348,7 +392,7 @@
         }
       });
 
-      // Dòng mô tả
+      // Dòng mô tả mực nước
       const status = document.getElementById('waterStatus');
       const lastVal = levelDaily[levelDaily.length - 1];
       status.textContent = (lastVal==null || Number.isNaN(lastVal))
