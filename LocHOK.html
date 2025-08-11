@@ -3,78 +3,151 @@
 <head>
   <meta charset="UTF-8">
   <title>Nhật ký vận hành hồ chứa - Hồ Ông Kinh</title>
-  
-  <!-- Thư viện xuất file -->
+
+  <!-- Thư viện cần dùng -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-  
-  <!-- Font Việt cho PDF -->
-  <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Regular.js"></script>
-  <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Bold.js"></script>
-  <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Italic.js"></script>
-  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
   <style>
-    :root { --header-bg:#1EA48D; --border-color:#ccc; --hover-bg:#f1f3f5; }
-    body {
-      font-family:'Times New Roman', Times, serif;
-      background:#f4f4f4; color:#000; margin:0; padding:20px; font-size:14pt;
+    :root{
+      --header-bg:#1EA48D; --border-color:#d1d5db; --hover-bg:#f8fafc;
+      --card-bg:#ffffff; --ink:#0f172a;
+
+      /* Màu KPI hiện đại */
+      --kpi1: #e8f7f2;
+      --kpi2: #f0f5ff;
+      --kpi3: #fff7ed;
+      --kpi4: #fdf2f8;
+      --kpi5: #eef2ff;
+
+      --kpi1-accent:#10b981;
+      --kpi2-accent:#3b82f6;
+      --kpi3-accent:#f59e0b;
+      --kpi4-accent:#ec4899;
+      --kpi5-accent:#6366f1;
     }
-    .container {
+    body{
+      font-family:'Times New Roman',Times,serif; background:#f4f6f8; color:var(--ink);
+      margin:0; padding:20px; font-size:14pt;
+    }
+    .container{
       max-width:1600px; margin:0 auto; background:#fff; padding:30px;
-      border-radius:5px; box-shadow:0 2px 5px rgba(0,0,0,0.1);
+      border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,.06);
     }
-    h1 { font-size:16pt; font-weight:bold; color:#000; text-align:center; text-transform:uppercase; margin-bottom:5px; }
-    .subtitle { text-align:center; font-weight:bold; font-size:14pt; margin-bottom:20px; }
+    h1{ font-size:16pt; font-weight:bold; text-align:center; text-transform:uppercase; margin:0 0 6px }
+    .subtitle{ text-align:center; font-weight:bold; font-size:14pt; margin-bottom:18px }
 
-    .controls-container {
+    .controls-container{
       display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
-      gap:15px; margin-bottom:20px; padding:15px; background:#fdfdff; border-radius:6px; border:1px solid #ccc;
+      gap:15px; margin-bottom:18px; padding:14px; background:#f9fafb;
+      border:1px solid #e5e7eb; border-radius:12px;
     }
-    .filters,.exports { display:flex; gap:15px; align-items:center; }
-    .filters label{ font-weight:bold; }
-    .filters select,.exports button{
-      padding:8px 12px; border-radius:5px; border:1px solid #ccc; background:#fff;
-      font-family:'Times New Roman', Times, serif; font-size:13pt; cursor:pointer;
+    .filters,.exports{ display:flex; align-items:center; gap:12px }
+    .filters label{ font-weight:bold }
+    .filters select, .exports button{
+      padding:8px 12px; border-radius:8px; border:1px solid #d1d5db; background:#fff;
+      font-family:'Times New Roman',Times,serif; font-size:13pt; cursor:pointer;
     }
-    .exports button{ font-weight:bold; color:#fff; border:none; transition:opacity .2s; }
-    .exports button:hover{ opacity:.9; }
-    #export-excel{ background:#218838; }
-    #export-pdf{ background:#c82333; }
+    .exports button{ font-weight:bold }
+    #export-excel{ color:#fff; background:#22c55e; border-color:#22c55e }
+    #btn-print{ color:#fff; background:#0b5ed7; border-color:#0b5ed7 }
 
-    table { border-collapse:collapse; width:100%; font-size:13pt; margin-top:15px; }
-    th, td { border:1px solid var(--border-color); padding:8px 10px; text-align:center; vertical-align:middle; }
-    th {
+    /* KPI cards: hiện đại, căn giữa */
+    .kpi-grid{
+      display:grid; grid-template-columns: repeat(5, minmax(0,1fr));
+      gap:14px; margin:14px 0 6px;
+    }
+    .kpi{
+      position:relative; overflow:hidden;
+      background:var(--card-bg); border:1px solid #e5e7eb; border-radius:14px; padding:14px 12px;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+      box-shadow:0 1px 6px rgba(0,0,0,.04);
+    }
+    .kpi::before{
+      content:""; position:absolute; inset:auto 0 0 0; height:6px; border-bottom-left-radius:14px; border-bottom-right-radius:14px;
+      background: var(--kpi1-accent);
+    }
+    .kpi .label{ font-size:11.5pt; color:#334155; margin-bottom:6px; line-height:1.25 }
+    .kpi .value{ font-weight:700; font-size:16pt; letter-spacing:.2px }
+
+    /* Tô màu riêng từng KPI */
+    .kpi.k1{ background:var(--kpi1) } .kpi.k1::before{ background:var(--kpi1-accent) }
+    .kpi.k2{ background:var(--kpi2) } .kpi.k2::before{ background:var(--kpi2-accent) }
+    .kpi.k3{ background:var(--kpi3) } .kpi.k3::before{ background:var(--kpi3-accent) }
+    .kpi.k4{ background:var(--kpi4) } .kpi.k4::before{ background:var(--kpi4-accent) }
+    .kpi.k5{ background:var(--kpi5) } .kpi.k5::before{ background:var(--kpi5-accent) }
+
+    /* Biểu đồ */
+    .charts{
+      display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0;
+    }
+    .chart-card{
+      background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:12px;
+      box-shadow:0 1px 6px rgba(0,0,0,.04);
+    }
+    .chart-title{ font-weight:bold; margin:0 0 8px; font-size:13.5pt }
+    .chart-wrap{ position:relative; width:100%; height:360px }
+
+    table{ border-collapse:collapse; width:100%; font-size:13pt; margin-top:10px }
+    th,td{ border:1px solid var(--border-color); padding:8px 10px; text-align:center; vertical-align:middle }
+    th{
       background:var(--header-bg); color:#fff; font-weight:bold;
-      position:sticky; top:0; z-index:1;
+      position:sticky; top:0; z-index:1
     }
-    tbody tr:nth-child(even){ background:#fff; }
-    tbody tr:hover{ background:var(--hover-bg); }
+    tbody tr:nth-child(even){ background:#fff }
+    tbody tr:hover{ background:var(--hover-bg) }
 
-    .status-message { color:#555; padding:40px; text-align:center; font-style:italic; font-size:14pt; }
-    .error-message { color:red; padding:15px; background:#ffeeee; border:1px solid #ffcccc; margin-top:15px; border-radius:5px; }
-    .loader-container{ padding:50px; text-align:center; }
+    .status-message{ color:#555; padding:40px; text-align:center; font-style:italic; font-size:14pt }
+    .error-message{ color:#b91c1c; padding:15px; background:#fee2e2; border:1px solid #fecaca; margin-top:15px; border-radius:10px }
+    .loader-container{ padding:50px; text-align:center }
     .spinner{
       border:5px solid #f3f3f3; border-top:5px solid #3498db; border-radius:50%;
-      width:40px; height:40px; animation:spin 1s linear infinite; display:inline-block; margin-bottom:10px;
+      width:40px; height:40px; animation:spin 1s linear infinite; display:inline-block; margin-bottom:10px
     }
-    @keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+    @keyframes spin{ 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
+
+    /* In ấn: chỉ giữ H1, phụ đề, bảng; tiêu đề bảng in đậm, viền đậm, nền trắng để rõ chữ */
+    @media print{
+      body{ background:#fff; padding:0; font-size:12pt }
+      .controls-container, .kpi-grid, .charts{ display:none !important }
+      .container{ box-shadow:none; padding:0 }
+      h1{ margin:0 0 4px }
+      .subtitle{ margin:0 0 8px }
+
+      table{ page-break-inside:auto; border:1px solid #000 }
+      thead{ display:table-header-group }
+      tr{ page-break-inside:avoid; page-break-after:auto }
+      th, td{ border:1px solid #000 !important }
+      th{
+        color:#000 !important; background:#fff !important;
+        font-weight:900 !important; /* in đậm tiêu đề */
+      }
+    }
+
+    /* Responsive nhẹ */
+    @media (max-width:1200px){
+      .kpi-grid{ grid-template-columns:repeat(3,minmax(0,1fr)) }
+      .charts{ grid-template-columns:1fr }
+    }
+    @media (max-width:720px){
+      .kpi-grid{ grid-template-columns:repeat(2,minmax(0,1fr)) }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC ÔNG KINH</h1>
     <div id="subtitle" class="subtitle"></div>
-    
+
     <div class="controls-container">
       <div class="filters">
         <label for="year-filter">Năm:</label>
         <select id="year-filter"><option value="all">Tất cả</option></select>
         <label for="quarter-filter">Quý:</label>
         <select id="quarter-filter">
-          <option value="all">Tất cả</option><option value="1">Quý 1</option>
-          <option value="2">Quý 2</option><option value="3">Quý 3</option>
-          <option value="4">Quý 4</option>
+          <option value="all">Tất cả</option>
+          <option value="1">Quý 1</option><option value="2">Quý 2</option>
+          <option value="3">Quý 3</option><option value="4">Quý 4</option>
         </select>
         <label for="month-filter">Tháng:</label>
         <select id="month-filter">
@@ -84,10 +157,47 @@
       </div>
       <div class="exports">
         <button id="export-excel">Xuất Excel</button>
-        <button id="export-pdf">Xuất PDF</button>
+        <button id="btn-print">In</button>
       </div>
     </div>
-    
+
+    <!-- KPI theo kỳ lọc -->
+    <div class="kpi-grid">
+      <div class="kpi k1">
+        <div class="label">Tổng lượng mưa (kỳ lọc)</div>
+        <div id="kpi-total" class="value">0</div>
+      </div>
+      <div class="kpi k2">
+        <div class="label">Ngày có mưa / Tổng ngày</div>
+        <div id="kpi-days" class="value">0 / 0</div>
+      </div>
+      <div class="kpi k3">
+        <div class="label">TB theo ngày trong kỳ</div>
+        <div id="kpi-avg-all" class="value">0</div>
+      </div>
+      <div class="kpi k4">
+        <div class="label">TB theo ngày có mưa</div>
+        <div id="kpi-avg-rain" class="value">0</div>
+      </div>
+      <div class="kpi k5">
+        <div class="label">Mưa lớn nhất (ngày)</div>
+        <div id="kpi-max" class="value">0</div>
+      </div>
+    </div>
+
+    <!-- Biểu đồ -->
+    <section class="charts">
+      <div class="chart-card">
+        <p class="chart-title">Lượng mưa theo ngày</p>
+        <div class="chart-wrap"><canvas id="rainChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <p class="chart-title">Mực nước vs. Mực nước chết (40 m)</p>
+        <div class="chart-wrap"><canvas id="waterChart"></canvas></div>
+      </div>
+    </section>
+
+    <!-- Bảng dữ liệu -->
     <table id="data-table">
       <thead>
         <tr>
@@ -107,7 +217,7 @@
         </tr>
       </thead>
       <tbody id="table-body">
-        <tr><td colspan="9">
+        <tr><td colspan="10">
           <div class="loader-container">
             <div class="spinner"></div>
             <div class="status-message">Đang tải dữ liệu...</div>
@@ -115,12 +225,13 @@
         </td></tr>
       </tbody>
     </table>
+
     <div id="error-message" class="error-message" style="display:none;"></div>
   </div>
 
   <script>
     // ====== API ======
-    const EXEC_URL = "https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec"; // ví dụ: https://script.google.com/macros/s/AKfycb.../exec
+    const EXEC_URL = "https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec";
     const SHEET    = "HoOngKinh";
     const API_URL  = `${EXEC_URL}?sheet=${encodeURIComponent(SHEET)}`;
 
@@ -133,7 +244,11 @@
     const tableBody     = document.getElementById('table-body');
     const errorDiv      = document.getElementById('error-message');
     const subtitleDiv   = document.getElementById('subtitle');
-    const totalColumns  = 9;
+    const totalColumns  = 10;
+
+    // Charts
+    let rainChart, waterChart;
+    const DEAD_LEVEL = 40; // m
 
     // ====== Helpers ======
     function showError(message){
@@ -142,7 +257,13 @@
       tableBody.innerHTML = `<tr><td colspan="${totalColumns}" class="status-message error-message">${message}</td></tr>`;
     }
 
-    function formatNumberWithComma(value){
+    function formatNumber(value, maxFrac=1){
+      if (value === null || value === undefined || value === '') return '0';
+      const num = Number(value);
+      if (Number.isNaN(num)) return '0';
+      return num.toLocaleString('vi-VN', { maximumFractionDigits: maxFrac });
+    }
+    function formatNumberFlexible(value){
       if (value === null || value === undefined || value === '') return '';
       const num = Number(value);
       if (Number.isNaN(num)) return value;
@@ -159,6 +280,12 @@
       const date = new Date(yyyy, mm-1, dd, HH, MM);
       return Number.isNaN(date.getTime()) ? null : date;
     }
+    function toDayKey(date){ // -> "dd/MM/yyyy"
+      const dd = String(date.getDate()).padStart(2,'0');
+      const mm = String(date.getMonth()+1).padStart(2,'0');
+      const yyyy = date.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    }
 
     function renderTable(data){
       tableBody.innerHTML = '';
@@ -166,19 +293,16 @@
         tableBody.innerHTML = `<tr><td colspan="${totalColumns}" class="status-message">Không có dữ liệu phù hợp với bộ lọc.</td></tr>`;
         return;
       }
-
       data.forEach((row, idx) => {
-        // TÊN FIELD theo CONFIG.HoOngKinh:
-        // ngayGio, mucNuoc, dungTich, luongMua, hTran, qTranTuDo, nguoiVanHanh, nguoiKiemTra
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${idx + 1}</td>
           <td>${row.ngayGio || ''}</td>
-          <td>${formatNumberWithComma(row.mucNuoc)}</td>
-          <td>${formatNumberWithComma(row.dungTich)}</td>
-          <td>${formatNumberWithComma(row.luongMua)}</td>
-          <td>${formatNumberWithComma(row.hTran)}</td>
-          <td>${formatNumberWithComma(row.qTranTuDo)}</td>
+          <td>${formatNumberFlexible(row.mucNuoc)}</td>
+          <td>${formatNumberFlexible(row.dungTich)}</td>
+          <td>${formatNumberFlexible(row.luongMua)}</td>
+          <td>${formatNumberFlexible(row.hTran)}</td>
+          <td>${formatNumberFlexible(row.qTranTuDo)}</td>
           <td>${row.nguoiVanHanh || ''}</td>
           <td>${row.nguoiKiemTra || ''}</td>
           <td></td>
@@ -202,6 +326,126 @@
         op.textContent = `Năm ${y}`;
         yearFilter.appendChild(op);
       });
+    }
+
+    // Gom mưa theo ngày + chuẩn bị dữ liệu biểu đồ
+    function aggregateDaily(data){
+      const map = new Map(); // key: 'dd/MM/yyyy' -> { rain: sum, levelSamples:[], lastDate }
+      data.forEach(row=>{
+        const d = parseVNDateTime(row.ngayGio);
+        if(!d) return;
+        const key = toDayKey(d);
+        const rain = Number(row.luongMua)||0;
+        const level = (row.mucNuoc!=null && row.mucNuoc!=='') ? Number(row.mucNuoc) : null;
+
+        if(!map.has(key)) map.set(key, { rain:0, levelSamples:[], lastDate: d });
+        const obj = map.get(key);
+        obj.rain += rain;
+        if(level!=null && !Number.isNaN(level)) obj.levelSamples.push({level, at:d});
+        if (d > obj.lastDate) obj.lastDate = d;
+      });
+
+      const entries = [...map.entries()].sort((a,b)=> a[1].lastDate - b[1].lastDate);
+
+      const labels = [];
+      const dailyRain = [];
+      const dailyLevel = [];
+      entries.forEach(([day, obj])=>{
+        labels.push(day);
+        dailyRain.push(obj.rain);
+        if (obj.levelSamples.length){
+          obj.levelSamples.sort((a,b)=> a.at - b.at);
+          dailyLevel.push(obj.levelSamples[obj.levelSamples.length-1].level);
+        }else{
+          dailyLevel.push(null);
+        }
+      });
+      return { labels, dailyRain, dailyLevel };
+    }
+
+    function updateKPIs(labels, dailyRain){
+      const totalDays = labels.length;
+      const totalRain = dailyRain.reduce((s,v)=> s + (Number(v)||0), 0);
+      const rainyDays = dailyRain.filter(v=> (Number(v)||0) > 0).length;
+      const avgAll   = totalDays ? totalRain/totalDays : 0;
+      const avgRain  = rainyDays ? totalRain/rainyDays : 0;
+
+      let maxVal = 0, maxIdx = -1;
+      dailyRain.forEach((v,i)=>{ if((Number(v)||0) > maxVal){ maxVal = Number(v)||0; maxIdx = i; } });
+      const maxText = maxIdx>=0 ? `${formatNumber(maxVal,1)} mm — ${labels[maxIdx]}` : '0';
+
+      document.getElementById('kpi-total').textContent    = `${formatNumber(totalRain,1)} mm`;
+      document.getElementById('kpi-days').textContent     = `${rainyDays} / ${totalDays}`;
+      document.getElementById('kpi-avg-all').textContent  = `${formatNumber(avgAll,2)} mm/ngày`;
+      document.getElementById('kpi-avg-rain').textContent = `${formatNumber(avgRain,2)} mm/ngày mưa`;
+      document.getElementById('kpi-max').textContent      = maxText;
+    }
+
+    function buildRainChart(ctx, labels, dailyRain){
+      if (rainChart) { rainChart.destroy(); }
+      rainChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Lượng mưa (mm)',
+            data: dailyRain,
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, title:{ display:true, text:'mm' } },
+            x: { ticks: { autoSkip: true, maxTicksLimit: 15 } }
+          },
+          plugins: { legend: { display:true } }
+        }
+      });
+    }
+
+    function buildWaterChart(ctx, labels, dailyLevel){
+      if (waterChart) { waterChart.destroy(); }
+      const deadLine = labels.map(()=> 40);
+      waterChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Mực nước (m)',
+              data: dailyLevel,
+              borderWidth: 2,
+              spanGaps: true,
+              tension: 0.25
+            },
+            {
+              label: 'Mực nước chết (40 m)',
+              data: deadLine,
+              borderWidth: 2,
+              borderDash: [6,6],
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { title:{ display:true, text:'m' } },
+            x: { ticks: { autoSkip: true, maxTicksLimit: 15 } }
+          },
+          plugins: { legend: { display:true } }
+        }
+      });
+    }
+
+    function updateChartsAndKPIs(){
+      const { labels, dailyRain, dailyLevel } = aggregateDaily(filteredData);
+      updateKPIs(labels, dailyRain);
+      buildRainChart(document.getElementById('rainChart'), labels, dailyRain);
+      buildWaterChart(document.getElementById('waterChart'), labels, dailyLevel);
     }
 
     function applyFiltersAndRender(){
@@ -234,13 +478,14 @@
       subtitleDiv.textContent = subtitleText;
 
       renderTable(filteredData);
+      updateChartsAndKPIs();
     }
 
     [yearFilter, quarterFilter, monthFilter].forEach(el => el.addEventListener('change', applyFiltersAndRender));
     monthFilter.addEventListener('change', () => { if (monthFilter.value !== 'all') quarterFilter.value = 'all'; });
     quarterFilter.addEventListener('change', () => { if (quarterFilter.value !== 'all') monthFilter.value = 'all'; });
 
-    // ====== Load data (no localStorage để tránh quota) ======
+    // ====== Load data ======
     function processData(data){
       if (!Array.isArray(data) || data.length === 0){
         tableBody.innerHTML = `<tr><td colspan="${totalColumns}" class="status-message">Không có dữ liệu để hiển thị.</td></tr>`;
@@ -301,43 +546,9 @@
       XLSX.writeFile(wb, "NhatKyVanHanh_HoOngKinh.xlsx");
     });
 
-    // ====== Xuất PDF ======
-    document.getElementById('export-pdf').addEventListener('click', () => {
-      if (!filteredData.length) return alert('Không có dữ liệu để xuất.');
-      try{
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('landscape', 'pt', 'a4');
-        const FONT = "LiberationSerif";
-
-        doc.setFont(FONT);
-        doc.setFontSize(16);
-        doc.setFont(FONT, 'bold');
-        doc.text("NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC ÔNG KINH", doc.internal.pageSize.getWidth()/2, 40, { align:'center' });
-
-        doc.setFontSize(14);
-        doc.setFont(FONT, 'bold');
-        const subtitle = (document.getElementById('subtitle').textContent || '').trim();
-        doc.text(subtitle, doc.internal.pageSize.getWidth()/2, 60, { align:'center' });
-
-        doc.autoTable({
-          html: '#data-table',
-          startY: 80,
-          theme: 'grid',
-          headStyles: {
-            font: FONT, fontStyle: 'bold',
-            fillColor: [30,164,141], textColor:[255,255,255],
-            lineColor:[0,0,0], lineWidth:0.5, fontSize:8, halign:'center', valign:'middle'
-          },
-          styles: { font: FONT, fontStyle:'normal', lineColor:[0,0,0], lineWidth:0.5, fontSize:8, cellPadding:4, halign:'center' },
-          alternateRowStyles: { fillColor:[255,255,255] },
-          margin: { top:80 }
-        });
-
-        doc.save(`NhatKyVanHanh_HoOngKinh_${subtitle.replace(/\s+/g,'_').replace(/:/g,'')}.pdf`);
-      }catch(e){
-        console.error("Lỗi khi tạo PDF:", e);
-        alert("Đã có lỗi khi tạo PDF: " + e.message);
-      }
+    // ====== In ======
+    document.getElementById('btn-print').addEventListener('click', () => {
+      window.print();
     });
   </script>
 </body>
