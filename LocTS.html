@@ -40,7 +40,7 @@
     #print-page{ background:#c82333; }
     #toggle-fullscreen{ background:#0b5ed7; }
 
-    /* ===== Metrics: căn giữa hiện đại ===== */
+    /* ===== Metrics ===== */
     .metrics{
       display:grid; grid-template-columns: repeat(5, minmax(220px,1fr));
       gap:12px; margin:0 0 8px 0;
@@ -94,11 +94,10 @@
 
     @media (max-width: 1500px){ .metrics{ grid-template-columns: 1fr 1fr; } }
 
-    /* ===== PRINT: in tiêu đề + phụ đề + chỉ in bảng ===== */
+    /* ===== PRINT: chỉ tiêu đề + phụ đề + bảng; header nền trắng, chữ đậm ===== */
     @media print {
       @page { size: A4 landscape; margin: 12mm; }
 
-      /* Ẩn phần điều khiển/biểu đồ/thống kê, nhưng GIỮ h1 và .subtitle */
       .controls-container,
       .metrics,
       .charts,
@@ -111,7 +110,6 @@
       body { background: #fff !important; color: #000 !important; }
       .container { padding: 0 !important; }
 
-      /* Tiêu đề và phụ đề khi in */
       h1{
         display:block !important;
         text-align:center;
@@ -128,14 +126,17 @@
         margin:0 0 6mm 0;
       }
 
-      /* Bảng in đẹp + giữ màu header */
+      /* === CHỈNH SỬA THEO YÊU CẦU ===
+         Tiêu đề cột: nền trắng, chữ đen, đậm; bỏ sticky khi in */
       th {
         position: static !important;
-        background: #e6f4f1 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-weight: 700 !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
-      thead { display: table-header-group; }   /* lặp header mỗi trang */
+      thead { display: table-header-group; }
       tfoot { display: table-footer-group; }
 
       table { page-break-inside: auto; }
@@ -237,7 +238,7 @@
     /* ================== STATE ================== */
     let selectedYear = 'all', selectedQuarter = 'all', selectedMonth = 'all';
     let allData = [], filteredData = [], currentFetchCtrl = null;
-    const cacheByScope = new Map();
+    const cacheByScope = new Map(); // keys: 'all', 'year:YYYY'
     let rainChart = null, waterLevelChart = null, ChartLibLoaded = false;
 
     /* ================== DOM ================== */
@@ -477,7 +478,7 @@
       });
     }
 
-    /* ================== LOAD DATA ================== */
+    /* ================== LOAD & CACHE ================== */
     function normalizeRows(rows){
       for (const r of rows){
         const d = parseVNDateTime(r.ngayGio);
@@ -488,9 +489,35 @@
       return rows;
     }
     function scopeKey(y){ return (y === 'all') ? 'all' : `year:${y}`; }
+
+    // Chia sẵn dữ liệu theo năm để đổi Năm không cần gọi API (tăng tốc rõ rệt)
+    function indexYearsAndWarmCache(allRows){
+      const buckets = new Map();
+      for (const r of allRows){
+        if (r._y == null) continue;
+        const k = `year:${r._y}`;
+        if (!buckets.has(k)) buckets.set(k, []);
+        buckets.get(k).push(r);
+      }
+      for (const [k, rows] of buckets){
+        if (!cacheByScope.has(k)) cacheByScope.set(k, rows);
+      }
+    }
+
     async function loadScope(y){
       const key = scopeKey(y);
+
+      // 1) Đã có trong cache -> trả ngay
       if (cacheByScope.has(key)) return cacheByScope.get(key);
+
+      // 2) Nếu đã có 'all' -> cắt nhanh theo năm, không gọi API
+      if (cacheByScope.has('all') && y !== 'all') {
+        const allRows = cacheByScope.get('all');
+        indexYearsAndWarmCache(allRows);
+        return cacheByScope.get(key) || [];
+      }
+
+      // 3) Nếu chưa có gì: gọi API đúng phạm vi cần
       const url = (y==='all') ? buildApiUrl('all','all','all') : buildApiUrl(y,'all','all');
       if (currentFetchCtrl) currentFetchCtrl.abort();
       currentFetchCtrl = new AbortController();
@@ -499,7 +526,13 @@
       const json = await res.json();
       if (!Array.isArray(json)) throw new Error('Dữ liệu trả về không hợp lệ');
       const norm = normalizeRows(json);
+
+      // Cache kết quả
       cacheByScope.set(key, norm);
+
+      // Nếu vừa tải 'all', ấm luôn cache theo năm
+      if (y === 'all') indexYearsAndWarmCache(norm);
+
       return norm;
     }
 
@@ -525,13 +558,27 @@
       errorDiv.style.display = 'none';
       tableBody.innerHTML = `<tr><td colspan="15"><div class="loader">Đang tải dữ liệu...</div></td></tr>`;
       try{
+        // Ưu tiên dùng cache; chỉ fetch khi thật sự cần
         const scopeData = await loadScope(selectedYear);
-        if (!allData.length || selectedYear === 'all'){ allData = scopeData; populateYearFilter(allData); }
-        else { populateYearFilter(allData); }
+
+        // Lần đầu có 'all' -> lưu allData và dựng dropdown năm
+        if (!allData.length && cacheByScope.has('all')) {
+          allData = cacheByScope.get('all');
+          populateYearFilter(allData);
+        } else if (selectedYear === 'all' && !allData.length) {
+          allData = scopeData;
+          populateYearFilter(allData);
+        } else if (selectedYear === 'all') {
+          populateYearFilter(allData);
+        }
+
         filteredData = clientFilter(scopeData);
+
+        // Ưu tiên render bảng trước để cảm nhận nhanh; chart tính sau
         renderTable(filteredData);
         renderRainStats();
-        updateCharts();
+        // Nhường 1 frame cho DOM rồi mới vẽ chart (mượt hơn)
+        requestAnimationFrame(()=> setTimeout(updateCharts, 0));
       }catch(err){
         if (err.name === 'AbortError') return;
         console.error('Lỗi tải dữ liệu:', err);
@@ -561,7 +608,6 @@
 
     /* ================== IN (chỉ in bảng) ================== */
     document.getElementById('print-page').addEventListener('click', () => {
-      // đảm bảo phụ đề đang phản ánh bộ lọc hiện tại
       setSubtitle();
       window.print();
     });
