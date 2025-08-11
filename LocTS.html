@@ -9,6 +9,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 
+  <!-- Chart.js cho biểu đồ -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
   <!-- Font Việt cho jsPDF -->
   <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Regular.js"></script>
   <script src="https://raw.githack.com/MrRio/jsPDF/master/src/libs/raw-fonts/LiberationSerif-Bold.js"></script>
@@ -41,6 +44,15 @@
     #export-excel{ background:#218838; }
     #export-pdf{ background:#c82333; }
 
+    .charts{
+      display:grid; grid-template-columns: 1fr; gap:20px; margin-top:10px;
+    }
+    .chart-card{
+      border:1px solid #ddd; border-radius:8px; padding:16px; background:#fafafa;
+    }
+    .chart-title{ font-weight:bold; margin:0 0 12px 0; font-size:14pt; text-align:center; }
+    canvas{ width:100%; height:380px; }
+
     table{ border-collapse:collapse; width:100%; font-size:13pt; margin-top:15px; }
     th,td{ border:1px solid var(--border-color); padding:8px 10px; text-align:center; vertical-align:middle; }
     th{ background:var(--header-bg); color:#000; font-weight:bold; position:sticky; top:0; z-index:1; }
@@ -55,6 +67,11 @@
       width:40px; height:40px; animation:spin 1s linear infinite; display:inline-block; margin-bottom:10px;
     }
     @keyframes spin{ 0%{ transform:rotate(0deg);} 100%{ transform:rotate(360deg);} }
+
+    /* Mở rộng hơn trên màn hình lớn */
+    @media (min-width: 1600px){
+      .container{ max-width: 1800px; }
+    }
   </style>
 </head>
 <body>
@@ -81,6 +98,18 @@
       <div class="exports">
         <button id="export-excel">Xuất Excel</button>
         <button id="export-pdf">Xuất PDF</button>
+      </div>
+    </div>
+
+    <!-- KHU VỰC BIỂU ĐỒ -->
+    <div class="charts">
+      <div class="chart-card">
+        <p class="chart-title">Lượng mưa theo từng ngày (tổng mm/ngày)</p>
+        <canvas id="rainChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <p class="chart-title">Mực nước theo từng ngày (TB m/ngày) & đường tham chiếu mực nước chết (27.5 m)</p>
+        <canvas id="waterLevelChart"></canvas>
       </div>
     </div>
 
@@ -123,7 +152,7 @@
 
   <script>
     // ======== CẤU HÌNH API ========
-    const EXEC_URL = "https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec"; // ví dụ: https://script.google.com/macros/s/AKfycb.../exec
+    const EXEC_URL = "https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec";
     const SHEET = "HoThanhSon";
     const API_URL = `${EXEC_URL}?sheet=${encodeURIComponent(SHEET)}`;
 
@@ -138,6 +167,13 @@
     const errorDiv      = document.getElementById('error-message');
     const subtitleDiv   = document.getElementById('subtitle');
     const totalColumns  = 15;
+
+    // Biểu đồ (Chart instances)
+    let rainChart = null;
+    let waterLevelChart = null;
+
+    // Tham chiếu mực nước chết
+    const DEAD_LEVEL = 27.5;
 
     // ======== HÀM PHỤ TRỢ ========
     function showError(message){
@@ -164,6 +200,11 @@
       return Number.isNaN(date.getTime()) ? null : date;
     }
 
+    // Chuẩn hóa về chuỗi ngày yyyy-mm-dd
+    function ymd(d){
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
     function renderTable(data){
       tableBody.innerHTML = '';
       if (!Array.isArray(data) || data.length === 0){
@@ -172,8 +213,7 @@
       }
 
       data.forEach((row, index) => {
-        // LƯU Ý: Tên field phải khớp CONFIG HoThanhSon trong Apps Script:
-        // ngayGio, mucNuoc, dungTich, luongMua, hTran1, qtran1, hTran2, qtran2, a, cotNuocDauKenh, qCong, nguoiVanHanh, nguoiKiemTra
+        // Các field: ngayGio, mucNuoc, dungTich, luongMua, hTran1, qtran1, hTran2, qtran2, a, cotNuocDauKenh, qCong, nguoiVanHanh, nguoiKiemTra
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${index + 1}</td>
@@ -243,11 +283,143 @@
       subtitleDiv.textContent = subtitleText;
 
       renderTable(filteredData);
+      updateCharts(); // Cập nhật biểu đồ sau khi render bảng
     }
 
     [yearFilter, quarterFilter, monthFilter].forEach(el => el.addEventListener('change', applyFiltersAndRender));
     monthFilter.addEventListener('change', () => { if (monthFilter.value !== 'all') quarterFilter.value = 'all'; });
     quarterFilter.addEventListener('change', () => { if (quarterFilter.value !== 'all') monthFilter.value = 'all'; });
+
+    // ======== TẠO DỮ LIỆU NGÀY: Tổng mưa/ngày, TB mực nước/ngày ========
+    function aggregateDaily(data){
+      const map = new Map(); // key: yyyy-mm-dd -> { rainSum, wlSum, wlCount }
+
+      data.forEach(r => {
+        const d = parseVNDateTime(r.ngayGio);
+        if (!d) return;
+        const key = ymd(d);
+
+        const rain = Number(r.luongMua) || 0;
+        const wl   = Number(r.mucNuoc);
+        const prev = map.get(key) || { rainSum:0, wlSum:0, wlCount:0 };
+
+        prev.rainSum += rain;
+        if (!Number.isNaN(wl)) { prev.wlSum += wl; prev.wlCount += 1; }
+
+        map.set(key, prev);
+      });
+
+      const labels = Array.from(map.keys()).sort((a,b) => new Date(a) - new Date(b));
+      const rainPerDay = labels.map(k => map.get(k).rainSum);
+      const wlAvgPerDay = labels.map(k => {
+        const o = map.get(k);
+        return o.wlCount ? o.wlSum / o.wlCount : null;
+      });
+
+      return { labels, rainPerDay, wlAvgPerDay };
+    }
+
+    // ======== VẼ/CẬP NHẬT BIỂU ĐỒ ========
+    function updateCharts(){
+      const { labels, rainPerDay, wlAvgPerDay } = aggregateDaily(filteredData);
+
+      // Hủy chart cũ nếu có
+      if (rainChart) { rainChart.destroy(); rainChart = null; }
+      if (waterLevelChart) { waterLevelChart.destroy(); waterLevelChart = null; }
+
+      // Biểu đồ lượng mưa theo ngày (cột)
+      const rainCtx = document.getElementById('rainChart').getContext('2d');
+      rainChart = new Chart(rainCtx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Lượng mưa (mm/ngày)',
+            data: rainPerDay,
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ` ${ctx.parsed.y?.toLocaleString('vi-VN')} mm`
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Ngày' },
+              ticks: { autoSkip: true, maxRotation: 0 }
+            },
+            y: {
+              title: { display: true, text: 'mm' },
+              beginAtZero: true
+            }
+          }
+        }
+      });
+
+      // Biểu đồ mực nước TB theo ngày + đường tham chiếu 27.5 m
+      const wlCtx = document.getElementById('waterLevelChart').getContext('2d');
+      const deadLine = labels.map(() => DEAD_LEVEL);
+
+      waterLevelChart = new Chart(wlCtx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Mực nước TB (m/ngày)',
+              data: wlAvgPerDay,
+              tension: 0.3,
+              fill: false,
+              pointRadius: 3
+            },
+            {
+              label: `Mực nước chết (${DEAD_LEVEL} m)`,
+              data: deadLine,
+              borderDash: [6, 6],
+              tension: 0,
+              fill: false,
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const val = ctx.parsed.y;
+                  return ctx.datasetIndex === 0
+                    ? ` ${val?.toLocaleString('vi-VN', {maximumFractionDigits:3})} m`
+                    : ` ${val} m`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Ngày' },
+              ticks: { autoSkip: true, maxRotation: 0 }
+            },
+            y: {
+              title: { display: true, text: 'm' },
+              beginAtZero: false
+            }
+          }
+        }
+      });
+    }
 
     // ======== TẢI DỮ LIỆU (không dùng localStorage để tránh quota) ========
     function processData(data){
