@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nhật ký vận hành hồ chứa nước ngọt</title>
 
-  <!-- PDF + Excel + Chart -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- Excel + Chart (giữ để xem trên màn hình) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
@@ -91,6 +90,7 @@
     /* Kẻ khung riêng cho 2 hàng tiêu đề */
     thead th{
       background:var(--brand); color:#fff; font-weight:800; padding:10px 8px; border-right:1px solid var(--line);
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
     thead tr th:last-child{ border-right:0; }
     thead tr:first-child th{ border-top:2px solid var(--brand); }
@@ -110,12 +110,37 @@
 
     /* ===== IN: A4 LANDSCAPE ===== */
     @media print{
-      @page{ size: A4 landscape; margin:10mm; }
-      .toolbar{ display:none !important; }
+      @page{ size: A4 landscape; margin:8mm; }
+
+      .toolbar,
+      .filters,
+      .charts { display:none !important; } /* Ẩn khi in */
+
       body{ background:#fff; }
       .sheet{ width: 297mm; min-height: 210mm; margin:0; padding:0; }
-      .charts{ grid-template-columns:1fr; gap:10px; }
-      thead th{ position:static; }
+
+      table{
+        font-size: 10pt;           /* thu nhỏ chữ để vừa cột */
+        table-layout: fixed;       /* giữ kích thước cột cố định */
+        width:100%;
+      }
+
+      thead th, tbody td{
+        padding:4px 6px;           /* giảm padding khi in */
+        word-wrap: break-word;     /* xuống dòng khi chữ dài */
+        white-space: normal;
+      }
+
+      /* Căn giữa số, căn trái chữ */
+      tbody td{ text-align: center; }
+      tbody td.text-left{ text-align: left; }
+
+      /* Lặp header giữa các trang */
+      thead{ display:table-header-group; }
+      tfoot{ display:table-footer-group; }
+
+      /* Tránh vỡ hàng */
+      tr{ page-break-inside:avoid; page-break-after:auto; }
     }
 
     @media (min-width:1400px){
@@ -128,7 +153,7 @@
     <div class="brand"><span class="dot"></span>Nhật ký vận hành – Hồ Nước Ngọt</div>
     <div class="spacer"></div>
     <button class="btn" onclick="window.print()">In</button>
-    <button class="btn primary" id="btnPdf">Xuất PDF</button>
+    <!-- BỎ NÚT PDF -->
     <button class="btn" id="btnExcel">Xuất Excel (theo bộ lọc)</button>
     <button class="btn" id="btnLink">Sao chép liên kết</button>
   </div>
@@ -137,7 +162,7 @@
     <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</h1>
     <div class="subhead" id="subTitle">Tháng …/…</div>
 
-    <!-- Bộ lọc -->
+    <!-- Bộ lọc (chỉ hiển thị màn hình, ẩn khi in) -->
     <div class="filters">
       <span class="label">Bộ lọc:</span>
       <label for="yearSel">Năm</label>
@@ -155,18 +180,19 @@
       <label for="monthSel">Tháng</label>
       <select id="monthSel">
         <option value="all">Tất cả</option>
-        <script>for(let i=1;i<=12;i++)document.write(`<option value="${i}">Tháng ${i}</option>`);</script>
+        <script>
+          for(let i=1;i<=12;i++){
+            document.write(`<option value="${i}">Tháng ${i}</option>`);
+          }
+        </script>
       </select>
     </div>
 
-    <!-- Charts -->
+    <!-- Charts (chỉ hiển thị màn hình, ẩn khi in) -->
     <div class="charts">
       <div class="card">
         <h3>Lượng mưa theo ngày (sau lọc)</h3>
-        <!-- DÒNG THỐNG KÊ LƯỢNG MƯA THEO BỘ LỌC -->
-        <div id="rainStats" class="stats">
-          <!-- sẽ được fill bằng JS -->
-        </div>
+        <div id="rainStats" class="stats"></div>
         <canvas id="rainChart" height="110"></canvas>
       </div>
       <div class="card">
@@ -211,12 +237,18 @@
   </div>
 
   <script>
-    const EXEC_URL = "https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec"; // <-- thay bằng URL .../exec của bạn
+    const EXEC_URL = "https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec";
     const API_URL  = `${EXEC_URL}?sheet=HoNuocNgot`;
 
     const params   = new URLSearchParams(location.search);
     const subTitle = document.getElementById('subTitle');
-    subTitle.textContent = params.get('thang') ? `Tháng ${params.get('thang')}` : 'Tháng …/…';
+    if (params.get('thang') && params.get('nam')) {
+      subTitle.textContent = `Tháng ${params.get('thang')} năm ${params.get('nam')}`;
+    } else if (params.get('thang')) {
+      subTitle.textContent = `Tháng ${params.get('thang')}`;
+    } else {
+      subTitle.textContent = 'Tháng …/…';
+    }
 
     const yearSel    = document.getElementById('yearSel');
     const quarterSel = document.getElementById('quarterSel');
@@ -256,8 +288,8 @@
         <td>${cell(r.a, true)}</td>
         <td>${cell(r.cotNuocDauKenh, true)}</td>
         <td>${cell(r.qcong, true)}</td>
-        <td>${cell(r.nguoiVanHanh)}</td>
-        <td></td>
+        <td class="text-left">${cell(r.nguoiVanHanh)}</td>
+        <td class="text-left"></td>
       `;
       return tr;
     }
@@ -283,12 +315,14 @@
         })
         .sort((a,b)=>a.__d-b.__d);
 
-      // subtitle
-      let sub = '';
-      if (m!=='all' && y!=='all') sub = `Tháng ${m} năm ${y}`;
-      else if (y!=='all') sub = `Năm ${y}`;
-      else { const c=new Date(); sub = `Tháng ${c.getMonth()+1} năm ${c.getFullYear()}`; }
-      subTitle.textContent = sub;
+      // subtitle tự động khi không set qua URL
+      if (!params.get('thang')) {
+        let sub = '';
+        if (m!=='all' && y!=='all') sub = `Tháng ${m} năm ${y}`;
+        else if (y!=='all') sub = `Năm ${y}`;
+        else { const c=new Date(); sub = `Tháng ${c.getMonth()+1} năm ${c.getFullYear()}`; }
+        subTitle.textContent = sub;
+      }
 
       // table
       if (!filtered.length){
@@ -298,21 +332,18 @@
         filtered.forEach(r => tbody.appendChild(renderRow(r)));
       }
 
-      updateCharts(); // phiên bản mới có tính toán lượng mưa theo bộ lọc
+      updateCharts(); // vẫn giữ chart cho màn hình (ẩn khi in)
     }
 
     // ========= UPDATECHARTS (mưa theo ngày + line mực nước theo ngày với đường 50,6) =========
     function updateCharts(){
-      // Gom theo ngày
-      const rainByDay = new Map();   // yyyy-mm-dd -> sum rain
-      const levelByDay = new Map();  // yyyy-mm-dd -> last water level of that day (data đã sort)
+      const rainByDay = new Map();
+      const levelByDay = new Map();
 
       filtered.forEach(r => {
         const d = r.__d;
         const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        // mưa: cộng dồn
         rainByDay.set(key, (rainByDay.get(key) || 0) + (Number(r.luongMua) || 0));
-        // mực nước: lấy bản ghi cuối ngày
         const lvl = Number(r.mucNuoc);
         if (!Number.isNaN(lvl)) levelByDay.set(key, lvl);
       });
@@ -326,7 +357,7 @@
         return (v==null || Number.isNaN(v)) ? null : v;
       });
 
-      // ====== TÍNH TOÁN LƯỢNG MƯA THEO BỘ LỌC ======
+      // Stats mưa
       const rainStatsEl = document.getElementById('rainStats');
       if (!dayKeys.length){
         rainStatsEl.innerHTML = `<div class="stat"><span class="k">Lượng mưa:</span><span class="v">Không có dữ liệu trong khoảng lọc</span></div>`;
@@ -336,7 +367,6 @@
         const rainyDays = rainDaily.filter(v=>Number(v)>0).length;
         const avgPerDay = days ? total/days : 0;
         const avgPerRainyDay = rainyDays ? total/rainyDays : 0;
-        // Tìm max
         let maxVal = -Infinity, maxIdx = -1;
         for (let i=0;i<rainDaily.length;i++){
           const v = Number(rainDaily[i])||0;
@@ -353,7 +383,6 @@
           <div class="stat"><span class="k">Mưa lớn nhất:</span><span class="v">${nf.format(maxVal>0?maxVal:0)} mm (${maxDayLabel})</span></div>
         `;
       }
-      // ==============================================
 
       const DEAD = 50.6;
       const deadLine = dayKeys.map(() => DEAD);
@@ -398,8 +427,8 @@
       status.textContent = (lastVal==null || Number.isNaN(lastVal))
         ? 'Không có dữ liệu mực nước.'
         : (lastVal >= DEAD
-            ? `Mực nước ngày gần nhất ${lastVal.toFixed(2)} m — CAO HƠN mực nước chết ${ (lastVal - DEAD).toFixed(2) } m`
-            : `Mực nước ngày gần nhất ${lastVal.toFixed(2)} m — THẤP HƠN mực nước chết ${ (DEAD - lastVal).toFixed(2) } m`);
+            ? `Mực nước ngày gần nhất ${lastVal.toFixed(2)} m — CAO HƠN mực nước chết ${(lastVal - DEAD).toFixed(2)} m`
+            : `Mực nước ngày gần nhất ${lastVal.toFixed(2)} m — THẤP HƠN mực nước chết ${(DEAD - lastVal).toFixed(2)} m`);
     }
     // ===========================================================================================
 
@@ -421,12 +450,6 @@
         console.error(err);
         tbody.innerHTML = `<tr><td class="state" colspan="15">Lỗi tải dữ liệu: ${err.message || err}</td></tr>`;
       });
-
-    // PDF
-    document.getElementById('btnPdf').addEventListener('click', () => {
-      const opt = { margin:[8,8,8,8], filename:`nhat-ky-van-hanh-nuocngot.pdf`, image:{ type:'jpeg', quality:0.98 }, html2canvas:{ scale:2, useCORS:true }, jsPDF:{ unit:'mm', format:'a4', orientation:'landscape' } };
-      html2pdf().from(document.getElementById('printArea')).set(opt).save();
-    });
 
     // Excel theo bộ lọc (2 hàng header + merge)
     document.getElementById('btnExcel').addEventListener('click', () => {
