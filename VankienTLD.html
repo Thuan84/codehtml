@@ -74,7 +74,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
           <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-dispatch-type" class="form-label fw-bold small">Loại công văn</label><select id="filter-dispatch-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
           <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-agency" class="form-label fw-bold small">Cơ quan BH</label><select id="filter-agency" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
 
-          <!-- THÊM BỘ LỌC NHIỆM KỲ -->
+          <!-- Bộ lọc Nhiệm kỳ (lấy từ cột "Nhiệm kỳ") -->
           <div class="col-xl-2 col-lg-4 col-md-6">
             <label for="filter-term" class="form-label fw-bold small">Nhiệm kỳ</label>
             <select id="filter-term" class="form-select form-select-sm">
@@ -141,10 +141,9 @@ const STAT_ICONS = ['fa-file-alt', 'fa-file-invoice', 'fa-file-signature', 'fa-g
 let dataTable;
 let allData = [];
 
-/* ====== Helpers: Lấy Nhiệm kỳ an toàn từ dữ liệu ====== */
-function getTerm(item){
-  // Ưu tiên đúng cột "Nhiệm kỳ" trong bảng; dự phòng các biến thể đã chuẩn hoá
-  return item?.['Nhiệm kỳ'] ?? item?.nhiemKy ?? item?.NhiemKy ?? item?.nhiem_ky ?? '';
+// Lấy nhiệm kỳ từ đúng cột "Nhiệm kỳ"
+function getTerm(item) {
+  return item?.['Nhiệm kỳ'] ?? '';
 }
 
 $(document).ready(function() {
@@ -157,7 +156,7 @@ $(document).ready(function() {
 function setupEventListeners() {
   $('#refresh-btn, #retry-btn').on('click', () => loadData(true));
   $('#search-input').on('keyup', function() { dataTable.search(this.value).draw(); });
-  // THÊM #filter-term vào danh sách lắng nghe
+  // Thêm #filter-term vào danh sách lắng nghe
   $('#filter-doc-type, #filter-agency, #filter-material-type, #filter-dispatch-type, #filter-term, #filter-year, #filter-start-date, #filter-end-date').on('change', applyFilters);
   $('#reset-filter-btn').on('click', resetFilters);
   $('#print-btn').on('click', printFilteredData);
@@ -181,7 +180,7 @@ function initializeDataTable() {
         targets: 0,
         orderable: false,
         className: 'text-center',
-        render: function (data, type, row, meta) { return meta.row + 1; }
+        render: (data, type, row, meta) => meta.row + 1
       },
       { targets: 1, className: 'so-hieu-col' },
       {
@@ -197,15 +196,15 @@ function initializeDataTable() {
         }
       },
       {
-        targets: 6, 
-        orderable: false, 
+        targets: 6,
+        orderable: false,
         className: 'text-center action-buttons',
         render: function(data, type, row) {
           return `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${row.stt}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`;
         }
       }
     ],
-    order: [[3, 'desc'], [1, 'desc']], // Ngày ban hành, Số hiệu
+    order: [[3, 'desc'], [1, 'desc']],
     language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' },
     pageLength: 25,
     dom: 'rt<"d-flex justify-content-between align-items-center mt-3"ip<"ms-3"l>>'
@@ -248,12 +247,12 @@ function applyFilters() {
   const agency = $('#filter-agency').val();
   const materialType = $('#filter-material-type').val();
   const dispatchType = $('#filter-dispatch-type').val();
-  const term = $('#filter-term').val();              // <- Nhiệm kỳ
+  const term = $('#filter-term').val(); // Nhiệm kỳ
   const selectedYear = $('#filter-year').val();
   const startDate = $('#filter-start-date').val() ? new Date($('#filter-start-date').val()) : null;
-  const endDate   = $('#filter-end-date').val()   ? new Date($('#filter-end-date').val())   : null;
+  const endDate = $('#filter-end-date').val() ? new Date($('#filter-end-date').val()) : null;
   if (startDate) startDate.setHours(0, 0, 0, 0);
-  if (endDate)   endDate.setHours(23, 59, 59, 999);
+  if (endDate) endDate.setHours(23, 59, 59, 999);
 
   const filteredData = allData.filter(item => {
     const itemDate = item.ngayBanHanh ? new Date(item.ngayBanHanh) : null;
@@ -262,6 +261,7 @@ function applyFilters() {
     if (materialType && item.loaiTaiLieu !== materialType) return false;
     if (dispatchType && item.loaiCongVan !== dispatchType) return false;
 
+    // Lọc theo cột "Nhiệm kỳ"
     const itemTerm = getTerm(item);
     if (term && itemTerm !== term) return false;
 
@@ -292,12 +292,15 @@ function populateFilters(data) {
     if (item.loaiTaiLieu)    materialTypes.add(item.loaiTaiLieu);
     if (item.loaiCongVan)    dispatchTypes.add(item.loaiCongVan);
 
+    // Lấy nhiệm kỳ từ đúng cột "Nhiệm kỳ"
     const t = getTerm(item);
     if (t) terms.add(String(t).trim());
 
     if (item.ngayBanHanh) {
-      const date = new Date(item.ngayBanHanh);
-      if (!isNaN(date.getTime())) years.add(date.getFullYear());
+      try {
+        const date = new Date(item.ngayBanHanh);
+        if (!isNaN(date.getTime())) years.add(date.getFullYear());
+      } catch(e) {}
     }
   });
 
@@ -307,7 +310,7 @@ function populateFilters(data) {
   populateSelect('#filter-agency',        [...agencies].sort());
   populateSelect('#filter-material-type', [...materialTypes].sort());
   populateSelect('#filter-dispatch-type', [...dispatchTypes].sort());
-  populateSelect('#filter-term',          [...terms].sort());           // <- Nhiệm kỳ
+  populateSelect('#filter-term',          [...terms].sort()); // Nhiệm kỳ
   populateSelect('#filter-year',          filteredYears);
 }
 
@@ -334,26 +337,30 @@ function showDocumentDetail(stt) {
     <div class="row">
       <div class="col-md-6">
         <h6 class="border-bottom pb-2 mb-3">Thông tin cơ bản</h6>
-        <table class="table table-bordered table-sm"><tbody>
-          ${createRow('Số hiệu', `<span class="fw-bold text-primary">${doc.soHieu}</span>`)}
-          ${createRow('Trích yếu', doc.trichYeu)}
-          ${createRow('Loại VB', doc.loaiVanBan)}
-          ${createRow('Loại Tài liệu', doc.loaiTaiLieu)}
-          ${createRow('Loại Công văn', doc.loaiCongVan)}
-          ${createRow('Ngày BH', formatDateForDisplay(doc.ngayBanHanh))}
-          ${createRow('Cơ quan BH', doc.coQuanBanHanh)}
-          ${createRow('Nhiệm kỳ', getTerm(doc) || '---')}
-        </tbody></table>
+        <table class="table table-bordered table-sm">
+          <tbody>
+            ${createRow('Số hiệu', `<span class="fw-bold text-primary">${doc.soHieu}</span>`)}
+            ${createRow('Trích yếu', doc.trichYeu)}
+            ${createRow('Loại VB', doc.loaiVanBan)}
+            ${createRow('Loại Tài liệu', doc.loaiTaiLieu)}
+            ${createRow('Loại Công văn', doc.loaiCongVan)}
+            ${createRow('Ngày BH', formatDateForDisplay(doc.ngayBanHanh))}
+            ${createRow('Cơ quan BH', doc.coQuanBanHanh)}
+            ${createRow('Nhiệm kỳ', getTerm(doc) || '---')}
+          </tbody>
+        </table>
       </div>
       <div class="col-md-6">
         <h6 class="border-bottom pb-2 mb-3">Thông tin bổ sung</h6>
-        <table class="table table-bordered table-sm"><tbody>
-          ${createRow('Người ký', doc.nguoiKy)}
-          ${createRow('Người thảo', doc.nguoiThaoVanBan)}
-          ${createRow('Ngày tạo', formatDateForDisplay(doc.thoiGianTao))}
-          ${createRow('Cập nhật', formatDateForDisplay(doc.thoiGianCapNhat))}
-          ${createRow('Ghi chú', doc.ghiChu)}
-        </tbody></table>
+        <table class="table table-bordered table-sm">
+          <tbody>
+            ${createRow('Người ký', doc.nguoiKy)}
+            ${createRow('Người thảo', doc.nguoiThaoVanBan)}
+            ${createRow('Ngày tạo', formatDateForDisplay(doc.thoiGianTao))}
+            ${createRow('Cập nhật', formatDateForDisplay(doc.thoiGianCapNhat))}
+            ${createRow('Ghi chú', doc.ghiChu)}
+          </tbody>
+        </table>
       </div>
     </div>
     <hr><h6 class="mb-3">Tệp đính kèm</h6><div>${filesHtml}</div>
@@ -368,6 +375,8 @@ function printFilteredData() {
     Swal.fire('Không có dữ liệu', 'Không có dữ liệu nào để in theo bộ lọc hiện tại.', 'warning');
     return;
   }
+
+  // Sắp xếp theo Số hiệu (asc), rồi Ngày ban hành (asc)
   filteredData.sort((a, b) => {
     if (a.soHieu && b.soHieu) {
       const cmp = a.soHieu.localeCompare(b.soHieu, 'vi', { numeric: true });
