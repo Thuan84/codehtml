@@ -181,7 +181,7 @@ function initializeDataTable() {
                 orderable: false, 
                 className: 'text-center action-buttons',
                 render: function(data, type, row) {
-                    return <button class="btn btn-sm btn-outline-primary view-detail" data-id="${row.stt}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>;
+                    return `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${row.stt}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`;
                 }
             }
         ],
@@ -214,7 +214,7 @@ function loadData(forceRefresh = false) {
             updateStatistics(allData);
             resetFilters();
         },
-        error: (xhr, status, error) => showError(Lỗi tải dữ liệu: ${status}. Vui lòng kiểm tra lại URL API và quyền truy cập Web App.)
+        error: (xhr, status, error) => showError(`Lỗi tải dữ liệu: ${status}. Vui lòng kiểm tra lại URL API và quyền truy cập Web App.`)
     });
 }
 
@@ -293,26 +293,26 @@ function populateFilters(data) {
 function populateSelect(selector, options) {
     const select = $(selector);
     select.find('option:not(:first)').remove();
-    options.forEach(opt => select.append(<option value="${opt}">${opt}</option>));
+    options.forEach(opt => select.append(`<option value="${opt}">${opt}</option>`));
 }
 
 function showDocumentDetail(stt) {
     const doc = allData.find(item => item.stt == stt);
     if (!doc) { alert('Lỗi: Không tìm thấy văn bản!'); return; }
-    const createRow = (label, val) => <tr><th scope="row" class="w-25 bg-light">${label}:</th><td>${val || '---'}</td></tr>;
+    const createRow = (label, val) => `<tr><th scope="row" class="w-25 bg-light">${label}:</th><td>${val || '---'}</td></tr>`;
     let filesHtml = '<p class="text-muted fst-italic">Không có tệp đính kèm.</p>';
     if (doc.dinhKem) {
         const files = doc.dinhKem.split(',').filter(i => i.trim());
         if (files.length > 0) {
-            filesHtml = files.map(url => <a href="${url.trim()}" target="_blank" class="btn btn-sm btn-outline-primary me-2 mb-2"><i class="fas fa-paperclip me-1"></i> ${decodeURIComponent(url.trim().split('/').pop())}</a>).join('');
+            filesHtml = files.map(url => `<a href="${url.trim()}" target="_blank" class="btn btn-sm btn-outline-primary me-2 mb-2"><i class="fas fa-paperclip me-1"></i> ${decodeURIComponent(url.trim().split('/').pop())}</a>`).join('');
         }
     }
-    $('#modal-body-content').html(<div class="row">
+    $('#modal-body-content').html(`<div class="row">
         <div class="col-md-6">
             <h6 class="border-bottom pb-2 mb-3">Thông tin cơ bản</h6>
             <table class="table table-bordered table-sm">
                 <tbody>
-                    ${createRow('Số hiệu', <span class="fw-bold text-primary">${doc.soHieu}</span>)}
+                    ${createRow('Số hiệu', `<span class="fw-bold text-primary">${doc.soHieu}</span>`)}
                     ${createRow('Trích yếu', doc.trichYeu)}
                     ${createRow('Loại VB', doc.loaiVanBan)}
                     ${createRow('Loại Tài liệu', doc.loaiTaiLieu)}
@@ -335,7 +335,7 @@ function showDocumentDetail(stt) {
                 </tbody>
             </table>
         </div>
-    </div><hr><h6 class="mb-3">Tệp đính kèm</h6><div>${filesHtml}</div>);
+    </div><hr><h6 class="mb-3">Tệp đính kèm</h6><div>${filesHtml}</div>`);
     new bootstrap.Modal(document.getElementById('detailModal')).show();
 }
 
@@ -357,17 +357,17 @@ function printFilteredData() {
     });
     let tableContent = '';
     filteredData.forEach((item, idx) => {
-        tableContent += <tr> +
-            <td>${idx + 1}</td> +
-            <td>${item.soHieu || ''}</td> +
-            <td>${item.trichYeu || ''}</td> +
-            <td>${formatDateForDisplay(item.ngayBanHanh)}</td> +
-            <td>${item.coQuanBanHanh || ''}</td> +
-            <td>${item.ghiChu || ''}</td> +
-            </tr>;
+        tableContent += `<tr>` +
+            `<td>${idx + 1}</td>` +
+            `<td>${item.soHieu || ''}</td>` +
+            `<td>${item.trichYeu || ''}</td>` +
+            `<td>${formatDateForDisplay(item.ngayBanHanh)}</td>` +
+            `<td>${item.coQuanBanHanh || ''}</td>` +
+            `<td>${item.ghiChu || ''}</td>` +
+            `</tr>`;
     });
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(
+    printWindow.document.write(`
         <html><head><title>Danh sách văn bản</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <style>
@@ -394,7 +394,7 @@ function printFilteredData() {
             <tbody>${tableContent}</tbody>
         </table>
         </body></html>
-    );
+    `);
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => { printWindow.print(); }, 500);
@@ -418,7 +418,7 @@ function updateStatistics(data) {
         return acc;
     }, {});
     const sortedTypes = Object.keys(typeCounts).sort();
-    const totalHtml = 
+    const totalHtml = `
         <div class="col-xl-3 col-md-6">
             <div class="stat-card-item" style="border-left: 4px solid #0d6efd;">
                 <div class="icon bg-primary"><i class="fas fa-file-alt fa-fw"></i></div>
@@ -428,14 +428,14 @@ function updateStatistics(data) {
                 </div>
             </div>
         </div>
-    ;
+    `;
     container.append(totalHtml);
     sortedTypes.forEach((type, index) => {
         const count = typeCounts[type];
         const color = STAT_COLORS[(index + 1) % STAT_COLORS.length];
         const icon = STAT_ICONS[(index + 1) % STAT_ICONS.length];
         
-        const cardHtml = 
+        const cardHtml = `
             <div class="col-xl-3 col-md-6">
                 <div class="stat-card-item" style="border-left: 4px solid var(--bs-${color});">
                     <div class="icon bg-${color}"><i class="fas ${icon} fa-fw"></i></div>
@@ -445,10 +445,10 @@ function updateStatistics(data) {
                     </div>
                 </div>
             </div>
-        ;
+        `;
         container.append(cardHtml);
     });
 }
 </script>
 </body>
-</html>
+</html> 
