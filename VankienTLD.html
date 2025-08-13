@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Quản Lý Văn Kiện - Trạm Thủy Nông Ninh Hải</title>
 
 <!-- Libraries CSS -->
@@ -12,69 +12,79 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 
 <style>
-:root { --primary-color: #2c3e50; --secondary-color: #3498db; --light-bg: #f8f9fa; --border-color: #e9ecef; --hover-bg: #e2f3ff; }
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--light-bg); }
-.app-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 2rem 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.main-card { border-radius: 12px; box-shadow: 0 4px 25px rgba(0,0,0,0.1); border: none; }
-.loading-container { min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.spinner { width: 3rem; height: 3rem; border: 0.3em solid rgba(52, 152, 219, 0.3); border-top-color: var(--secondary-color); border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.filter-section { background-color: #f1f3f5; border-radius: 8px; border: 1px solid var(--border-color); }
-#data-table { border-collapse: separate; border-spacing: 0; width: 100% !important; }
-#data-table thead th { background-color: var(--primary-color); color: white; border: none; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; white-space: nowrap; }
-#data-table tbody td { padding: 1rem 0.9rem; vertical-align: middle; border-bottom: 1px solid var(--border-color); }
-#data-table tbody tr:last-child td { border-bottom: none; }
-#data-table tbody tr:hover { background-color: var(--hover-bg); box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); transition: all 0.2s ease-in-out; z-index: 10; position: relative; }
-.so-hieu-col { font-weight: 700; color: var(--secondary-color); font-family: 'Courier New', Courier, monospace; font-size: 1.05rem; }
-.action-buttons .btn { margin: 0 3px; border-radius: 50px; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease;}
-.action-buttons .btn:hover { transform: scale(1.1); }
+:root { --primary-color:#2c3e50; --secondary-color:#3498db; --light-bg:#f8f9fa; --border-color:#e9ecef; --hover-bg:#e2f3ff; }
+body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color:var(--light-bg); }
+.app-header { background:linear-gradient(135deg,var(--primary-color),var(--secondary-color)); color:#fff; padding:2rem 0; box-shadow:0 4px 12px rgba(0,0,0,.1); }
+.main-card { border-radius:12px; box-shadow:0 4px 25px rgba(0,0,0,.1); border:none; }
+.loading-container { min-height:300px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.spinner { width:3rem; height:3rem; border:.3em solid rgba(52,152,219,.3); border-top-color:var(--secondary-color); border-radius:50%; animation:spin 1s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg);} }
+.filter-section { background-color:#f1f3f5; border-radius:8px; border:1px solid var(--border-color); }
+#data-table { border-collapse:separate; border-spacing:0; width:100%!important; }
+#data-table thead th { background-color:var(--primary-color); color:#fff; border:none; font-weight:600; text-transform:uppercase; font-size:.85rem; letter-spacing:.5px; white-space:nowrap; }
+#data-table tbody td { padding:1rem .9rem; vertical-align:middle; border-bottom:1px solid var(--border-color); }
+#data-table tbody tr:last-child td { border-bottom:none; }
+#data-table tbody tr:hover { background-color:var(--hover-bg); box-shadow:0 4px 12px rgba(0,0,0,.1); transform:translateY(-2px); transition:all .2s ease-in-out; position:relative; z-index:10; }
+.so-hieu-col { font-weight:700; color:var(--secondary-color); font-family:'Courier New', Courier, monospace; font-size:1.05rem; }
+.action-buttons .btn { margin:0 3px; border-radius:50px; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; transition:all .2s ease; }
+.action-buttons .btn:hover { transform:scale(1.1); }
 
-/* CSS cho card thống kê */
-.stat-card-item { background-color: #fff; border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem; display: flex; align-items: center; transition: all 0.2s ease-in-out; }
-.stat-card-item:hover { transform: translateY(-4px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
-.stat-card-item .icon { font-size: 1.75rem; padding: 1rem; border-radius: 50%; color: #fff; margin-right: 1rem; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
-.stat-card-item .stat-info .stat-number { font-size: 1.75rem; font-weight: 700; color: var(--primary-color); }
-.stat-card-item .stat-info .stat-label { font-size: 0.9rem; color: #6c757d; }
+/* Cards thống kê */
+.stat-card-item { background:#fff; border:1px solid var(--border-color); border-radius:8px; padding:1.25rem; display:flex; align-items:center; transition:all .2s; }
+.stat-card-item:hover { transform:translateY(-4px); box-shadow:0 6px 12px rgba(0,0,0,.08); }
+.stat-card-item .icon { font-size:1.75rem; padding:1rem; border-radius:50%; color:#fff; margin-right:1rem; width:50px; height:50px; display:flex; align-items:center; justify-content:center; }
+.stat-card-item .stat-info .stat-number { font-size:1.75rem; font-weight:700; color:var(--primary-color); }
+.stat-card-item .stat-info .stat-label { font-size:.9rem; color:#6c757d; }
 </style>
 </head>
 <body>
-<!-- Header -->
 <header class="app-header mb-4">
   <div class="container text-center">
     <h1 class="mb-2 display-5 fw-bold">QUẢN LÝ VĂN BẢN CÔNG TÁC ĐẢNG</h1>
     <p class="mb-3 opacity-75 fs-4">Chi bộ Trạm thủy nông Ninh Hải</p>
-    <div class="d-inline-block bg-white text-dark px-3 py-1 rounded-pill shadow-sm"><i class="fas fa-calendar-day me-2 text-primary"></i><span id="current-date"></span></div>
+    <div class="d-inline-block bg-white text-dark px-3 py-1 rounded-pill shadow-sm">
+      <i class="fas fa-calendar-day me-2 text-primary"></i><span id="current-date"></span>
+    </div>
   </div>
 </header>
 
-<!-- Main Content -->
 <main class="container">
   <section class="main-card card overflow-hidden">
     <div class="card-body p-lg-4">
-      <!-- Khu vực thống kê động -->
       <section id="statistics-section" class="mb-4">
-          <div id="stats-container" class="row g-3"></div>
+        <div id="stats-container" class="row g-3"></div>
       </section>
 
-      <!-- Toolbar -->
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
         <h5 class="card-title mb-3 mb-md-0"><i class="fas fa-list-ul me-2"></i>Danh sách văn bản</h5>
         <div class="d-flex gap-2 flex-wrap justify-content-center justify-content-md-end">
           <button id="print-btn" class="btn btn-info text-white"><i class="fas fa-print me-1"></i> In danh sách</button>
-          <input type="text" id="search-input" class="form-control" placeholder="Tìm kiếm nhanh..." style="width: 200px;">
+          <input type="text" id="search-input" class="form-control" placeholder="Tìm kiếm nhanh..." style="width:200px;">
           <button id="refresh-btn" class="btn btn-primary" title="Làm mới dữ liệu"><i class="fas fa-sync-alt"></i></button>
         </div>
       </div>
 
-      <!-- Filter Section -->
+      <!-- Filters -->
       <section class="filter-section p-3 mb-4">
         <div class="row g-3 align-items-end">
-          <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-doc-type" class="form-label fw-bold small">Loại văn bản</label><select id="filter-doc-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
-          <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-material-type" class="form-label fw-bold small">Loại tài liệu</label><select id="filter-material-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
-          <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-dispatch-type" class="form-label fw-bold small">Loại công văn</label><select id="filter-dispatch-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
-          <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-agency" class="form-label fw-bold small">Cơ quan BH</label><select id="filter-agency" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
+          <div class="col-xl-2 col-lg-4 col-md-6">
+            <label for="filter-doc-type" class="form-label fw-bold small">Loại văn bản</label>
+            <select id="filter-doc-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select>
+          </div>
+          <div class="col-xl-2 col-lg-4 col-md-6">
+            <label for="filter-material-type" class="form-label fw-bold small">Loại tài liệu</label>
+            <select id="filter-material-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select>
+          </div>
+          <div class="col-xl-2 col-lg-4 col-md-6">
+            <label for="filter-dispatch-type" class="form-label fw-bold small">Loại công văn</label>
+            <select id="filter-dispatch-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select>
+          </div>
+          <div class="col-xl-2 col-lg-4 col-md-6">
+            <label for="filter-agency" class="form-label fw-bold small">Cơ quan BH</label>
+            <select id="filter-agency" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select>
+          </div>
 
-          <!-- Bộ lọc Nhiệm kỳ (lấy từ cột "Nhiệm kỳ") -->
+          <!-- Bộ lọc Nhiệm kỳ (đọc đúng cột "Nhiệm kỳ") -->
           <div class="col-xl-2 col-lg-4 col-md-6">
             <label for="filter-term" class="form-label fw-bold small">Nhiệm kỳ</label>
             <select id="filter-term" class="form-select form-select-sm">
@@ -82,36 +92,55 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
             </select>
           </div>
 
-          <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-year" class="form-label fw-bold small">Năm ban hành</label><select id="filter-year" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
-          <div class="col-xl-3 col-lg-6 col-md-6"><label class="form-label fw-bold small">Ngày ban hành (Từ - Đến)</label><div class="input-group input-group-sm"><input type="date" id="filter-start-date" class="form-control"><input type="date" id="filter-end-date" class="form-control"></div></div>
-          <div class="col-xl-1 col-lg-2 col-md-12"><button id="reset-filter-btn" class="btn btn-sm btn-outline-secondary w-100" title="Xóa bộ lọc"><i class="fas fa-times me-1 me-lg-0"></i><span class="d-lg-none ms-1"> Đặt lại</span></button></div>
+          <div class="col-xl-2 col-lg-4 col-md-6">
+            <label for="filter-year" class="form-label fw-bold small">Năm ban hành</label>
+            <select id="filter-year" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select>
+          </div>
+          <div class="col-xl-3 col-lg-6 col-md-6">
+            <label class="form-label fw-bold small">Ngày ban hành (Từ - Đến)</label>
+            <div class="input-group input-group-sm">
+              <input type="date" id="filter-start-date" class="form-control">
+              <input type="date" id="filter-end-date" class="form-control">
+            </div>
+          </div>
+          <div class="col-xl-1 col-lg-2 col-md-12">
+            <button id="reset-filter-btn" class="btn btn-sm btn-outline-secondary w-100" title="Xóa bộ lọc">
+              <i class="fas fa-times me-1 me-lg-0"></i><span class="d-lg-none ms-1">Đặt lại</span>
+            </button>
+          </div>
         </div>
       </section>
 
-      <div id="loading-indicator" class="loading-container"><div class="spinner"></div><p class="mt-3 text-muted">Đang tải dữ liệu...</p></div>
-      <div id="error-alert" class="alert alert-danger d-none error-card" role="alert"><i class="fas fa-exclamation-triangle me-2"></i><span id="error-message"></span><button type="button" class="btn btn-sm btn-outline-danger ms-3" id="retry-btn"><i class="fas fa-redo me-1"></i> Thử lại</button></div>
+      <div id="loading-indicator" class="loading-container">
+        <div class="spinner"></div><p class="mt-3 text-muted">Đang tải dữ liệu...</p>
+      </div>
+      <div id="error-alert" class="alert alert-danger d-none error-card" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i><span id="error-message"></span>
+        <button type="button" class="btn btn-sm btn-outline-danger ms-3" id="retry-btn"><i class="fas fa-redo me-1"></i> Thử lại</button>
+      </div>
 
       <div id="data-container" class="table-responsive d-none">
-          <table id="data-table" class="table">
-              <thead>
-                  <tr>
-                      <th>STT</th>
-                      <th>Số hiệu</th>
-                      <th>Trích yếu</th>
-                      <th>Ngày ban hành</th>
-                      <th>Cơ quan BH</th>
-                      <th>Ghi chú</th>
-                      <th class="text-center" title="Hành động"><i class="fas fa-tools"></i></th>
-                  </tr>
-              </thead>
-              <tbody></tbody>
-          </table>
+        <table id="data-table" class="table">
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>Số hiệu</th>
+              <th>Trích yếu</th>
+              <th>Ngày ban hành</th>
+              <th>Cơ quan BH</th>
+              <th>Ghi chú</th>
+              <th class="text-center" title="Hành động"><i class="fas fa-tools"></i></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
+
     </div>
   </section>
 </main>
 
-<!-- Modals -->
+<!-- Modal -->
 <div class="modal fade detail-modal" id="detailModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
@@ -132,42 +161,51 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 <script>
 const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycby2lXhZMCQ6gyTMCvbcC20K4eW4iLLqL9L89uFPowzTau6ualedUx9nOJ--CXjPE0BQ/exec',
-  DATE_FORMAT_OPTIONS: { day: '2-digit', month: '2-digit', year: 'numeric' }
+  DATE_FORMAT_OPTIONS: { day:'2-digit', month:'2-digit', year:'numeric' }
 };
 
-const STAT_COLORS = ['primary', 'success', 'danger', 'warning', 'info', 'secondary', 'dark'];
-const STAT_ICONS = ['fa-file-alt', 'fa-file-invoice', 'fa-file-signature', 'fa-gavel', 'fa-bullhorn', 'fa-clipboard-list', 'fa-folder'];
+const STAT_COLORS = ['primary','success','danger','warning','info','secondary','dark'];
+const STAT_ICONS  = ['fa-file-alt','fa-file-invoice','fa-file-signature','fa-gavel','fa-bullhorn','fa-clipboard-list','fa-folder'];
 
 let dataTable;
 let allData = [];
 
-// Lấy nhiệm kỳ từ đúng cột "Nhiệm kỳ"
-function getTerm(item) {
-  return item?.['Nhiệm kỳ'] ?? '';
+/* ===== Helpers cho Nhiệm kỳ ===== */
+function getTermRaw(item){
+  if (!item) return '';
+  var v = item['Nhiệm kỳ'];
+  if (v === undefined || v === null) return '';
+  return String(v).trim();
+}
+// Chuẩn hoá để so sánh: bỏ khoảng trắng, quy các loại gạch (– — −) về '-'
+function normalizeTerm(s){
+  return String(s || '')
+    .replace(/\s+/g,'')
+    .replace(/[–—−]/g,'-')
+    .trim();
 }
 
-$(document).ready(function() {
+$(document).ready(function(){
   updateCurrentDate();
   initializeDataTable();
   loadData();
   setupEventListeners();
 });
 
-function setupEventListeners() {
-  $('#refresh-btn, #retry-btn').on('click', () => loadData(true));
-  $('#search-input').on('keyup', function() { dataTable.search(this.value).draw(); });
-  // Thêm #filter-term vào danh sách lắng nghe
+function setupEventListeners(){
+  $('#refresh-btn, #retry-btn').on('click', function(){ loadData(true); });
+  $('#search-input').on('keyup', function(){ dataTable.search(this.value).draw(); });
   $('#filter-doc-type, #filter-agency, #filter-material-type, #filter-dispatch-type, #filter-term, #filter-year, #filter-start-date, #filter-end-date').on('change', applyFilters);
   $('#reset-filter-btn').on('click', resetFilters);
   $('#print-btn').on('click', printFilteredData);
-  $('#data-table tbody').on('click', 'button.view-detail', function() { showDocumentDetail($(this).data('id')); });
+  $('#data-table tbody').on('click', 'button.view-detail', function(){ showDocumentDetail($(this).data('id')); });
 }
 
-function initializeDataTable() {
+function initializeDataTable(){
   dataTable = $('#data-table').DataTable({
     data: [],
     columns: [
-      { data: null, width: '5%' }, // STT
+      { data: null, width: '5%' },
       { data: 'soHieu', width: '12%' },
       { data: 'trichYeu', width: '35%' },
       { data: 'ngayBanHanh', width: '12%' },
@@ -176,106 +214,94 @@ function initializeDataTable() {
       { data: 'stt', width: '5%' }
     ],
     columnDefs: [
-      {
-        targets: 0,
-        orderable: false,
-        className: 'text-center',
-        render: (data, type, row, meta) => meta.row + 1
-      },
-      { targets: 1, className: 'so-hieu-col' },
-      {
-        targets: 3, // Ngày ban hành
-        className: 'text-nowrap',
-        render: function(data, type) {
-          if (type === 'sort' || type === 'type') {
-            if (!data) return 0;
-            const date = new Date(data);
-            return isNaN(date.getTime()) ? 0 : date.getTime();
+      { targets:0, orderable:false, className:'text-center', render:(_,__,___,meta)=> meta.row + 1 },
+      { targets:1, className:'so-hieu-col' },
+      { targets:3, className:'text-nowrap',
+        render:function(data, type){
+          if (type==='sort' || type==='type'){
+            if(!data) return 0;
+            const dt = new Date(data);
+            return isNaN(dt.getTime()) ? 0 : dt.getTime();
           }
           return formatDateForDisplay(data);
         }
       },
-      {
-        targets: 6,
-        orderable: false,
-        className: 'text-center action-buttons',
-        render: function(data, type, row) {
+      { targets:6, orderable:false, className:'text-center action-buttons',
+        render:function(_,__,row){
           return `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${row.stt}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`;
         }
       }
     ],
-    order: [[3, 'desc'], [1, 'desc']],
-    language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' },
+    order: [[3,'desc'],[1,'desc']],
+    language: { url:'//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' },
     pageLength: 25,
-    dom: 'rt<"d-flex justify-content-between align-items-center mt-3"ip<"ms-3"l>>'
+    dom:'rt<"d-flex justify-content-between align-items-center mt-3"ip<"ms-3"l>>'
   });
 }
 
-function loadData(forceRefresh = false) {
+function loadData(forceRefresh){
   showLoading();
   let url = CONFIG.API_URL;
-  if (forceRefresh) {
-    url += (url.includes('?') ? '&' : '?') + 'cache_bust=' + Date.now();
-  }
+  if (forceRefresh) url += (url.includes('?') ? '&' : '?') + 'cache_bust=' + Date.now();
   $.ajax({
-    url: url, method: 'GET', dataType: 'jsonp',
-    success: function(response) {
-      if (response.status === 'error' || !response.data) { showError(response.message || 'Lỗi không xác định hoặc không có dữ liệu.'); return; }
+    url:url, method:'GET', dataType:'jsonp',
+    success:function(response){
+      if (response.status === 'error' || !response.data){ showError(response.message || 'Lỗi không xác định hoặc không có dữ liệu.'); return; }
       allData = response.data;
 
-      // Debug: Kiểm tra cấu trúc dữ liệu
-      if (allData && allData.length > 0) {
-        console.log('Mẫu dữ liệu đầu tiên:', allData[0]);
-        console.log('Các key:', Object.keys(allData[0]));
-      }
+      // Debug
+      if (allData && allData.length){ console.log('Mẫu dữ liệu đầu tiên:', allData[0]); console.log('Keys:', Object.keys(allData[0])); }
 
       populateFilters(allData);
       updateStatistics(allData);
       resetFilters();
     },
-    error: (xhr, status) => showError(`Lỗi tải dữ liệu: ${status}. Vui lòng kiểm tra lại URL API và quyền truy cập Web App.`)
+    error:function(_,status){ showError('Lỗi tải dữ liệu: ' + status + '. Vui lòng kiểm tra URL API và quyền truy cập Web App.'); }
   });
 }
 
-function renderData(data) {
+function renderData(data){
   dataTable.clear().rows.add(data).draw();
   showDataContainer();
 }
 
-function applyFilters() {
-  const docType = $('#filter-doc-type').val();
-  const agency = $('#filter-agency').val();
+function applyFilters(){
+  const docType      = $('#filter-doc-type').val();
+  const agency       = $('#filter-agency').val();
   const materialType = $('#filter-material-type').val();
   const dispatchType = $('#filter-dispatch-type').val();
-  const term = $('#filter-term').val(); // Nhiệm kỳ
+  const termKey      = $('#filter-term').val(); // giá trị chuẩn hoá
   const selectedYear = $('#filter-year').val();
-  const startDate = $('#filter-start-date').val() ? new Date($('#filter-start-date').val()) : null;
-  const endDate = $('#filter-end-date').val() ? new Date($('#filter-end-date').val()) : null;
-  if (startDate) startDate.setHours(0, 0, 0, 0);
-  if (endDate) endDate.setHours(23, 59, 59, 999);
 
-  const filteredData = allData.filter(item => {
+  const startDate = $('#filter-start-date').val() ? new Date($('#filter-start-date').val()) : null;
+  const endDate   = $('#filter-end-date').val()   ? new Date($('#filter-end-date').val())   : null;
+  if (startDate) startDate.setHours(0,0,0,0);
+  if (endDate)   endDate.setHours(23,59,59,999);
+
+  const filtered = allData.filter(function(item){
     const itemDate = item.ngayBanHanh ? new Date(item.ngayBanHanh) : null;
     if (docType && item.loaiVanBan !== docType) return false;
     if (agency && item.coQuanBanHanh !== agency) return false;
     if (materialType && item.loaiTaiLieu !== materialType) return false;
     if (dispatchType && item.loaiCongVan !== dispatchType) return false;
 
-    // Lọc theo cột "Nhiệm kỳ"
-    const itemTerm = getTerm(item);
-    if (term && itemTerm !== term) return false;
+    // so sánh nhiệm kỳ theo key chuẩn hoá
+    if (termKey){
+      const itemKey = normalizeTerm(getTermRaw(item));
+      if (itemKey !== termKey) return false;
+    }
 
-    if (selectedYear && (!itemDate || itemDate.getFullYear().toString() !== selectedYear)) return false;
+    if (selectedYear && (!itemDate || String(itemDate.getFullYear()) !== selectedYear)) return false;
     if (startDate && (!itemDate || itemDate < startDate)) return false;
     if (endDate && (!itemDate || itemDate > endDate)) return false;
     return true;
   });
 
-  renderData(filteredData);
-  updateStatistics(filteredData);
+  renderData(filtered);
+  updateStatistics(filtered);
 }
 
-function resetFilters() {
+function resetFilters(){
   $('section.filter-section select, section.filter-section input').val('');
   $('#search-input').val('');
   dataTable.search('').draw();
@@ -283,53 +309,69 @@ function resetFilters() {
   updateStatistics(allData);
 }
 
-function populateFilters(data) {
-  const docTypes = new Set(), agencies = new Set(), materialTypes = new Set(), dispatchTypes = new Set(), terms = new Set(), years = new Set();
+function populateFilters(data){
+  const docTypes = new Set(), agencies = new Set(), materialTypes = new Set(), dispatchTypes = new Set(), years = new Set();
 
-  data.forEach(item => {
-    if (item.loaiVanBan)     docTypes.add(item.loaiVanBan);
-    if (item.coQuanBanHanh)  agencies.add(item.coQuanBanHanh);
-    if (item.loaiTaiLieu)    materialTypes.add(item.loaiTaiLieu);
-    if (item.loaiCongVan)    dispatchTypes.add(item.loaiCongVan);
+  // Map nhiệm kỳ: key = chuẩn hoá để so sánh, value = nhãn hiển thị gốc
+  const termMap = new Map();
 
-    // Lấy nhiệm kỳ từ đúng cột "Nhiệm kỳ"
-    const t = getTerm(item);
-    if (t) terms.add(String(t).trim());
+  data.forEach(function(item){
+    if (item.loaiVanBan)    docTypes.add(item.loaiVanBan);
+    if (item.coQuanBanHanh) agencies.add(item.coQuanBanHanh);
+    if (item.loaiTaiLieu)   materialTypes.add(item.loaiTaiLieu);
+    if (item.loaiCongVan)   dispatchTypes.add(item.loaiCongVan);
 
-    if (item.ngayBanHanh) {
-      try {
-        const date = new Date(item.ngayBanHanh);
-        if (!isNaN(date.getTime())) years.add(date.getFullYear());
-      } catch(e) {}
+    const termRaw = getTermRaw(item);
+    if (termRaw){
+      const key = normalizeTerm(termRaw);
+      if (!termMap.has(key)) termMap.set(key, termRaw.trim());
+    }
+
+    if (item.ngayBanHanh){
+      const d = new Date(item.ngayBanHanh);
+      if (!isNaN(d.getTime())) years.add(d.getFullYear());
     }
   });
 
-  const filteredYears = [...years].sort((a, b) => b - a);
-
-  populateSelect('#filter-doc-type',      [...docTypes].sort());
-  populateSelect('#filter-agency',        [...agencies].sort());
-  populateSelect('#filter-material-type', [...materialTypes].sort());
-  populateSelect('#filter-dispatch-type', [...dispatchTypes].sort());
-  populateSelect('#filter-term',          [...terms].sort()); // Nhiệm kỳ
-  populateSelect('#filter-year',          filteredYears);
+  populateSelect('#filter-doc-type',      Array.from(docTypes).sort());
+  populateSelect('#filter-agency',        Array.from(agencies).sort());
+  populateSelect('#filter-material-type', Array.from(materialTypes).sort());
+  populateSelect('#filter-dispatch-type', Array.from(dispatchTypes).sort());
+  populateSelect('#filter-year',          Array.from(years).sort((a,b)=>b-a));
+  populateSelectFromMap('#filter-term',   termMap); // nhiệm kỳ
 }
 
-function populateSelect(selector, options) {
+function populateSelect(selector, options){
   const select = $(selector);
   select.find('option:not(:first)').remove();
-  options.forEach(opt => select.append(`<option value="${opt}">${opt}</option>`));
+  options.forEach(function(opt){ select.append(`<option value="${opt}">${opt}</option>`); });
 }
 
-function showDocumentDetail(stt) {
-  const doc = allData.find(item => item.stt == stt);
-  if (!doc) { alert('Lỗi: Không tìm thấy văn bản!'); return; }
-  const createRow = (label, val) => `<tr><th scope="row" class="w-25 bg-light">${label}:</th><td>${val || '---'}</td></tr>`;
+// options từ Map(key->label) để giá trị chọn là key chuẩn hoá
+function populateSelectFromMap(selector, map){
+  const select = $(selector);
+  select.find('option:not(:first)').remove();
+  Array.from(map.entries())
+    .sort((a,b)=> String(a[1]).localeCompare(String(b[1]), 'vi'))
+    .forEach(([key,label])=>{
+      select.append(`<option value="${key}">${label}</option>`);
+    });
+}
+
+function showDocumentDetail(stt){
+  const doc = allData.find(item => String(item.stt) === String(stt));
+  if (!doc){ alert('Lỗi: Không tìm thấy văn bản!'); return; }
+  const row = (label, val)=> `<tr><th scope="row" class="w-25 bg-light">${label}:</th><td>${val || '---'}</td></tr>`;
 
   let filesHtml = '<p class="text-muted fst-italic">Không có tệp đính kèm.</p>';
-  if (doc.dinhKem) {
-    const files = doc.dinhKem.split(',').filter(i => i.trim());
-    if (files.length > 0) {
-      filesHtml = files.map(url => `<a href="${url.trim()}" target="_blank" class="btn btn-sm btn-outline-primary me-2 mb-2"><i class="fas fa-paperclip me-1"></i> ${decodeURIComponent(url.trim().split('/').pop())}</a>`).join('');
+  if (doc.dinhKem){
+    const files = doc.dinhKem.split(',').map(s=>s.trim()).filter(Boolean);
+    if (files.length){
+      filesHtml = files.map(url=>{
+        let name = '';
+        try{ name = decodeURIComponent(url.split('/').pop()); }catch(e){ name = url; }
+        return `<a href="${url}" target="_blank" class="btn btn-sm btn-outline-primary me-2 mb-2"><i class="fas fa-paperclip me-1"></i> ${name}</a>`;
+      }).join('');
     }
   }
 
@@ -337,30 +379,26 @@ function showDocumentDetail(stt) {
     <div class="row">
       <div class="col-md-6">
         <h6 class="border-bottom pb-2 mb-3">Thông tin cơ bản</h6>
-        <table class="table table-bordered table-sm">
-          <tbody>
-            ${createRow('Số hiệu', `<span class="fw-bold text-primary">${doc.soHieu}</span>`)}
-            ${createRow('Trích yếu', doc.trichYeu)}
-            ${createRow('Loại VB', doc.loaiVanBan)}
-            ${createRow('Loại Tài liệu', doc.loaiTaiLieu)}
-            ${createRow('Loại Công văn', doc.loaiCongVan)}
-            ${createRow('Ngày BH', formatDateForDisplay(doc.ngayBanHanh))}
-            ${createRow('Cơ quan BH', doc.coQuanBanHanh)}
-            ${createRow('Nhiệm kỳ', getTerm(doc) || '---')}
-          </tbody>
-        </table>
+        <table class="table table-bordered table-sm"><tbody>
+          ${row('Số hiệu', `<span class="fw-bold text-primary">${doc.soHieu || ''}</span>`)}
+          ${row('Trích yếu', doc.trichYeu)}
+          ${row('Loại VB', doc.loaiVanBan)}
+          ${row('Loại Tài liệu', doc.loaiTaiLieu)}
+          ${row('Loại Công văn', doc.loaiCongVan)}
+          ${row('Ngày BH', formatDateForDisplay(doc.ngayBanHanh))}
+          ${row('Cơ quan BH', doc.coQuanBanHanh)}
+          ${row('Nhiệm kỳ', getTermRaw(doc) || '---')}
+        </tbody></table>
       </div>
       <div class="col-md-6">
         <h6 class="border-bottom pb-2 mb-3">Thông tin bổ sung</h6>
-        <table class="table table-bordered table-sm">
-          <tbody>
-            ${createRow('Người ký', doc.nguoiKy)}
-            ${createRow('Người thảo', doc.nguoiThaoVanBan)}
-            ${createRow('Ngày tạo', formatDateForDisplay(doc.thoiGianTao))}
-            ${createRow('Cập nhật', formatDateForDisplay(doc.thoiGianCapNhat))}
-            ${createRow('Ghi chú', doc.ghiChu)}
-          </tbody>
-        </table>
+        <table class="table table-bordered table-sm"><tbody>
+          ${row('Người ký', doc.nguoiKy)}
+          ${row('Người thảo', doc.nguoiThaoVanBan)}
+          ${row('Ngày tạo', formatDateForDisplay(doc.thoiGianTao))}
+          ${row('Cập nhật', formatDateForDisplay(doc.thoiGianCapNhat))}
+          ${row('Ghi chú', doc.ghiChu)}
+        </tbody></table>
       </div>
     </div>
     <hr><h6 class="mb-3">Tệp đính kèm</h6><div>${filesHtml}</div>
@@ -368,135 +406,125 @@ function showDocumentDetail(stt) {
   new bootstrap.Modal(document.getElementById('detailModal')).show();
 }
 
-/* ====== HÀM IN ====== */
-function printFilteredData() {
-  const filteredData = dataTable.rows({ search: 'applied' }).data().toArray();
-  if (filteredData.length === 0) {
+/* ===== In ===== */
+function printFilteredData(){
+  const filtered = dataTable.rows({ search:'applied' }).data().toArray();
+  if (!filtered.length){
     Swal.fire('Không có dữ liệu', 'Không có dữ liệu nào để in theo bộ lọc hiện tại.', 'warning');
     return;
   }
-
-  // Sắp xếp theo Số hiệu (asc), rồi Ngày ban hành (asc)
-  filteredData.sort((a, b) => {
-    if (a.soHieu && b.soHieu) {
-      const cmp = a.soHieu.localeCompare(b.soHieu, 'vi', { numeric: true });
+  filtered.sort((a,b)=>{
+    if (a.soHieu && b.soHieu){
+      const cmp = a.soHieu.localeCompare(b.soHieu, 'vi', { numeric:true });
       if (cmp !== 0) return cmp;
     }
-    const dateA = a.ngayBanHanh ? new Date(a.ngayBanHanh) : new Date(0);
-    const dateB = b.ngayBanHanh ? new Date(b.ngayBanHanh) : new Date(0);
-    return dateA.getTime() - dateB.getTime();
+    const da = a.ngayBanHanh ? new Date(a.ngayBanHanh) : new Date(0);
+    const db = b.ngayBanHanh ? new Date(b.ngayBanHanh) : new Date(0);
+    return da.getTime() - db.getTime();
   });
 
-  let tableContent = '';
-  filteredData.forEach((item, idx) => {
-    tableContent += `
+  let rows = '';
+  filtered.forEach((it, i)=>{
+    rows += `
       <tr>
-        <td>${idx + 1}</td>
-        <td>${item.soHieu || ''}</td>
-        <td>${item.trichYeu || ''}</td>
-        <td>${formatDateForDisplay(item.ngayBanHanh)}</td>
-        <td>${item.coQuanBanHanh || ''}</td>
-        <td>${item.ghiChu || ''}</td>
+        <td>${i+1}</td>
+        <td>${it.soHieu || ''}</td>
+        <td>${it.trichYeu || ''}</td>
+        <td>${formatDateForDisplay(it.ngayBanHanh)}</td>
+        <td>${it.coQuanBanHanh || ''}</td>
+        <td>${it.ghiChu || ''}</td>
       </tr>`;
   });
 
-  const printWindow = window.open('', '_blank');
-  printWindow.document.write(`
-    <html>
-    <head>
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head>
       <title>Danh sách văn bản</title>
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
       <style>
-        @page { size: A4; margin: 16mm; }
-        body { font-family: "Times New Roman", Times, serif; }
-        h1, h2 { text-align: center; margin: 0; }
-        h1 { font-size: 20pt; font-weight: 700; }
-        h2 { font-size: 14pt; margin-top: 6px; margin-bottom: 14px; }
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th, td { border: 1px solid #000; padding: 6px 8px; vertical-align: top; }
-        thead th { background: #f2f2f2; font-weight: 700; }
-        th, td { white-space: normal; word-break: break-word; overflow-wrap: anywhere; }
+        @page { size:A4; margin:16mm; }
+        body { font-family:"Times New Roman", Times, serif; }
+        h1,h2 { text-align:center; margin:0; }
+        h1 { font-size:20pt; font-weight:700; }
+        h2 { font-size:14pt; margin-top:6px; margin-bottom:14px; }
+        table { width:100%; border-collapse:collapse; table-layout:fixed; }
+        th,td { border:1px solid #000; padding:6px 8px; vertical-align:top; }
+        thead th { background:#f2f2f2; font-weight:700; }
+        th,td { white-space:normal; word-break:break-word; overflow-wrap:anywhere; }
       </style>
-    </head>
-    <body>
+    </head><body>
       <h1>SỔ THEO DÕI CÔNG VĂN</h1>
       <h2>Chi bộ Trạm thủy nông Ninh Hải</h2>
       <table class="table table-bordered">
         <colgroup>
-          <col style="width:3%">
-          <col style="width:8%">
-          <col style="width:35%">
-          <col style="width:8%">
-          <col style="width:28%">
-          <col style="width:18%">
+          <col style="width:3%"><col style="width:8%"><col style="width:35%">
+          <col style="width:8%"><col style="width:28%"><col style="width:18%">
         </colgroup>
-        <thead>
-          <tr>
-            <th>STT</th>
-            <th>Số hiệu</th>
-            <th>Trích yếu</th>
-            <th>Ngày ban hành</th>
-            <th>Cơ quan ban hành</th>
-            <th>Ghi chú</th>
-          </tr>
-        </thead>
-        <tbody>${tableContent}</tbody>
+        <thead><tr>
+          <th>STT</th><th>Số hiệu</th><th>Trích yếu</th><th>Ngày ban hành</th><th>Cơ quan ban hành</th><th>Ghi chú</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
       </table>
-    </body>
-    </html>
+    </body></html>
   `);
-  printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => { try { printWindow.print(); } catch (e) {} }, 300);
+  w.document.close();
+  w.focus();
+  setTimeout(function(){ try{ w.print(); }catch(e){} }, 300);
 }
 
-/* ====== TIỆN ÍCH ====== */
-function showLoading() { $('#loading-indicator').removeClass('d-none'); $('#error-alert, #data-container').addClass('d-none'); }
-function showError(msg) { $('#loading-indicator, #data-container').addClass('d-none'); $('#error-message').text(msg); $('#error-alert').removeClass('d-none'); }
-function showDataContainer() { $('#loading-indicator, #error-alert').addClass('d-none'); $('#data-container').removeClass('d-none'); }
-function updateCurrentDate() { $('#current-date').text(new Date().toLocaleDateString('vi-VN', { weekday: 'long', ...CONFIG.DATE_FORMAT_OPTIONS })); }
-function formatDateForDisplay(d) { if (!d) return ''; try { const dt = new Date(d); return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('vi-VN', CONFIG.DATE_FORMAT_OPTIONS); } catch (e) { return d; } }
+/* ===== UI utils ===== */
+function showLoading(){ $('#loading-indicator').removeClass('d-none'); $('#error-alert,#data-container').addClass('d-none'); }
+function showError(msg){ $('#loading-indicator,#data-container').addClass('d-none'); $('#error-message').text(msg); $('#error-alert').removeClass('d-none'); }
+function showDataContainer(){ $('#loading-indicator,#error-alert').addClass('d-none'); $('#data-container').removeClass('d-none'); }
+function updateCurrentDate(){
+  var opts = Object.assign({ weekday:'long' }, CONFIG.DATE_FORMAT_OPTIONS);
+  $('#current-date').text(new Date().toLocaleDateString('vi-VN', opts));
+}
+function formatDateForDisplay(d){
+  if (!d) return '';
+  const dt = new Date(d);
+  return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('vi-VN', CONFIG.DATE_FORMAT_OPTIONS);
+}
 
-function updateStatistics(data) {
+/* ===== Thống kê ===== */
+function updateStatistics(data){
   const container = $('#stats-container');
   container.empty();
-  const typeCounts = data.reduce((acc, item) => {
-    if (item.loaiVanBan) {
-      const type = item.loaiVanBan.trim();
-      acc[type] = (acc[type] || 0) + 1;
+
+  const totalHtml = `
+    <div class="col-xl-3 col-md-6">
+      <div class="stat-card-item" style="border-left:4px solid #0d6efd;">
+        <div class="icon bg-primary"><i class="fas fa-file-alt fa-fw"></i></div>
+        <div class="stat-info">
+          <div class="stat-number">${(data || []).length.toLocaleString('vi-VN')}</div>
+          <div class="stat-label">Tổng văn bản</div>
+        </div>
+      </div>
+    </div>`;
+  container.append(totalHtml);
+
+  const typeCounts = (data || []).reduce((acc, it)=>{
+    if (it.loaiVanBan){
+      const t = String(it.loaiVanBan).trim();
+      acc[t] = (acc[t] || 0) + 1;
     }
     return acc;
   }, {});
-  const sortedTypes = Object.keys(typeCounts).sort();
-  const totalHtml = `
-      <div class="col-xl-3 col-md-6">
-          <div class="stat-card-item" style="border-left: 4px solid #0d6efd;">
-              <div class="icon bg-primary"><i class="fas fa-file-alt fa-fw"></i></div>
-              <div class="stat-info">
-                  <div class="stat-number">${data.length.toLocaleString('vi-VN')}</div>
-                  <div class="stat-label">Tổng văn bản</div>
-              </div>
-          </div>
-      </div>
-  `;
-  container.append(totalHtml);
-  sortedTypes.forEach((type, index) => {
+  Object.keys(typeCounts).sort().forEach((type, idx)=>{
     const count = typeCounts[type];
-    const color = STAT_COLORS[(index + 1) % STAT_COLORS.length];
-    const icon = STAT_ICONS[(index + 1) % STAT_ICONS.length];
-    
-    const cardHtml = `
-        <div class="col-xl-3 col-md-6">
-            <div class="stat-card-item" style="border-left: 4px solid var(--bs-${color});">
-                <div class="icon bg-${color}"><i class="fas ${icon} fa-fw"></i></div>
-                <div class="stat-info">
-                    <div class="stat-number">${count.toLocaleString('vi-VN')}</div>
-                    <div class="stat-label">${type}</div>
-                </div>
-            </div>
+    const color = STAT_COLORS[(idx+1)%STAT_COLORS.length];
+    const icon  = STAT_ICONS[(idx+1)%STAT_ICONS.length];
+    container.append(`
+      <div class="col-xl-3 col-md-6">
+        <div class="stat-card-item" style="border-left:4px solid var(--bs-${color});">
+          <div class="icon bg-${color}"><i class="fas ${icon} fa-fw"></i></div>
+          <div class="stat-info">
+            <div class="stat-number">${count.toLocaleString('vi-VN')}</div>
+            <div class="stat-label">${type}</div>
+          </div>
         </div>
-    `;
-    container.append(cardHtml);
+      </div>
+    `);
   });
 }
 </script>
