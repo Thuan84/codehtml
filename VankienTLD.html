@@ -69,11 +69,12 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
       <!-- Filter Section -->
       <section class="filter-section p-3 mb-4">
         <div class="row g-3 align-items-end">
-          <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-doc-type" class="form-label fw-bold small">Loại văn bản</label><select id="filter-doc-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
-          <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-material-type" class="form-label fw-bold small">Loại tài liệu</label><select id="filter-material-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
-          <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-dispatch-type" class="form-label fw-bold small">Loại công văn</label><select id="filter-dispatch-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
-          <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-agency" class="form-label fw-bold small">Cơ quan BH</label><select id="filter-agency" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
-          <div class="col-xl-2 col-lg-4 col-md-6"><label for="filter-year" class="form-label fw-bold small">Năm ban hành</label><select id="filter-year" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
+          <div class="col-xl-2 col-lg-3 col-md-6"><label for="filter-doc-type" class="form-label fw-bold small">Loại văn bản</label><select id="filter-doc-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
+          <div class="col-xl-2 col-lg-3 col-md-6"><label for="filter-material-type" class="form-label fw-bold small">Loại tài liệu</label><select id="filter-material-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
+          <div class="col-xl-2 col-lg-3 col-md-6"><label for="filter-dispatch-type" class="form-label fw-bold small">Loại công văn</label><select id="filter-dispatch-type" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
+          <div class="col-xl-2 col-lg-3 col-md-6"><label for="filter-agency" class="form-label fw-bold small">Cơ quan BH</label><select id="filter-agency" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
+          <div class="col-xl-2 col-lg-3 col-md-6"><label for="filter-term" class="form-label fw-bold small">Nhiệm kỳ</label><select id="filter-term" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
+          <div class="col-xl-2 col-lg-3 col-md-6"><label for="filter-year" class="form-label fw-bold small">Năm ban hành</label><select id="filter-year" class="form-select form-select-sm"><option value="" selected>Tất cả</option></select></div>
           <div class="col-xl-3 col-lg-6 col-md-6"><label class="form-label fw-bold small">Ngày ban hành (Từ - Đến)</label><div class="input-group input-group-sm"><input type="date" id="filter-start-date" class="form-control"><input type="date" id="filter-end-date" class="form-control"></div></div>
           <div class="col-xl-1 col-lg-2 col-md-12"><button id="reset-filter-btn" class="btn btn-sm btn-outline-secondary w-100" title="Xóa bộ lọc"><i class="fas fa-times me-1 me-lg-0"></i><span class="d-lg-none ms-1"> Đặt lại</span></button></div>
         </div>
@@ -91,6 +92,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
                       <th>Trích yếu</th>
                       <th>Ngày ban hành</th>
                       <th>Cơ quan BH</th>
+                      <th>Nhiệm kỳ</th>
                       <th>Ghi chú</th>
                       <th class="text-center" title="Hành động"><i class="fas fa-tools"></i></th>
                   </tr>
@@ -142,7 +144,7 @@ $(document).ready(function() {
 function setupEventListeners() {
   $('#refresh-btn, #retry-btn').on('click', () => loadData(true));
   $('#search-input').on('keyup', function() { dataTable.search(this.value).draw(); });
-  $('#filter-doc-type, #filter-agency, #filter-material-type, #filter-dispatch-type, #filter-year, #filter-start-date, #filter-end-date').on('change', applyFilters);
+  $('#filter-doc-type, #filter-agency, #filter-material-type, #filter-dispatch-type, #filter-term, #filter-year, #filter-start-date, #filter-end-date').on('change', applyFilters);
   $('#reset-filter-btn').on('click', resetFilters);
   $('#print-btn').on('click', printFilteredData);
   $('#data-table tbody').on('click', 'button.view-detail', function() { showDocumentDetail($(this).data('id')); });
@@ -154,10 +156,11 @@ function initializeDataTable() {
     columns: [
       { data: null, width: '5%' }, // STT
       { data: 'soHieu', width: '12%' },
-      { data: 'trichYeu', width: '35%' },
-      { data: 'ngayBanHanh', width: '12%' },
+      { data: 'trichYeu', width: '30%' },
+      { data: 'ngayBanHanh', width: '10%' },
       { data: 'coQuanBanHanh', width: '15%' },
-      { data: 'ghiChu', width: '16%' },
+      { data: null, width: '8%' }, // Nhiệm kỳ
+      { data: 'ghiChu', width: '15%' },
       { data: 'stt', width: '5%' }
     ],
     columnDefs: [
@@ -183,9 +186,18 @@ function initializeDataTable() {
         }
       },
       { targets: 4, orderable: true }, // Cơ quan BH
-      { targets: 5, orderable: false }, // Ghi chú
       {
-        targets: 6, 
+        targets: 5, // Nhiệm kỳ
+        className: 'text-center',
+        render: function(data, type, row) {
+          // Tìm nhiệm kỳ từ các trường có thể có
+          const term = row.nhiemKy || row.NhiemKy || row.nhiem_ky || '';
+          return term || '---';
+        }
+      },
+      { targets: 6, orderable: false }, // Ghi chú
+      {
+        targets: 7, 
         orderable: false, 
         className: 'text-center action-buttons',
         render: function(data, type, row) {
@@ -236,6 +248,7 @@ function applyFilters() {
   const agency = $('#filter-agency').val();
   const materialType = $('#filter-material-type').val();
   const dispatchType = $('#filter-dispatch-type').val();
+  const selectedTerm = $('#filter-term').val();
   const selectedYear = $('#filter-year').val();
   const startDate = $('#filter-start-date').val() ? new Date($('#filter-start-date').val()) : null;
   const endDate = $('#filter-end-date').val() ? new Date($('#filter-end-date').val()) : null;
@@ -244,10 +257,13 @@ function applyFilters() {
 
   const filteredData = allData.filter(item => {
     const itemDate = item.ngayBanHanh ? new Date(item.ngayBanHanh) : null;
+    const itemTerm = item.nhiemKy || item.NhiemKy || item.nhiem_ky || '';
+    
     if (docType && item.loaiVanBan !== docType) return false;
     if (agency && item.coQuanBanHanh !== agency) return false;
     if (materialType && item.loaiTaiLieu !== materialType) return false;
     if (dispatchType && item.loaiCongVan !== dispatchType) return false;
+    if (selectedTerm && itemTerm !== selectedTerm) return false;
     
     if (selectedYear && (!itemDate || itemDate.getFullYear().toString() !== selectedYear)) return false;
     if (startDate && (!itemDate || itemDate < startDate)) return false;
@@ -269,13 +285,20 @@ function resetFilters() {
 }
 
 function populateFilters(data) {
-  const docTypes = new Set(), agencies = new Set(), materialTypes = new Set(), dispatchTypes = new Set(), years = new Set();
+  const docTypes = new Set(), agencies = new Set(), materialTypes = new Set(), 
+        dispatchTypes = new Set(), terms = new Set(), years = new Set();
 
   data.forEach(item => {
     if (item.loaiVanBan) docTypes.add(item.loaiVanBan);
     if (item.coQuanBanHanh) agencies.add(item.coQuanBanHanh);
     if (item.loaiTaiLieu) materialTypes.add(item.loaiTaiLieu);
     if (item.loaiCongVan) dispatchTypes.add(item.loaiCongVan);
+    
+    // Thêm nhiệm kỳ vào Set (kiểm tra các tên trường có thể có)
+    const term = item.nhiemKy || item.NhiemKy || item.nhiem_ky;
+    if (term && term.trim()) {
+      terms.add(term.trim());
+    }
 
     if (item.ngayBanHanh) {
       try {
@@ -293,6 +316,7 @@ function populateFilters(data) {
   populateSelect('#filter-agency', [...agencies].sort());
   populateSelect('#filter-material-type', [...materialTypes].sort());
   populateSelect('#filter-dispatch-type', [...dispatchTypes].sort());
+  populateSelect('#filter-term', [...terms].sort());
   populateSelect('#filter-year', filteredYears);
 }
 
@@ -366,6 +390,7 @@ function printFilteredData() {
 
   let tableContent = '';
   filteredData.forEach((item, idx) => {
+    const term = item.nhiemKy || item.NhiemKy || item.nhiem_ky || '';
     tableContent += `
       <tr>
         <td>${idx + 1}</td>
@@ -373,6 +398,7 @@ function printFilteredData() {
         <td>${item.trichYeu || ''}</td>
         <td>${formatDateForDisplay(item.ngayBanHanh)}</td>
         <td>${item.coQuanBanHanh || ''}</td>
+        <td>${term}</td>
         <td>${item.ghiChu || ''}</td>
       </tr>`;
   });
@@ -406,82 +432,12 @@ function printFilteredData() {
         <colgroup>
           <col style="width:3%">
           <col style="width:8%">
-          <col style="width:35%">
+          <col style="width:30%">
           <col style="width:8%">
-          <col style="width:28%">  <!-- Cơ quan ban hành -->
-          <col style="width:18%">  <!-- Ghi chú -->
+          <col style="width:20%">  <!-- Cơ quan ban hành -->
+          <col style="width:8%">   <!-- Nhiệm kỳ -->
+          <col style="width:23%">  <!-- Ghi chú -->
         </colgroup>
         <thead>
           <tr>
-            <th>STT</th>
-            <th>Số hiệu</th>
-            <th>Trích yếu</th>
-            <th>Ngày ban hành</th>
-            <th>Cơ quan ban hành</th>
-            <th>Ghi chú</th>
-          </tr>
-        </thead>
-        <tbody>${tableContent}</tbody>
-      </table>
-    </body>
-    </html>
-  `);
-
-  printWindow.document.close();
-  printWindow.focus();
-  // Gọi in từ cửa sổ cha (tránh phải nhúng <script> trong chuỗi)
-  setTimeout(() => { try { printWindow.print(); } catch (e) {} }, 300);
-}
-
-/* ====== TIỆN ÍCH ====== */
-function showLoading() { $('#loading-indicator').removeClass('d-none'); $('#error-alert, #data-container').addClass('d-none'); }
-function showError(msg) { $('#loading-indicator, #data-container').addClass('d-none'); $('#error-message').text(msg); $('#error-alert').removeClass('d-none'); }
-function showDataContainer() { $('#loading-indicator, #error-alert').addClass('d-none'); $('#data-container').removeClass('d-none'); }
-function updateCurrentDate() { $('#current-date').text(new Date().toLocaleDateString('vi-VN', { weekday: 'long', ...CONFIG.DATE_FORMAT_OPTIONS })); }
-function formatDateForDisplay(d) { if (!d) return ''; try { const dt = new Date(d); return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('vi-VN', CONFIG.DATE_FORMAT_OPTIONS); } catch (e) { return d; } }
-
-function updateStatistics(data) {
-  const container = $('#stats-container');
-  container.empty();
-  const typeCounts = data.reduce((acc, item) => {
-    if (item.loaiVanBan) {
-      const type = item.loaiVanBan.trim();
-      acc[type] = (acc[type] || 0) + 1;
-    }
-    return acc;
-  }, {});
-  const sortedTypes = Object.keys(typeCounts).sort();
-  const totalHtml = `
-      <div class="col-xl-3 col-md-6">
-          <div class="stat-card-item" style="border-left: 4px solid #0d6efd;">
-              <div class="icon bg-primary"><i class="fas fa-file-alt fa-fw"></i></div>
-              <div class="stat-info">
-                  <div class="stat-number">${data.length.toLocaleString('vi-VN')}</div>
-                  <div class="stat-label">Tổng văn bản</div>
-              </div>
-          </div>
-      </div>
-  `;
-  container.append(totalHtml);
-  sortedTypes.forEach((type, index) => {
-    const count = typeCounts[type];
-    const color = STAT_COLORS[(index + 1) % STAT_COLORS.length];
-    const icon = STAT_ICONS[(index + 1) % STAT_ICONS.length];
-    
-    const cardHtml = `
-        <div class="col-xl-3 col-md-6">
-            <div class="stat-card-item" style="border-left: 4px solid var(--bs-${color});">
-                <div class="icon bg-${color}"><i class="fas ${icon} fa-fw"></i></div>
-                <div class="stat-info">
-                    <div class="stat-number">${count.toLocaleString('vi-VN')}</div>
-                    <div class="stat-label">${type}</div>
-                </div>
-            </div>
-        </div>
-    `;
-    container.append(cardHtml);
-  });
-}
-</script>
-</body>
-</html>
+            <th>STT
