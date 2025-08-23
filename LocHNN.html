@@ -225,6 +225,7 @@
             <th colspan="4">Thông số vận hành tràn sự cố</th>
             <th colspan="3">Thông số vận hành cống lấy nước</th>
             <th rowspan="2" style="min-width:180px">Họ, tên người vận hành</th>
+            <th rowspan="2">Họ, tên người kiểm tra</th>
             <th rowspan="2" style="min-width:140px">Chữ ký</th>
           </tr>
           <tr>
@@ -300,6 +301,7 @@
           <td>${cell(r.cotNuocDauKenh, true)}</td>
           <td>${cell(r.qcong, true)}</td>
           <td class="text-left">${cell(r.nguoiVanHanh)}</td>
+          <td>${row.nguoiKiemTra || ''}</td>
           <td class="text-left"></td>
         </tr>
       `;
