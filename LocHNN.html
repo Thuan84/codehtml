@@ -151,7 +151,12 @@
 
       /* Tránh vỡ hàng */
       tr{ page-break-inside:avoid; page-break-after:auto; }
-    }
+   
+      /* ===== FIX CỘT NGÀY GIỜ KHÔNG XUỐNG DÒNG ===== */
+  th.col-ngaygio, td.col-ngaygio{
+    white-space: nowrap !important;
+  }
+}
 
     @media (min-width:1400px){
       .sheet{ padding-left:40px; padding-right:40px; }
