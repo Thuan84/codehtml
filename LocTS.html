@@ -208,7 +208,7 @@
           <th colspan="2">Thông số vận hành tràn xả lũ số 2</th>
           <th colspan="3">Thông số vận hành cống lấy nước</th>
           <th rowspan="2">Họ, tên người vận hành</th>
-          <th rowspan="2">Họ, tên người kiểm tra</th>
+         
           <th rowspan="2">Chữ ký</th>
         </tr>
         <tr>
@@ -319,7 +319,7 @@
           <td>${formatNum(r.cotNuocDauKenh)}</td>
           <td>${formatNum(r.qCong)}</td>
           <td>${r.nguoiVanHanh || ''}</td>
-          <td>${r.nguoiKiemTra || ''}</td>
+          
           <td></td>
         </tr>`;
       }
@@ -590,8 +590,8 @@
     document.getElementById('export-excel').addEventListener('click', async () => {
       if (!filteredData.length) return alert('Không có dữ liệu để xuất.');
       await loadScript('https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js');
-      const headers = ["STT","Ngày, giờ","Mực nước (m)","Dung tích (Triệu m³)","Lượng mưa (mm)","Htràn 1 (cm)","Qtràn 1 (m³/s)","Htràn 2 (cm)","Qtràn 2 (m³/s)","a (cm)","Cột nước đầu kênh (m)","Qcống (m³/s)","Họ, tên người vận hành","Họ, tên người kiểm tra"];
-      const rows = filteredData.map((r,i)=>[i+1,r.ngayGio||'',r.mucNuoc??'',r.dungTich??'',r.luongMua??'',r.hTran1??'',r.qtran1??'',r.hTran2??'',r.qtran2??'',r.a??'',r.cotNuocDauKenh??'',r.qCong??'',r.nguoiVanHanh||'',r.nguoiKiemTra||'']);
+      const headers = ["STT","Ngày, giờ","Mực nước (m)","Dung tích (Triệu m³)","Lượng mưa (mm)","Htràn 1 (cm)","Qtràn 1 (m³/s)","Htràn 2 (cm)","Qtràn 2 (m³/s)","a (cm)","Cột nước đầu kênh (m)","Qcống (m³/s)","Họ, tên người vận hành"];
+      const rows = filteredData.map((r,i)=>[i+1,r.ngayGio||'',r.mucNuoc??'',r.dungTich??'',r.luongMua??'',r.hTran1??'',r.qtran1??'',r.hTran2??'',r.qtran2??'',r.a??'',r.cotNuocDauKenh??'',r.qCong??'',r.nguoiVanHanh||'']);
       // eslint-disable-next-line no-undef
       const wb = XLSX.utils.book_new();
       // eslint-disable-next-line no-undef
