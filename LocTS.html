@@ -89,12 +89,36 @@
     tbody tr:nth-child(even){ background:#fff; }
     tbody tr:hover{ background:var(--hover-bg); }
 
+    /* tránh xuống dòng cho Ngày/Giờ */
+    .nowrap{ white-space: nowrap; }
+
+    /* ===== Pagination (view chính) ===== */
+    .pager-bar{
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+      margin-top:8px; flex-wrap:wrap;
+    }
+    .pager-left{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .pager-right{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    .pager-info{ font-size:12.5pt; color:#334155; }
+    .pager-select{
+      padding:6px 10px; border:1px solid #d1d5db; border-radius:8px; background:#fff; font-size:12.5pt;
+    }
+    .page-btn{
+      padding:6px 10px; border:1px solid #d1d5db; background:#fff; border-radius:8px; cursor:pointer;
+      min-width:40px; text-align:center; font-size:12.5pt;
+    }
+    .page-btn[disabled]{ opacity:.5; cursor:not-allowed; }
+    .page-btn.active{
+      background: var(--header-bg);
+      color:#000; font-weight:700; border-color:#cbd5e1;
+    }
+
     .status-message{ color:#555; padding:16px; text-align:center; font-style:italic; font-size:14pt; }
     .error-message{ color:#b00020; padding:10px; background:#ffeeee; border:1px solid #ffcccc; margin-top:8px; border-radius:5px; }
 
     @media (max-width: 1500px){ .metrics{ grid-template-columns: 1fr 1fr; } }
 
-    /* ===== PRINT: chỉ tiêu đề + phụ đề + bảng; header nền trắng, chữ đậm ===== */
+    /* ===== PRINT: giữ nguyên, không áp dụng phân trang màn hình ===== */
     @media print {
       @page { size: A4 landscape; margin: 12mm; }
 
@@ -103,6 +127,7 @@
       .charts,
       .error-message,
       .status-message,
+      .pager-bar,
       #toggle-fullscreen,
       #print-page,
       #export-excel { display: none !important; }
@@ -126,8 +151,6 @@
         margin:0 0 6mm 0;
       }
 
-      /* === CHỈNH SỬA THEO YÊU CẦU ===
-         Tiêu đề cột: nền trắng, chữ đen, đậm; bỏ sticky khi in */
       th {
         position: static !important;
         background: #ffffff !important;
@@ -200,7 +223,8 @@
       <thead>
         <tr>
           <th rowspan="2">STT</th>
-          <th rowspan="2">Ngày, giờ</th>
+          <th rowspan="2" class="nowrap">Ngày</th>
+          <th rowspan="2" class="nowrap">Giờ</th>
           <th rowspan="2">Mực nước (m)</th>
           <th rowspan="2">Dung tích (Triệu m³)</th>
           <th rowspan="2">Lượng mưa (mm)</th>
@@ -208,7 +232,6 @@
           <th colspan="2">Thông số vận hành tràn xả lũ số 2</th>
           <th colspan="3">Thông số vận hành cống lấy nước</th>
           <th rowspan="2">Họ, tên người vận hành</th>
-         
           <th rowspan="2">Chữ ký</th>
         </tr>
         <tr>
@@ -222,9 +245,28 @@
         </tr>
       </thead>
       <tbody id="table-body">
-        <tr><td colspan="15"><div class="loader">Đang tải dữ liệu...</div></td></tr>
+        <tr><td colspan="16"><div class="loader">Đang tải dữ liệu...</div></td></tr>
       </tbody>
     </table>
+
+    <!-- Pagination bar (view chính) -->
+    <div class="pager-bar" id="pager-bar" style="display:none;">
+      <div class="pager-left">
+        <span class="pager-info" id="pager-info">—</span>
+      </div>
+      <div class="pager-right">
+        <button class="page-btn" id="btn-prev">«</button>
+        <div id="page-numbers"></div>
+        <button class="page-btn" id="btn-next">»</button>
+        <span style="margin-left:10px;">Hiển thị:</span>
+        <select id="page-size" class="pager-select">
+          <option value="20" selected>20</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+        <span>dòng/trang</span>
+      </div>
+    </div>
 
     <div id="error-message" class="error-message" style="display:none;"></div>
   </div>
@@ -241,6 +283,10 @@
     const cacheByScope = new Map(); // keys: 'all', 'year:YYYY'
     let rainChart = null, waterLevelChart = null, ChartLibLoaded = false;
 
+    // Phân trang (view chính)
+    let pageSize = 20;
+    let currentPage = 1;
+
     /* ================== DOM ================== */
     const yearFilter = document.getElementById('year-filter');
     const quarterFilter = document.getElementById('quarter-filter');
@@ -256,6 +302,14 @@
     const elMax = document.getElementById('m-max');
     const elMaxDate = document.getElementById('m-max-date');
 
+    // DOM phân trang
+    const pagerBar = document.getElementById('pager-bar');
+    const pagerInfo = document.getElementById('pager-info');
+    const pageNumbers = document.getElementById('page-numbers');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const pageSizeSelect = document.getElementById('page-size');
+
     /* ================== UTIL ================== */
     function parseVNDateTime(s){
       if (!s || typeof s !== 'string') return null;
@@ -266,6 +320,9 @@
       const d = new Date(yyyy, mm-1, dd, HH, MM);
       return Number.isNaN(d.getTime()) ? null : d;
     }
+    function pad2(n){ return String(n).padStart(2,'0'); }
+    function formatVNDate(d){ return d ? `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()}` : ''; }
+    function formatVNTime(d){ return d ? `${pad2(d.getHours())}:${pad2(d.getMinutes())}` : ''; }
     function ymd(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
     function formatNum(v, max=3){
       if (v === null || v === undefined || v === '') return '';
@@ -293,21 +350,22 @@
     function showError(message){
       errorDiv.textContent = message;
       errorDiv.style.display = 'block';
-      tableBody.innerHTML = `<tr><td colspan="15" class="status-message">${message}</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="16" class="status-message">${message}</td></tr>`;
     }
 
-    /* ================== TABLE ================== */
-    function renderTable(data){
+    /* ================== TABLE (có phân trang) ================== */
+    function renderTable(data, baseIndex=0){
       if (!Array.isArray(data) || data.length === 0){
-        tableBody.innerHTML = `<tr><td colspan="15" class="status-message">Không có dữ liệu phù hợp với bộ lọc.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="16" class="status-message">Không có dữ liệu phù hợp với bộ lọc.</td></tr>`;
         return;
       }
       let html = '';
       for (let i=0;i<data.length;i++){
         const r = data[i];
         html += `<tr>
-          <td>${i+1}</td>
-          <td>${r.ngayGio || ''}</td>
+          <td>${baseIndex + i + 1}</td>
+          <td class="nowrap">${r._ngay || ''}</td>
+          <td class="nowrap">${r._gio || ''}</td>
           <td>${formatNum(r.mucNuoc)}</td>
           <td>${formatNum(r.dungTich)}</td>
           <td>${formatNum(r.luongMua)}</td>
@@ -319,7 +377,6 @@
           <td>${formatNum(r.cotNuocDauKenh)}</td>
           <td>${formatNum(r.qCong)}</td>
           <td>${r.nguoiVanHanh || ''}</td>
-          
           <td></td>
         </tr>`;
       }
@@ -483,14 +540,24 @@
       for (const r of rows){
         const d = parseVNDateTime(r.ngayGio);
         r._dt = d;
-        if (d){ r._y = d.getFullYear(); r._m = d.getMonth()+1; r._q = Math.floor(d.getMonth()/3)+1; }
-        else { r._y = r._m = r._q = null; }
+        if (d){
+          r._y = d.getFullYear(); r._m = d.getMonth()+1; r._q = Math.floor(d.getMonth()/3)+1;
+          r._ngay = formatVNDate(d);
+          r._gio  = formatVNTime(d);
+        } else {
+          r._y = r._m = r._q = null;
+          if (typeof r.ngayGio === 'string'){
+            const [dp='', tp=''] = r.ngayGio.split(' ');
+            r._ngay = dp; r._gio = tp;
+          } else {
+            r._ngay = ''; r._gio = '';
+          }
+        }
       }
       return rows;
     }
     function scopeKey(y){ return (y === 'all') ? 'all' : `year:${y}`; }
 
-    // Chia sẵn dữ liệu theo năm để đổi Năm không cần gọi API (tăng tốc rõ rệt)
     function indexYearsAndWarmCache(allRows){
       const buckets = new Map();
       for (const r of allRows){
@@ -507,17 +574,14 @@
     async function loadScope(y){
       const key = scopeKey(y);
 
-      // 1) Đã có trong cache -> trả ngay
       if (cacheByScope.has(key)) return cacheByScope.get(key);
 
-      // 2) Nếu đã có 'all' -> cắt nhanh theo năm, không gọi API
       if (cacheByScope.has('all') && y !== 'all') {
         const allRows = cacheByScope.get('all');
         indexYearsAndWarmCache(allRows);
         return cacheByScope.get(key) || [];
       }
 
-      // 3) Nếu chưa có gì: gọi API đúng phạm vi cần
       const url = (y==='all') ? buildApiUrl('all','all','all') : buildApiUrl(y,'all','all');
       if (currentFetchCtrl) currentFetchCtrl.abort();
       currentFetchCtrl = new AbortController();
@@ -527,14 +591,67 @@
       if (!Array.isArray(json)) throw new Error('Dữ liệu trả về không hợp lệ');
       const norm = normalizeRows(json);
 
-      // Cache kết quả
       cacheByScope.set(key, norm);
 
-      // Nếu vừa tải 'all', ấm luôn cache theo năm
       if (y === 'all') indexYearsAndWarmCache(norm);
 
       return norm;
     }
+
+    /* ================== PAGINATION HELPERS ================== */
+    function getTotalPages(){
+      return Math.max(1, Math.ceil(filteredData.length / pageSize));
+    }
+    function clampPage(p){
+      const tp = getTotalPages();
+      return Math.min(Math.max(1, p), tp);
+    }
+    function getPagedSlice(){
+      const tp = getTotalPages();
+      currentPage = clampPage(currentPage);
+      const start = (currentPage-1) * pageSize;
+      const end = Math.min(start + pageSize, filteredData.length);
+      return { start, end, slice: filteredData.slice(start, end), totalPages: tp };
+    }
+    function renderPaginationBar(){
+      const { start, end, totalPages } = getPagedSlice();
+      // Info
+      pagerInfo.textContent = `Trang ${currentPage}/${totalPages} — Hiển thị ${filteredData.length ? (start+1) : 0}–${end} / ${filteredData.length} dòng`;
+      pagerBar.style.display = 'flex';
+
+      // Prev/Next
+      btnPrev.disabled = currentPage <= 1;
+      btnNext.disabled = currentPage >= totalPages;
+
+      // Page numbers: 1..N (đơn giản theo yêu cầu)
+      pageNumbers.innerHTML = '';
+      for (let p=1; p<=totalPages; p++){
+        const b = document.createElement('button');
+        b.className = 'page-btn' + (p===currentPage ? ' active' : '');
+        b.textContent = p;
+        b.addEventListener('click', () => {
+          if (currentPage !== p){
+            currentPage = p;
+            drawTableWithPagination();
+          }
+        });
+        pageNumbers.appendChild(b);
+      }
+    }
+    function drawTableWithPagination(){
+      const { start, slice } = getPagedSlice();
+      renderTable(slice, start);
+      renderPaginationBar();
+    }
+
+    // Events for pagination controls
+    btnPrev.addEventListener('click', () => { currentPage = clampPage(currentPage-1); drawTableWithPagination(); });
+    btnNext.addEventListener('click', () => { currentPage = clampPage(currentPage+1); drawTableWithPagination(); });
+    pageSizeSelect.addEventListener('change', () => {
+      pageSize = parseInt(pageSizeSelect.value, 10) || 20;
+      currentPage = 1;
+      drawTableWithPagination();
+    });
 
     /* ================== APPLY (debounce) ================== */
     let filterTimer = null;
@@ -546,6 +663,7 @@
       if (m !== 'all') q = 'all';
       if (q !== 'all') m = 'all';
       selectedYear = y; selectedQuarter = q; selectedMonth = m;
+      currentPage = 1; // reset trang khi đổi bộ lọc
       fetchAndRender();
     }
     yearFilter.addEventListener('change', scheduleApply);
@@ -556,12 +674,10 @@
     async function fetchAndRender(){
       setSubtitle();
       errorDiv.style.display = 'none';
-      tableBody.innerHTML = `<tr><td colspan="15"><div class="loader">Đang tải dữ liệu...</div></td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="16"><div class="loader">Đang tải dữ liệu...</div></td></tr>`;
       try{
-        // Ưu tiên dùng cache; chỉ fetch khi thật sự cần
         const scopeData = await loadScope(selectedYear);
 
-        // Lần đầu có 'all' -> lưu allData và dựng dropdown năm
         if (!allData.length && cacheByScope.has('all')) {
           allData = cacheByScope.get('all');
           populateYearFilter(allData);
@@ -574,10 +690,9 @@
 
         filteredData = clientFilter(scopeData);
 
-        // Ưu tiên render bảng trước để cảm nhận nhanh; chart tính sau
-        renderTable(filteredData);
+        // Bảng: dùng phân trang; KPI + Biểu đồ vẫn dựa trên filteredData (toàn bộ kỳ)
+        drawTableWithPagination();
         renderRainStats();
-        // Nhường 1 frame cho DOM rồi mới vẽ chart (mượt hơn)
         requestAnimationFrame(()=> setTimeout(updateCharts, 0));
       }catch(err){
         if (err.name === 'AbortError') return;
@@ -590,8 +705,16 @@
     document.getElementById('export-excel').addEventListener('click', async () => {
       if (!filteredData.length) return alert('Không có dữ liệu để xuất.');
       await loadScript('https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js');
-      const headers = ["STT","Ngày, giờ","Mực nước (m)","Dung tích (Triệu m³)","Lượng mưa (mm)","Htràn 1 (cm)","Qtràn 1 (m³/s)","Htràn 2 (cm)","Qtràn 2 (m³/s)","a (cm)","Cột nước đầu kênh (m)","Qcống (m³/s)","Họ, tên người vận hành"];
-      const rows = filteredData.map((r,i)=>[i+1,r.ngayGio||'',r.mucNuoc??'',r.dungTich??'',r.luongMua??'',r.hTran1??'',r.qtran1??'',r.hTran2??'',r.qtran2??'',r.a??'',r.cotNuocDauKenh??'',r.qCong??'',r.nguoiVanHanh||'']);
+      const headers = [
+        "STT","Ngày","Giờ","Mực nước (m)","Dung tích (Triệu m³)","Lượng mưa (mm)",
+        "Htràn 1 (cm)","Qtràn 1 (m³/s)","Htràn 2 (cm)","Qtràn 2 (m³/s)",
+        "a (cm)","Cột nước đầu kênh (m)","Qcống (m³/s)","Họ, tên người vận hành"
+      ];
+      const rows = filteredData.map((r,i)=>[
+        i+1, r._ngay||'', r._gio||'', r.mucNuoc??'', r.dungTich??'', r.luongMua??'',
+        r.hTran1??'', r.qtran1??'', r.hTran2??'', r.qtran2??'',
+        r.a??'', r.cotNuocDauKenh??'', r.qCong??'', r.nguoiVanHanh||''
+      ]);
       // eslint-disable-next-line no-undef
       const wb = XLSX.utils.book_new();
       // eslint-disable-next-line no-undef
@@ -640,6 +763,9 @@
       yearFilter.value = 'all';
       quarterFilter.value = 'all';
       monthFilter.value = 'all';
+      pageSizeSelect.value = '20';
+      pageSize = 20;
+      currentPage = 1;
       fetchAndRender();
     })();
   </script>
