@@ -5,179 +5,141 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nhật ký vận hành hồ chứa nước ngọt</title>
 
-  <!-- Excel + Chart (giữ để xem trên màn hình) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
+  <!-- @page động cho in dọc/ngang -->
+  <style id="printStyle"></style>
+
   <style>
-    :root{
-      --ink:#0f172a;
-      --muted:#64748b;
-      --brand:#1EA48D;
-      --line:#1EA48D;
-      --bg:#ffffff;
-      --radius:12px;
-    }
+    :root{ --ink:#0f172a; --muted:#64748b; --brand:#1EA48D; --line:#1EA48D; --bg:#ffffff; --radius:12px; }
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
-    body{ margin:0; font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif; color:var(--ink); background:var(--bg); }
+    body{ margin:0; font-family: Inter,"Segoe UI",Roboto,Arial,sans-serif; color:var(--ink); background:#fff; }
 
     /* Toolbar */
-    .toolbar{
-      position:sticky; top:0; z-index:20;
-      display:flex; gap:10px; align-items:center;
-      padding:10px 16px; background:#fff;
-      border-bottom:1px solid #e5e7eb;
-    }
+    .toolbar{ position:sticky; top:0; z-index:20; display:flex; gap:10px; align-items:center;
+      padding:10px 16px; background:#fff; border-bottom:1px solid #e5e7eb; }
     .brand{ display:flex; align-items:center; gap:10px; font-weight:800; }
     .dot{ width:10px; height:10px; border-radius:50%; background:var(--brand); box-shadow:0 0 0 3px rgba(30,164,141,.15); }
     .spacer{ flex:1; }
-    .btn{
-      appearance:none; border-radius:10px; padding:8px 14px; font-weight:700; cursor:pointer;
-      border:1px solid #e5e7eb; background:#fff; transition: all .15s ease;
-    }
-    .btn:hover{ transform: translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.06); }
-    .btn:active{ transform: translateY(0); }
+    .btn{ appearance:none; border-radius:10px; padding:8px 14px; font-weight:700; cursor:pointer;
+      border:1px solid #e5e7eb; background:#fff; transition:.15s; }
+    .btn:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.06); }
     .btn.primary{ background:var(--brand); color:#fff; border-color:var(--brand); }
 
-    /* ===== VIEW PC FULL-WIDTH ===== */
-    .sheet{
-      width:100%;
-      min-height: calc(100vh - 56px);
-      margin:0;
-      padding:24px 20px;
-      background:#fff;
+    /* === NÚT: tô nền màu === */
+    #btnExcel{
+      background:#22c55e; color:#fff; border-color:#22c55e;
     }
+    #btnExcel:hover{ filter:brightness(.95); }
+    #btnPortrait{
+      background:#2563eb; color:#fff; border-color:#2563eb;
+    }
+    #btnPortrait:hover{ filter:brightness(.95); }
+    #btnLandscape{
+      background:#8b5cf6; color:#fff; border-color:#8b5cf6;
+    }
+    #btnLandscape:hover{ filter:brightness(.95); }
 
-    h1{ margin:0 0 6px 0; text-align:center; font-size:22pt; line-height:1.25; font-weight:900; color:#0b1b23; }
+    .sheet{ width:100%; min-height:calc(100vh - 56px); padding:24px 20px; background:#fff; }
+
+    h1{ margin:0 0 6px; text-align:center; font-size:22pt; line-height:1.25; font-weight:900; color:#0b1b23; }
     .subhead{ text-align:center; font-size:12pt; color:var(--muted); margin-bottom:12px; }
 
     /* Filters */
-    .filters{
-      display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center;
-      border:1px solid var(--brand); border-radius:12px;
-      padding:10px 12px; background:#f5fffb; margin-bottom:12px;
-    }
+    .filters{ display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center;
+      border:1px solid var(--brand); border-radius:12px; padding:10px 12px; background:#f5fffb; margin-bottom:12px; }
     .filters .label{ font-weight:700; color:#0b1b23; }
-    .filters select{
-      appearance:none; padding:8px 10px; border:1px solid var(--brand); border-radius:10px; background:#fff;
-      min-width:140px; font-weight:600; color:#0b1b23;
-    }
+    .filters select{ appearance:none; padding:8px 10px; border:1px solid var(--brand); border-radius:10px; background:#fff;
+      min-width:140px; font-weight:600; color:#0b1b23; }
 
-    /* Charts */
-    .charts{
-      display:grid;
-      grid-template-columns: 2fr 1.2fr;
-      gap:16px; margin-bottom:14px;
-    }
-    .card{ border:1px solid var(--brand); border-radius:14px; background:#fff; padding:12px; }
+    /* KPI */
+    .kpis{ display:grid; gap:12px; grid-template-columns: repeat(6, minmax(140px,1fr)); margin:12px 0 14px; }
+    .kpi{ border:1px solid #e5e7eb; border-radius:14px; padding:12px 12px 10px; background:#fff; position:relative; overflow:hidden; }
+    .kpi::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:6px;
+      background:linear-gradient(90deg, var(--brand), #3b82f6, #a855f7); }
+    .kpi .t{ font-size:12px; color:#475569; margin-bottom:6px; font-weight:600; }
+    .kpi .v{ font-size:18px; font-weight:800; color:#0b1b23; }
+    .kpi .s{ font-size:12px; color:#64748b; }
+
+    /* === KPI: tô nền pastel từng thẻ + gạch chân đồng bộ === */
+    .kpis .kpi{ border:1px solid transparent; }
+    .kpis .kpi::after{ background:transparent; }
+    .kpis .kpi:nth-child(1){ background:#EAFBF2; border-color:#BFEED7; }
+    .kpis .kpi:nth-child(1)::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:6px; background:#22c55e; }
+    .kpis .kpi:nth-child(2){ background:#ECF3FF; border-color:#D4E2FF; }
+    .kpis .kpi:nth-child(2)::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:6px; background:#3b82f6; }
+    .kpis .kpi:nth-child(3){ background:#FFF6E9; border-color:#FFE3BD; }
+    .kpis .kpi:nth-child(3)::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:6px; background:#f59e0b; }
+    .kpis .kpi:nth-child(4){ background:#FFEAF4; border-color:#FFD1E6; }
+    .kpis .kpi:nth-child(4)::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:6px; background:#ec4899; }
+    .kpis .kpi:nth-child(5){ background:#EEF2FF; border-color:#D9DDFC; }
+    .kpis .kpi:nth-child(5)::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:6px; background:#6366f1; }
+    .kpis .kpi:nth-child(6){ background:#EAFDFF; border-color:#CFF6FA; }
+    .kpis .kpi:nth-child(6)::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:6px; background:#06b6d4; }
+
+    /* Charts – chia đều 1–1, cao bằng nhau */
+    .charts{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:14px; align-items:stretch; }
+    .card{ border:1px solid var(--brand); border-radius:14px; background:#fff; padding:12px; display:flex; flex-direction:column; }
     .card h3{ margin:0 0 10px; font-size:14pt; color:#0b1b23; }
+    .chart-box{ position:relative; height: clamp(260px, 32vh, 360px); }
+    .chart-box canvas{ position:absolute; inset:0; width:100% !important; height:100% !important; }
 
-    /* Rain stats pills */
-    .stats{ display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 10px; }
-    .stat{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:6px 10px; border:1px solid var(--brand); border-radius:999px;
-      background:#f5fffb; font-weight:700;
-    }
-    .stat .k{ color:var(--muted); font-weight:600; }
-    .stat .v{ color:#0b1b23; }
-
-    /* Table */
-    .table-wrap{ border-radius:14px; overflow:hidden; border:1px solid var(--line); }
-    table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; font-size:11pt; background:#fff; }
-
-    /* Kẻ khung riêng cho 2 hàng tiêu đề (màn hình) */
-    thead th{
-      background:var(--brand); color:#fff; font-weight:800; padding:10px 8px; border-right:1px solid var(--line);
-      -webkit-print-color-adjust: exact; print-color-adjust: exact;
-    }
-    thead tr th:last-child{ border-right:0; }
-    thead tr:first-child th{ border-top:2px solid var(--brand); }
-    thead tr:last-child  th{ border-bottom:2px solid var(--brand); }
-    thead tr th:first-child{ border-left:2px solid var(--brand); }
-    thead tr th:last-child { border-right:2px solid var(--brand); }
-    thead tr:first-child th:first-child { border-top-left-radius: var(--radius); }
-    thead tr:first-child th:last-child  { border-top-right-radius: var(--radius); }
-    thead tr:last-child  th:first-child { border-bottom-left-radius: var(--radius); }
-    thead tr:last-child  th:last-child  { border-bottom-right-radius: var(--radius); }
-
-    tbody td{ padding:8px 8px; text-align:center; vertical-align:middle; border-right:1px solid var(--line); border-bottom:1px solid var(--line); }
-    tbody tr td:last-child{ border-right:0; }
+    /* Bảng – kẻ khung rõ ràng (màn hình) */
+    .table-wrap{ border-radius:14px; overflow:hidden; }
+    table{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:11pt; background:#fff; border:2px solid var(--line); }
+    thead th{ background:var(--brand); color:#fff; font-weight:800; padding:10px 8px; border:1px solid var(--line); }
+    tbody td{ padding:8px 8px; text-align:center; vertical-align:middle; border:1px solid var(--line); }
     tbody tr:nth-child(even){ background:#fcfffe; }
     tbody tr:hover{ background:#f2fbf8; }
     .state{ text-align:center; padding:24px; color:#64748b; font-style:italic; }
 
-    /* ===== IN: A4 LANDSCAPE ===== */
-    @media print{
-      @page{ size: A4 landscape; margin:8mm; }
+    th.col-ngay, td.col-ngay{ white-space:nowrap; }
+    th.col-gio,  td.col-gio { white-space:nowrap; }
 
-      .toolbar,
-      .filters,
-      .charts { display:none !important; } /* Ẩn khi in */
-
-      body{ background:#fff; }
-      .sheet{ width: 297mm; min-height: 210mm; margin:0; padding:0; }
-
-      table{
-        font-size: 10pt;           /* thu nhỏ chữ để vừa cột */
-        table-layout: fixed;       /* giữ kích thước cột cố định */
-        width:100%;
-      }
-
-      thead th, tbody td{
-        padding:4px 6px;           /* giảm padding khi in */
-        word-wrap: break-word;     /* xuống dòng khi chữ dài */
-        white-space: normal;
-      }
-
-      /* ======= TIÊU ĐỀ CỘT KHI IN: NỀN TRẮNG + CHỮ ĐẬM ======= */
-      thead th{
-        background:#ffffff !important;
-        color:#000000 !important;
-        font-weight:800 !important;
-        border:1px solid #000 !important;
-      }
-      thead tr:first-child th{ border-top-width:2px !important; }
-      thead tr:last-child  th{ border-bottom-width:2px !important; }
-
-      /* Căn giữa số, căn trái chữ */
-      tbody td{ text-align: center; }
-      tbody td.text-left{ text-align: left; }
-
-      /* Lặp header giữa các trang */
-      thead{ display:table-header-group; }
-      tfoot{ display:table-footer-group; }
-
-      /* Tránh vỡ hàng */
-      tr{ page-break-inside:avoid; page-break-after:auto; }
-   
-      /* ===== FIX CỘT NGÀY GIỜ KHÔNG XUỐNG DÒNG ===== */
-  th.col-ngaygio, td.col-ngaygio{
-    white-space: nowrap !important;
-  }
-}
-
-    @media (min-width:1400px){
-      .sheet{ padding-left:40px; padding-right:40px; }
+    /* Phân trang */
+    .pager{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin:14px 0 4px; }
+    .page-btn{
+      min-width:40px; padding:6px 10px; border:1px solid #cbd5e1; background:#fff; border-radius:10px;
+      font-weight:700; color:#0b1b23; cursor:pointer;
     }
+    .page-btn:hover{ border-color:var(--brand); box-shadow:0 2px 8px rgba(0,0,0,.06); }
+    .page-btn.active{ background:var(--brand); color:#fff; border-color:var(--brand); }
+
+    /* ===== PRINT ===== */
+    @media print{
+      .toolbar, .filters, .charts, .kpis, .pager { display:none !important; }
+      /* lưới rõ ràng khi in */
+      table{ border:1.2px solid #000; }
+      thead th, tbody td{ border:1px solid #000 !important; padding:4px 6px; word-wrap:break-word; white-space:normal; }
+      thead th{ background:#fff !important; color:#000 !important; font-weight:800 !important; }
+      th.col-ngay, td.col-ngay, th.col-gio, td.col-gio{ white-space:nowrap !important; }
+      tr{ page-break-inside:avoid; page-break-after:auto; }
+      col.cw-day  { width:28mm; }  col.cw-time { width:18mm; }
+    }
+
+    /* width cột trên màn hình */
+    col.cw-day  { width:120px; }
+    col.cw-time { width:80px; }
+
+    @media (min-width:1400px){ .sheet{ padding-left:40px; padding-right:40px; } }
   </style>
 </head>
 <body>
   <div class="toolbar">
     <div class="brand"><span class="dot"></span>Nhật ký vận hành – Hồ Nước Ngọt</div>
     <div class="spacer"></div>
-    <button class="btn" onclick="window.print()">In</button>
-    <!-- BỎ NÚT PDF -->
     <button class="btn" id="btnExcel">Xuất Excel</button>
-    
+    <button class="btn" id="btnPortrait">In dọc</button>
+    <button class="btn" id="btnLandscape">In ngang</button>
   </div>
 
   <div id="printArea" class="sheet">
     <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</h1>
     <div class="subhead" id="subTitle">Tháng …/…</div>
 
-    <!-- Bộ lọc (chỉ hiển thị màn hình, ẩn khi in) -->
+    <!-- Filters -->
     <div class="filters">
       <span class="label">Bộ lọc:</span>
       <label for="yearSel">Năm</label>
@@ -195,34 +157,41 @@
       <label for="monthSel">Tháng</label>
       <select id="monthSel">
         <option value="all">Tất cả</option>
-        <script>
-          for(let i=1;i<=12;i++){
-            document.write(`<option value="${i}">Tháng ${i}</option>`);
-          }
-        </script>
+        <script>for(let i=1;i<=12;i++) document.write(`<option value="${i}">Tháng ${i}</option>`);</script>
       </select>
     </div>
 
-    <!-- Charts (chỉ hiển thị màn hình, ẩn khi in) -->
+    <!-- KPI -->
+    <div class="kpis">
+      <div class="kpi"><div class="t">Tổng lượng mưa (kỳ lọc) (mm)</div><div class="v" id="kpiTotalRain">0</div></div>
+      <div class="kpi"><div class="t">Ngày có mưa / Tổng ngày</div><div class="v"><span id="kpiRainDays">0</span> / <span id="kpiDays">0</span></div></div>
+      <div class="kpi"><div class="t">TB theo ngày trong kỳ (mm/ngày)</div><div class="v" id="kpiAvgPerDay">0</div></div>
+      <div class="kpi"><div class="t">TB theo ngày có mưa</div><div class="v" id="kpiAvgPerRainy">0</div></div>
+      <div class="kpi"><div class="t">Mưa lớn nhất (mm)</div><div class="v"><span id="kpiMaxRain">0</span> <span class="s" id="kpiMaxRainDay"></span></div></div>
+      <div class="kpi"><div class="t">Q lớn nhất (m³/s)</div><div class="v"><span id="kpiMaxQ">0</span></div></div>
+    </div>
+
+    <!-- Charts -->
     <div class="charts">
       <div class="card">
-        <h3>Lượng mưa theo ngày (sau lọc)</h3>
-        <div id="rainStats" class="stats"></div>
-        <canvas id="rainChart" height="110"></canvas>
+        <h3>Lượng mưa theo ngày</h3>
+        <div class="chart-box"><canvas id="rainChart"></canvas></div>
       </div>
       <div class="card">
         <h3>Biểu đồ mực nước</h3>
         <div id="waterStatus" style="margin:4px 0 6px; font-weight:700;"></div>
-        <canvas id="levelChart" height="110"></canvas>
+        <div class="chart-box"><canvas id="levelChart"></canvas></div>
       </div>
     </div>
 
     <!-- Bảng -->
     <div class="table-wrap">
       <table id="grid">
+        <colgroup><col class="cw-day"><col class="cw-time"></colgroup>
         <thead>
           <tr>
-            <th rowspan="2" style="min-width:110px">Ngày, giờ</th>
+            <th class="col-ngay" rowspan="2">Ngày</th>
+            <th class="col-gio"  rowspan="2">Giờ</th>
             <th rowspan="2">Mực nước<br>(m)</th>
             <th rowspan="2">Dung tích<br>(Triệu m³)</th>
             <th rowspan="2">Lượng mưa<br>(mm)</th>
@@ -230,7 +199,6 @@
             <th colspan="4">Thông số vận hành tràn sự cố</th>
             <th colspan="3">Thông số vận hành cống lấy nước</th>
             <th rowspan="2" style="min-width:180px">Họ, tên người vận hành</th>
-            <th rowspan="2">Họ, tên người kiểm tra</th>
             <th rowspan="2" style="min-width:140px">Chữ ký</th>
           </tr>
           <tr>
@@ -246,306 +214,309 @@
           </tr>
         </thead>
         <tbody id="tbody">
-          <tr><td class="state" colspan="15">Đang tải dữ liệu…</td></tr>
+          <tr><td class="state" colspan="16">Đang tải dữ liệu…</td></tr>
         </tbody>
       </table>
     </div>
+
+    <!-- Phân trang -->
+    <div id="pager" class="pager"></div>
   </div>
 
   <script>
     const EXEC_URL = "https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec";
     const API_URL  = `${EXEC_URL}?sheet=HoNuocNgot`;
 
+    const printStyleEl = document.getElementById('printStyle');
+    function setPage(size){ printStyleEl.textContent = `@media print{ @page{ size:${size}; margin:8mm; } }`; }
+    document.getElementById('btnPortrait').onclick  = () => { setPage('A4 portrait');  window.print(); };
+    document.getElementById('btnLandscape').onclick = () => { setPage('A4 landscape'); window.print(); };
+    setPage('A4 landscape'); // mặc định
+
     const params   = new URLSearchParams(location.search);
     const subTitle = document.getElementById('subTitle');
-    if (params.get('thang') && params.get('nam')) {
-      subTitle.textContent = `Tháng ${params.get('thang')} năm ${params.get('nam')}`;
-    } else if (params.get('thang')) {
-      subTitle.textContent = `Tháng ${params.get('thang')}`;
-    } else {
-      subTitle.textContent = 'Tháng …/…';
-    }
+    if (params.get('thang') && params.get('nam')) subTitle.textContent = `Tháng ${params.get('thang')} năm ${params.get('nam')}`;
+    else if (params.get('thang')) subTitle.textContent = `Tháng ${params.get('thang')}`;
+    else subTitle.textContent = 'Tháng …/…';
 
-    const yearSel    = document.getElementById('yearSel');
-    const quarterSel = document.getElementById('quarterSel');
-    const monthSel   = document.getElementById('monthSel');
-    const tbody      = document.getElementById('tbody');
-    const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 3 });
+    const yearSel=document.getElementById('yearSel');
+    const quarterSel=document.getElementById('quarterSel');
+    const monthSel=document.getElementById('monthSel');
+    const tbody=document.getElementById('tbody');
+    const pager=document.getElementById('pager');
 
-    let allData = [];
-    let filtered = [];
+    const nf0=new Intl.NumberFormat('vi-VN',{maximumFractionDigits:0});
+    const nf1=new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1});
+    const nf2=new Intl.NumberFormat('vi-VN',{maximumFractionDigits:2});
+    const nf3=new Intl.NumberFormat('vi-VN',{maximumFractionDigits:3});
+
+    let allData=[], filtered=[];
     let rainChart, levelChart;
 
-    // ===== Helpers =====
-    const cell = (v, num=false) => (v==null || v==="") ? "—" : (num ? nf.format(Number(v)) : v);
+    /* cấu hình phân trang */
+    const ROWS_PER_PAGE = 30;
+    let currentPage = 1, totalPages = 1;
 
+    const cell=(v,num=false)=>(v==null||v==="")?"—":(num?nf3.format(Number(v)):v);
+    const fmt2=n=>String(n).padStart(2,'0');
     function parseVNDateTime(s){
-      if (!s || typeof s !== 'string') return null;
-      const [dpart, tpart='00:00'] = s.split(' ');
-      const [dd, mm, yyyy] = dpart.split('/').map(n=>parseInt(n,10));
-      if (!dd || !mm || !yyyy) return null;
-      const [HH='0', MM='0'] = tpart.split(':').map(n=>parseInt(n,10));
-      const date = new Date(yyyy, mm-1, dd, HH, MM);
-      return Number.isNaN(date.getTime()) ? null : date;
+      if(!s||typeof s!=='string')return null;
+      const[dpart,tpart='00:00']=s.split(' ');
+      const[dd,mm,yyyy]=dpart.split('/').map(n=>parseInt(n,10));
+      if(!dd||!mm||!yyyy)return null;
+      const[HH='0',MM='0']=tpart.split(':').map(n=>parseInt(n,10));
+      const date=new Date(yyyy,mm-1,dd,HH,MM);
+      return Number.isNaN(date.getTime())?null:date;
     }
+    const fmtDateVN=d=>`${fmt2(d.getDate())}/${fmt2(d.getMonth()+1)}/${d.getFullYear()}`;
+    const fmtTimeVN=d=>`${fmt2(d.getHours())}:${fmt2(d.getMinutes())}`;
 
     function buildRowHTML(r){
+      const dateText=r.__d?fmtDateVN(r.__d):(r.ngayGio?.split(' ')[0]||'—');
+      const timeText=r.__d?fmtTimeVN(r.__d):(r.ngayGio?.split(' ')[1]||'—');
       return `
         <tr>
-          <td>${cell(r.ngayGio)}</td>
-          <td>${cell(r.mucNuoc, true)}</td>
-          <td>${cell(r.dungTich, true)}</td>
-          <td>${cell(r.luongMua, true)}</td>
-          <td>${cell(r.hTran, true)}</td>
-          <td>${cell(r.qTranTuDo, true)}</td>
-          <td>${cell(r.a1, true)}</td>
-          <td>${cell(r.a2, true)}</td>
-          <td>${cell(r.a3, true)}</td>
-          <td>${cell(r.qTranSuCo, true)}</td>
-          <td>${cell(r.a, true)}</td>
-          <td>${cell(r.cotNuocDauKenh, true)}</td>
-          <td>${cell(r.qcong, true)}</td>
+          <td class="col-ngay">${cell(dateText)}</td>
+          <td class="col-gio">${cell(timeText)}</td>
+          <td>${cell(r.mucNuoc,true)}</td>
+          <td>${cell(r.dungTich,true)}</td>
+          <td>${cell(r.luongMua,true)}</td>
+          <td>${cell(r.hTran,true)}</td>
+          <td>${cell(r.qTranTuDo,true)}</td>
+          <td>${cell(r.a1,true)}</td>
+          <td>${cell(r.a2,true)}</td>
+          <td>${cell(r.a3,true)}</td>
+          <td>${cell(r.qTranSuCo,true)}</td>
+          <td>${cell(r.a,true)}</td>
+          <td>${cell(r.cotNuocDauKenh,true)}</td>
+          <td>${cell(r.qcong,true)}</td>
           <td class="text-left">${cell(r.nguoiVanHanh)}</td>
-          <td>${r.nguoiKiemTra || ''}</td>
           <td class="text-left"></td>
-        </tr>
-      `;
+        </tr>`;
     }
 
     function populateYears(list){
-      const years = [...new Set(list.map(r => r.__y).filter(Boolean))].sort((a,b)=>b-a);
-      yearSel.innerHTML = '<option value="all">Tất cả</option>';
-      years.forEach(y => {
-        const op = document.createElement('option');
-        op.value = String(y);
-        op.textContent = `Năm ${y}`;
-        yearSel.appendChild(op);
+      const years=[...new Set(list.map(r=>r.__y).filter(Boolean))].sort((a,b)=>b-a);
+      yearSel.innerHTML='<option value="all">Tất cả</option>';
+      years.forEach(y=>{ const op=document.createElement('option'); op.value=String(y); op.textContent=`Năm ${y}`; yearSel.appendChild(op); });
+    }
+
+    function renderPager(){
+      totalPages = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
+      if(currentPage > totalPages) currentPage = totalPages;
+      const btn = (p) => `<button class="page-btn ${p===currentPage?'active':''}" data-p="${p}">${p}</button>`;
+      let html = '';
+      for(let p=1;p<=totalPages;p++) html += btn(p);
+      pager.innerHTML = html;
+      pager.querySelectorAll('.page-btn').forEach(b=>{
+        b.addEventListener('click', e => {
+          currentPage = Number(e.currentTarget.dataset.p);
+          renderTablePage();
+        });
       });
+    }
+
+    function renderTablePage(){
+      if(!filtered.length){
+        tbody.innerHTML = `<tr><td class="state" colspan="16">Không có dữ liệu.</td></tr>`;
+        renderPager();
+        return;
+      }
+      const start = (currentPage-1)*ROWS_PER_PAGE;
+      const end   = start + ROWS_PER_PAGE;
+      const rowsHTML = filtered.slice(start, end).map(r=>r.__rowHTML).join('');
+      tbody.innerHTML = rowsHTML || `<tr><td class="state" colspan="16">Không có dữ liệu.</td></tr>`;
+      renderPager();
     }
 
     function applyFiltersCore(){
-      const y = yearSel.value, q = quarterSel.value, m = monthSel.value;
-
-      filtered = allData
-        .filter(r => r.__d)
-        .filter(r => (y==='all' || String(r.__y)===String(y)))
-        .filter(r => {
-          if (m!=='all') return r.__m===Number(m);
-          if (q!=='all') return r.__q===Number(q);
-          return true;
-        })
+      const y=yearSel.value, q=quarterSel.value, m=monthSel.value;
+      filtered=allData
+        .filter(r=>r.__d)
+        .filter(r=>(y==='all'||String(r.__y)===String(y)))
+        .filter(r=> (m!=='all' ? r.__m===Number(m) : (q!=='all' ? r.__q===Number(q) : true)) )
         .sort((a,b)=>a.__d-b.__d);
 
-      // subtitle tự động khi không set qua URL
-      if (!params.get('thang')) {
-        let sub = '';
-        if (m!=='all' && y!=='all') sub = `Tháng ${m} năm ${y}`;
-        else if (y!=='all') sub = `Năm ${y}`;
-        else { const c=new Date(); sub = `Tháng ${c.getMonth()+1} năm ${c.getFullYear()}`; }
-        subTitle.textContent = sub;
+      if(!params.get('thang')){
+        let sub='';
+        if(m!=='all'&&y!=='all') sub=`Tháng ${m} năm ${y}`;
+        else if(y!=='all') sub=`Năm ${y}`;
+        else{ const c=new Date(); sub=`Tháng ${c.getMonth()+1} năm ${c.getFullYear()}`; }
+        subTitle.textContent=sub;
       }
 
-      // table render 1 lần
-      if (!filtered.length){
-        tbody.innerHTML = `<tr><td class="state" colspan="15">Không có dữ liệu.</td></tr>`;
-      } else {
-        tbody.innerHTML = filtered.map(r => r.__rowHTML).join('');
-      }
-
-      updateCharts(); // vẽ chart cho màn hình (ẩn khi in)
+      currentPage = 1;           // về trang đầu mỗi khi đổi bộ lọc
+      renderTablePage();         // hiển thị trang
+      updateKPIAndCharts();      // chart & KPI dựa trên toàn bộ filtered (không theo trang)
     }
+    const debounce=(fn,d=80)=>{ let t; return(...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),d); }; };
+    const applyFilters=debounce(applyFiltersCore,80);
 
-    // Debounce để tránh render liên tục khi thay nhanh
-    function debounce(fn, delay=80){
-      let t;
-      return (...args) => {
-        clearTimeout(t);
-        t = setTimeout(() => fn.apply(null, args), delay);
-      };
-    }
-    const applyFilters = debounce(applyFiltersCore, 80);
+    /* tiện ích làm tròn trục Y */
+    const niceCeil  = (v, step) => (v<=0?0:Math.ceil(v/step)*step);
+    const niceFloor = (v, step) => Math.floor(v/step)*step;
 
-    // ========= UPDATECHARTS (mưa theo ngày + line mực nước theo ngày với đường 50,6) =========
-    function updateCharts(){
-      const rainByDay = new Map();
-      const levelByDay = new Map();
+    function updateKPIAndCharts(){
+      const rainByDay=new Map();
+      const levelByDay=new Map();
+      let maxQTotal=0;  // Q lớn nhất = Q tràn tự do + Q tràn sự cố
 
-      filtered.forEach(r => {
-        const d = r.__d;
-        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        rainByDay.set(key, (rainByDay.get(key) || 0) + (Number(r.luongMua) || 0));
-        const lvl = Number(r.mucNuoc);
-        if (!Number.isNaN(lvl)) levelByDay.set(key, lvl);
+      filtered.forEach(r=>{
+        const d=r.__d;
+        const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        rainByDay.set(key,(rainByDay.get(key)||0)+(Number(r.luongMua)||0));
+        const lvl=Number(r.mucNuoc); if(!Number.isNaN(lvl)) levelByDay.set(key,lvl);
+        const qtd=(Number(r.qTranTuDo)||0)+(Number(r.qTranSuCo)||0);
+        if(qtd>maxQTotal) maxQTotal=qtd;
       });
 
-      const dayKeys = Array.from(new Set([...rainByDay.keys(), ...levelByDay.keys()])).sort();
-      const dayLabels = dayKeys.map(k => { const [y,m,d] = k.split('-'); return `${d}/${m}`; });
+      const dayKeys=[...new Set([...rainByDay.keys(),...levelByDay.keys()])].sort();
+      const labelsDM=dayKeys.map(k=>{ const[y,m,d]=k.split('-'); return `${d}/${m}`; });
+      const rainDaily=dayKeys.map(k=>rainByDay.get(k)||0);
+      const levelDaily=dayKeys.map(k=> (levelByDay.has(k)?levelByDay.get(k):null) );
 
-      const rainDaily  = dayKeys.map(k => rainByDay.get(k) || 0);
-      const levelDaily = dayKeys.map(k => {
-        const v = levelByDay.get(k);
-        return (v==null || Number.isNaN(v)) ? null : v;
-      });
+      /* KPI */
+      const total=rainDaily.reduce((a,b)=>a+(Number(b)||0),0);
+      const days=rainDaily.length;
+      const rainyDays=rainDaily.filter(v=>Number(v)>0).length;
+      const avgPerDay = days ? total/days : 0;
+      const avgPerRainyDay = rainyDays ? total/rainyDays : 0;
+      let maxVal=0, maxIdx=-1;
+      for(let i=0;i<rainDaily.length;i++){ const v=Number(rainDaily[i])||0; if(v>maxVal){maxVal=v; maxIdx=i;} }
+      const maxDayLabel=maxIdx>=0?labelsDM[maxIdx]:'';
 
-      // Stats mưa
-      const rainStatsEl = document.getElementById('rainStats');
-      if (!dayKeys.length){
-        rainStatsEl.innerHTML = `<div class="stat"><span class="k">Lượng mưa:</span><span class="v">Không có dữ liệu trong khoảng lọc</span></div>`;
-      } else {
-        const total = rainDaily.reduce((a,b)=>a+(Number(b)||0),0);
-        const days  = rainDaily.length;
-        const rainyDays = rainDaily.filter(v=>Number(v)>0).length;
-        const avgPerDay = days ? total/days : 0;
-        const avgPerRainyDay = rainyDays ? total/rainyDays : 0;
-        let maxVal = -Infinity, maxIdx = -1;
-        for (let i=0;i<rainDaily.length;i++){
-          const v = Number(rainDaily[i])||0;
-          if (v>maxVal){ maxVal=v; maxIdx=i; }
+      kpiTotalRain.textContent   = nf1.format(total);
+      kpiDays.textContent        = nf0.format(days);
+      kpiRainDays.textContent    = nf0.format(rainyDays);
+      kpiAvgPerDay.textContent   = nf2.format(avgPerDay);
+      kpiAvgPerRainy.textContent = nf2.format(avgPerRainyDay);
+      kpiMaxRain.textContent     = nf1.format(maxVal);
+      kpiMaxRainDay.textContent  = maxDayLabel?`(${maxDayLabel})`:'';
+      kpiMaxQ.textContent        = nf2.format(maxQTotal);
+
+      /* ===== Charts đều hơn ===== */
+      const DEAD=50.6, deadLine=dayKeys.map(()=>DEAD);
+
+      // a) Lượng mưa
+      const maxRain = Math.max(0, ...rainDaily);
+      const stepRain = maxRain > 50 ? 10 : 5;
+      const yMaxRain = niceCeil(maxRain, stepRain);
+
+      if(rainChart) rainChart.destroy();
+      const ctx1=document.getElementById('rainChart').getContext('2d');
+      rainChart=new Chart(ctx1,{
+        type:'bar',
+        data:{ labels:labelsDM, datasets:[{
+          label:'Lượng mưa theo ngày (mm)',
+          data:rainDaily,
+          categoryPercentage:0.9, barPercentage:0.9
+        }] },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{display:true}, tooltip:{mode:'index', intersect:false}},
+          interaction:{mode:'nearest', intersect:false},
+          scales:{
+            x:{ ticks:{ maxTicksLimit: Math.min(12, labelsDM.length), autoSkip:true, maxRotation:0 } },
+            y:{ beginAtZero:true, suggestedMax:yMaxRain, ticks:{ stepSize:stepRain } }
+          }
         }
-        const maxDayLabel = maxIdx>=0 ? dayLabels[maxIdx] : '—';
+      });
 
-        rainStatsEl.innerHTML = `
-          <div class="stat"><span class="k">Tổng:</span><span class="v">${nf.format(total)} mm</span></div>
-          <div class="stat"><span class="k">Số ngày (lọc):</span><span class="v">${days}</span></div>
-          <div class="stat"><span class="k">Số ngày mưa:</span><span class="v">${rainyDays}</span></div>
-          <div class="stat"><span class="k">TB/ngày:</span><span class="v">${nf.format(avgPerDay)} mm</span></div>
-          <div class="stat"><span class="k">TB/ngày có mưa:</span><span class="v">${nf.format(avgPerRainyDay)} mm</span></div>
-          <div class="stat"><span class="k">Mưa lớn nhất:</span><span class="v">${nf.format(maxVal>0?maxVal:0)} mm (${maxDayLabel})</span></div>
-        `;
-      }
+      // b) Mực nước
+      const lvlVals = levelDaily.filter(v=>v!=null && !Number.isNaN(v));
+      const lvlMin = lvlVals.length ? Math.min(...lvlVals) : 0;
+      const lvlMax = lvlVals.length ? Math.max(...lvlVals) : 1;
+      const pad = 0.1;
+      const yMinLvl = niceFloor(Math.max(0, lvlMin - pad), 0.2);
+      const yMaxLvl = niceCeil(lvlMax + pad, 0.2);
 
-      const DEAD = 50.6;
-      const deadLine = dayKeys.map(() => DEAD);
-
-      // Destroy chart cũ để tránh leak
-      if (rainChart) rainChart.destroy();
-      const ctx1 = document.getElementById('rainChart').getContext('2d');
-      rainChart = new Chart(ctx1, {
-        type: 'bar',
-        data: { labels: dayLabels, datasets: [{ label: 'Lượng mưa theo ngày (mm)', data: rainDaily }] },
-        options: {
-          responsive:true,
-          plugins:{ legend:{ display:true }, tooltip:{ mode:'index', intersect:false }},
+      if(levelChart) levelChart.destroy();
+      const ctx2=document.getElementById('levelChart').getContext('2d');
+      levelChart=new Chart(ctx2,{
+        type:'line',
+        data:{ labels:labelsDM, datasets:[
+          { label:'Mực nước (m)', data:levelDaily, spanGaps:true, tension:.25, fill:false, pointRadius:3 },
+          { label:'Mực nước chết (50,6 m)', data:deadLine, tension:0, borderDash:[6,4], pointRadius:0 }
+        ]},
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{display:true}, tooltip:{mode:'index', intersect:false}},
           interaction:{ mode:'nearest', intersect:false },
-          scales:{ x:{ ticks:{ autoSkip:true, maxRotation:0 } }, y:{ beginAtZero:true } }
+          scales:{
+            x:{ ticks:{ maxTicksLimit: Math.min(12, labelsDM.length), autoSkip:true, maxRotation:0 } },
+            y:{ beginAtZero:false, suggestedMin:yMinLvl, suggestedMax:yMaxLvl }
+          }
         }
       });
 
-      if (levelChart) levelChart.destroy();
-      const ctx2 = document.getElementById('levelChart').getContext('2d');
-      levelChart = new Chart(ctx2, {
-        type: 'line',
-        data: {
-          labels: dayLabels,
-          datasets: [
-            { label:'Mực nước (m)', data: levelDaily, spanGaps:true, tension:.25, fill:false, pointRadius:3 },
-            { label:'Mực nước chết (50,6 m)', data: deadLine, tension:0, borderDash:[6,4], pointRadius:0 }
-          ]
-        },
-        options: {
-          responsive:true,
-          plugins:{ legend:{ display:true }, tooltip:{ mode:'index', intersect:false } },
-          interaction:{ mode:'nearest', intersect:false },
-          scales:{ x:{ ticks:{ autoSkip:true, maxRotation:0 } }, y:{ beginAtZero:false } }
-        }
-      });
-
-      // Dòng mô tả mực nước
-      const status = document.getElementById('waterStatus');
-      const lastVal = levelDaily[levelDaily.length - 1];
-      status.textContent = (lastVal==null || Number.isNaN(lastVal))
+      // mô tả mực nước (giá trị cuối cùng tồn tại)
+      let lastVal=null; for(let i=levelDaily.length-1;i>=0;i--){ if(levelDaily[i]!=null){ lastVal=levelDaily[i]; break; } }
+      waterStatus.textContent=(lastVal==null||Number.isNaN(lastVal))
         ? 'Không có dữ liệu mực nước.'
-        : (lastVal >= DEAD
-            ? `Mực nước ngày gần nhất ${lastVal.toFixed(2)} m — CAO HƠN mực nước chết ${(lastVal - DEAD).toFixed(2)} m`
-            : `Mực nước ngày gần nhất ${lastVal.toFixed(2)} m — THẤP HƠN mực nước chết ${(DEAD - lastVal).toFixed(2)} m`);
+        : (lastVal>=DEAD
+          ? `Mực nước gần nhất ${lastVal.toFixed(2)} m — CAO HƠN mực nước chết ${(lastVal-DEAD).toFixed(2)} m`
+          : `Mực nước gần nhất ${lastVal.toFixed(2)} m — THẤP HƠN mực nước chết ${(DEAD-lastVal).toFixed(2)} m`);
     }
-    // ===========================================================================================
 
-    // events (debounced)
-    monthSel.addEventListener('change', () => { if (monthSel.value !== 'all') quarterSel.value = 'all'; applyFilters(); });
-    quarterSel.addEventListener('change', () => { if (quarterSel.value !== 'all') monthSel.value = 'all'; applyFilters(); });
-    yearSel.addEventListener('change', applyFilters);
+    /* events */
+    monthSel.addEventListener('change',()=>{ if(monthSel.value!=='all') quarterSel.value='all'; applyFilters(); });
+    quarterSel.addEventListener('change',()=>{ if(quarterSel.value!=='all') monthSel.value='all'; applyFilters(); });
+    yearSel.addEventListener('change',applyFilters);
 
-    // fetch data
-    fetch(API_URL, { cache: 'no-store' })
-      .then(res => res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`)))
-      .then(data => {
-        if (!Array.isArray(data) || !data.length){
-          tbody.innerHTML = `<tr><td class="state" colspan="15">Không có dữ liệu.</td></tr>`;
-          return;
-        }
-
-        // Tiền xử lý 1 lần để tăng tốc filter
-        allData = data.map(r => {
-          const d = parseVNDateTime(r.ngayGio);
-          const y = d ? d.getFullYear() : null;
-          const m = d ? (d.getMonth()+1) : null;
-          const q = d ? (Math.floor((m-1)/3)+1) : null;
-          const base = {
-            ...r,
-            __d: d, __y: y, __m: m, __q: q
-          };
-          base.__rowHTML = buildRowHTML(base);
-          return base;
+    /* fetch data */
+    fetch(API_URL,{ cache:'no-store' })
+      .then(res=>res.ok?res.json():Promise.reject(new Error(`HTTP ${res.status}`)))
+      .then(data=>{
+        if(!Array.isArray(data)||!data.length){ tbody.innerHTML=`<tr><td class="state" colspan="16">Không có dữ liệu.</td></tr>`; return; }
+        allData=data.map(r=>{
+          const d=parseVNDateTime(r.ngayGio);
+          const y=d?d.getFullYear():null, m=d?(d.getMonth()+1):null, q=d?(Math.floor((m-1)/3)+1):null;
+          const base={...r,__d:d,__y:y,__m:m,__q:q}; base.__rowHTML=buildRowHTML(base); return base;
         });
-
         populateYears(allData);
-        applyFiltersCore(); // lần đầu không cần debounce
+        applyFiltersCore();
       })
-      .catch(err => {
+      .catch(err=>{
         console.error(err);
-        tbody.innerHTML = `<tr><td class="state" colspan="15">Lỗi tải dữ liệu: ${err.message || err}</td></tr>`;
+        tbody.innerHTML=`<tr><td class="state" colspan="16">Lỗi tải dữ liệu: ${err.message||err}</td></tr>`;
       });
 
-    // Excel theo bộ lọc (2 hàng header + merge)
-    document.getElementById('btnExcel').addEventListener('click', () => {
-      if (!filtered.length){ alert('Không có dữ liệu để xuất.'); return; }
-
-      const H1 = [
-        "Ngày, giờ","Mực nước (m)","Dung tích (Triệu m³)","Lượng mưa (mm)",
+    /* Xuất Excel (toàn bộ dữ liệu sau lọc, không theo trang) */
+    document.getElementById('btnExcel').addEventListener('click',()=>{
+      if(!filtered.length){ alert('Không có dữ liệu để xuất.'); return; }
+      const H1=["Ngày","Giờ","Mực nước (m)","Dung tích (Triệu m³)","Lượng mưa (mm)",
         "Thông số vận hành tràn tự do","",
         "Thông số vận hành tràn sự cố","","","",
         "Thông số vận hành cống lấy nước","","",
-        "Họ, tên người vận hành","Chữ ký"
-      ];
-      const H2 = [
-        "","","","",
-        "H tràn (cm)","Q tràn tự do (m³/s)",
+        "Họ, tên người vận hành","Chữ ký"];
+      const H2=["","","","","","H tràn (cm)","Q tràn tự do (m³/s)",
         "a1 (cm)","a2 (cm)","a3 (cm)","Q tràn sự cố (m³/s)",
-        "a (cm)","Cột nước đầu kênh (m)","Q cống (m³/s)",
-        "",""
-      ];
-      const rows = filtered.map(r => ([
-        r.ngayGio || "",
-        num(r.mucNuoc), num(r.dungTich), num(r.luongMua),
-        num(r.hTran), num(r.qTranTuDo),
-        num(r.a1), num(r.a2), num(r.a3), num(r.qTranSuCo),
-        num(r.a), num(r.cotNuocDauKenh), num(r.qcong),
-        r.nguoiVanHanh || "", ""
-      ]));
-
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet([H1, H2, ...rows]);
-      ws['!merges'] = [
-        { s:{r:0,c:0}, e:{r:1,c:0} }, { s:{r:0,c:1}, e:{r:1,c:1} },
-        { s:{r:0,c:2}, e:{r:1,c:2} }, { s:{r:0,c:3}, e:{r:1,c:3} },
-        { s:{r:0,c:13}, e:{r:1,c:13} }, { s:{r:0,c:14}, e:{r:1,c:14} },
-        { s:{r:0,c:4}, e:{r:0,c:5} }, { s:{r:0,c:6}, e:{r:0,c:9} }, { s:{r:0,c:10}, e:{r:0,c:12} },
-      ];
-      const allForWidth = [H1, H2, ...rows.map(r => r.map(v => v==null?"":String(v)))];
-      ws['!cols'] = H1.map((_, ci) => {
-        const maxLen = allForWidth.reduce((m, row) => Math.max(m, (row[ci]||"").toString().length), 0);
-        return { wch: Math.min(Math.max(10, maxLen + 2), 32) };
+        "a (cm)","Cột nước đầu kênh (m)","Q cống (m³/s)","",""];
+      const rows=filtered.map(r=>{
+        const d=r.__d, dayTxt=d?fmtDateVN(d):(r.ngayGio?.split(' ')[0]||""), timeTxt=d?fmtTimeVN(d):(r.ngayGio?.split(' ')[1]||"");
+        return [dayTxt,timeTxt,num(r.mucNuoc),num(r.dungTich),num(r.luongMua),num(r.hTran),num(r.qTranTuDo),
+          num(r.a1),num(r.a2),num(r.a3),num(r.qTranSuCo),num(r.a),num(r.cotNuocDauKenh),num(r.qcong),r.nguoiVanHanh||"",""];
       });
-
-      XLSX.utils.book_append_sheet(wb, ws, "NhatKy_HoNuocNgot");
-      XLSX.writeFile(wb, "NhatKyVanHanh_HoNuocNgot.xlsx");
-
-      function num(v){ const n = Number(v); return Number.isNaN(n) ? "" : n; }
-    });
-
-    document.getElementById('btnLink').addEventListener('click', () => {
-      navigator.clipboard.writeText(location.href.split('#')[0]).then(()=>alert("Đã sao chép liên kết!"));
+      const wb=XLSX.utils.book_new();
+      const ws=XLSX.utils.aoa_to_sheet([H1,H2,...rows]);
+      ws['!merges']=[
+        {s:{r:0,c:0},e:{r:1,c:0}},{s:{r:0,c:1},e:{r:1,c:1}},
+        {s:{r:0,c:2},e:{r:1,c:2}},{s:{r:0,c:3},e:{r:1,c:3}},
+        {s:{r:0,c:4},e:{r:1,c:4}},
+        {s:{r:0,c:5},e:{r:0,c:6}},
+        {s:{r:0,c:7},e:{r:0,c:10}},
+        {s:{r:0,c:11},e:{r:0,c:13}},
+        {s:{r:0,c:14},e:{r:1,c:14}},
+        {s:{r:0,c:15},e:{r:1,c:15}},
+      ];
+      const allForWidth=[H1,H2,...rows.map(r=>r.map(v=>v==null?"":String(v)))];
+      ws['!cols']=H1.map((_,ci)=>{
+        const maxLen=allForWidth.reduce((m,row)=>Math.max(m,(row[ci]||"").toString().length),0);
+        return { wch: Math.min(Math.max(10, maxLen+2), 32) };
+      });
+      XLSX.utils.book_append_sheet(wb,ws,"NhatKy_HoNuocNgot");
+      XLSX.writeFile(wb,"NhatKyVanHanh_HoNuocNgot.xlsx");
+      function num(v){ const n=Number(v); return Number.isNaN(n)?"":n; }
     });
   </script>
 </body>
