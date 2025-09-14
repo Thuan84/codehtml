@@ -1,32 +1,30 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Nhật ký vận hành trạm bơm</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    :root{
-      --brand:#1EA48D;
-    }
-    .card{ @apply bg-white rounded-2xl shadow p-4; }
-    .btn{ @apply px-4 py-2 rounded-xl font-medium border; }
-    .btn-primary{ @apply bg-[color:var(--brand)] text-white border-transparent; }
-    .btn-ghost{ @apply bg-white text-slate-700 border-slate-200; }
-    .input, select, textarea{ @apply w-full rounded-xl border border-slate-200 px-3 py-2; }
-    table{ @apply w-full border border-slate-200 rounded-xl overflow-hidden; }
-    th, td{ @apply border border-slate-200 px-2 py-1 text-sm; }
-    th{ @apply bg-slate-50 text-slate-700; }
+    :root{ --brand:#1EA48D; }
+    .card{ background:#fff; border-radius:16px; box-shadow:0 6px 24px rgba(2,6,23,.06); padding:16px; }
+    .btn{ padding:.6rem 1rem; border-radius:12px; border:1px solid #e2e8f0; font-weight:600; }
+    .btn-primary{ background:var(--brand); color:#fff; border-color:transparent; }
+    .input, select, textarea{ width:100%; border:1px solid #e2e8f0; border-radius:12px; padding:.5rem .75rem; }
+    table{ width:100%; border-collapse:collapse; }
+    th, td{ border:1px solid #e2e8f0; padding:.4rem .5rem; font-size:.95rem; }
+    th{ background:#f8fafc; }
+    tr[data-clickable="1"]:hover{ background:#f1f5f9; cursor:pointer; }
   </style>
 </head>
-<body class="min-h-screen bg-slate-100 text-slate-900">
+<body class="bg-slate-100 text-slate-900">
   <div class="max-w-6xl mx-auto p-4 md:p-6">
-    <header class="mb-4 md:mb-6">
+    <header class="mb-4">
       <h1 class="text-2xl md:text-3xl font-bold">NHẬT KÝ VẬN HÀNH TRẠM BƠM</h1>
-      <p class="text-sm text-slate-600">Form theo mẫu sổ: Thứ · Ngày · Giờ mở/tắt · Số máy · Lưu lượng · Diện tích · Tình trạng · Người cập nhật · Ký tên</p>
+      <p class="text-sm text-slate-600">Click 1 dòng để nạp FULL dữ liệu vào form • Có thể truyền ?sheet=&stt= trên URL để prefill</p>
     </header>
 
-    <!-- Cấu hình đầu vào -->
+    <!-- Bộ lọc / chọn sheet -->
     <section class="card mb-4">
       <div class="grid gap-3 md:grid-cols-3">
         <div>
@@ -38,20 +36,27 @@
           </select>
         </div>
         <div>
-          <label class="block mb-1 font-medium">Tháng hiển thị</label>
-          <input id="filterMonth" type="month" class="input" />
+          <label class="block mb-1 font-medium">Lọc theo tháng</label>
+          <input id="month" type="month" class="input">
         </div>
         <div class="flex items-end gap-2">
-          <button id="btnLoad" class="btn btn-ghost">Tải dữ liệu</button>
-          <button id="btnScrollForm" class="btn btn-ghost">Xuống form</button>
+          <button id="btnLoad" class="btn">Tải dữ liệu</button>
+          <button id="btnClear" class="btn">Xóa lọc</button>
+          <button id="btnScrollForm" class="btn">Xuống form</button>
         </div>
       </div>
     </section>
 
-    <!-- Form nhập liệu -->
+    <!-- FORM: thêm/cập nhật -->
     <section id="formCard" class="card mb-4">
-      <h2 class="text-lg font-semibold mb-3">Nhập bản ghi mới</h2>
-      <form id="logForm" class="grid md:grid-cols-4 gap-3">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-lg font-semibold">Form bản ghi</h2>
+        <span id="modeHint" class="text-sm text-slate-600">Chế độ: Thêm mới</span>
+      </div>
+
+      <form id="f" class="grid md:grid-cols-4 gap-3">
+        <input type="hidden" name="stt" id="stt">
+
         <div>
           <label class="block mb-1">Thứ</label>
           <select name="thu" class="input" required>
@@ -62,45 +67,45 @@
         </div>
         <div>
           <label class="block mb-1">Ngày ghi chép</label>
-          <input type="date" name="ngay" class="input" required />
+          <input type="date" name="ngay" class="input" required>
         </div>
         <div>
           <label class="block mb-1">Giờ mở</label>
-          <input type="time" name="gioMo" class="input" required />
+          <input type="time" name="gioMo" class="input" required>
         </div>
         <div>
           <label class="block mb-1">Giờ tắt</label>
-          <input type="time" name="gioTat" class="input" required />
+          <input type="time" name="gioTat" class="input" required>
         </div>
 
         <div>
           <label class="block mb-1">Số máy vận hành</label>
-          <input type="number" min="0" step="1" name="soMayVanHanh" class="input" />
+          <input type="number" name="soMayVanHanh" class="input" min="0" step="1">
         </div>
         <div>
           <label class="block mb-1">Lưu lượng bơm (m³/s)</label>
-          <input type="number" min="0" step="0.001" name="luuLuongBom" class="input" />
+          <input type="number" name="luuLuongBom" class="input" min="0" step="0.001">
         </div>
         <div>
           <label class="block mb-1">Diện tích tưới/ngày (ha)</label>
-          <input type="number" min="0" step="0.01" name="dienTichTuoi" class="input" />
+          <input type="number" name="dienTichTuoi" class="input" min="0" step="0.01">
         </div>
         <div>
           <label class="block mb-1">Ngày cập nhật</label>
-          <input type="date" name="ngayCapNhat" class="input" />
+          <input type="date" name="ngayCapNhat" class="input">
         </div>
 
         <div class="md:col-span-2">
           <label class="block mb-1">Tình trạng trạm bơm</label>
-          <textarea name="tinhTrang" rows="2" class="input" placeholder="Hoạt động bình thường / sự cố..."></textarea>
+          <textarea name="tinhTrang" rows="2" class="input"></textarea>
         </div>
         <div>
           <label class="block mb-1">Người cập nhật</label>
-          <input type="text" name="nguoiCapNhat" class="input" />
+          <input type="text" name="nguoiCapNhat" class="input">
         </div>
         <div>
           <label class="block mb-1">Ký tên</label>
-          <input type="text" name="kyTen" class="input" />
+          <input type="text" name="kyTen" class="input">
         </div>
 
         <div class="md:col-span-4">
@@ -108,166 +113,207 @@
           <textarea name="ghiChu" rows="2" class="input"></textarea>
         </div>
 
-        <div class="md:col-span-4 flex gap-3">
-          <button class="btn btn-primary" type="submit">Lưu bản ghi</button>
-          <button class="btn btn-ghost" type="reset">Xóa trắng</button>
-          <p id="msg" class="text-sm font-medium ml-2"></p>
+        <div class="md:col-span-4 flex gap-2">
+          <button class="btn btn-primary" id="btnSave" type="submit">Lưu</button>
+          <button class="btn" id="btnNew" type="button">Thêm mới</button>
+          <span id="msg" class="text-sm font-semibold"></span>
         </div>
       </form>
     </section>
 
-    <!-- Bảng dữ liệu -->
+    <!-- BẢNG -->
     <section class="card">
       <div class="flex items-center justify-between mb-2">
-        <h2 class="text-lg font-semibold">Danh sách bản ghi</h2>
+        <h2 class="text-lg font-semibold">Danh sách</h2>
         <span id="count" class="text-sm text-slate-600"></span>
       </div>
       <div class="overflow-auto">
         <table id="tbl">
           <thead>
             <tr>
-              <th>STT</th>
-              <th>Thứ</th>
-              <th>Ngày</th>
-              <th>Giờ mở</th>
-              <th>Giờ tắt</th>
-              <th>Số máy</th>
-              <th>Lưu lượng (m³/s)</th>
-              <th>DT tưới (ha)</th>
-              <th>Tình trạng</th>
-              <th>Ngày cập nhật</th>
-              <th>Người cập nhật</th>
-              <th>Ghi chú</th>
-              <th>Ký tên</th>
+              <th>STT</th><th>Thứ</th><th>Ngày</th><th>Giờ mở</th><th>Giờ tắt</th>
+              <th>Số máy</th><th>Lưu lượng</th><th>DT tưới (ha)</th><th>Tình trạng</th>
+              <th>Ngày cập nhật</th><th>Người cập nhật</th><th>Ghi chú</th><th>Ký tên</th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
+      <p class="text-xs text-slate-500 mt-2">Mẹo: Click 1 dòng để nạp FULL dữ liệu vào form (chuyển sang chế độ Cập nhật).</p>
     </section>
   </div>
 
   <script>
-    // ====== CẤU HÌNH ======
-    // Đổi thành URL Web App thật (đuôi /exec)
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz6GNSroPuSxwIZk_O0bBe8ZxYihFebOE6-N6osvgiYm5FepxBW2uPIQ5bzA1c3cPpN/exec";
+    // ===== CẦN SỬA =====
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz6GNSroPuSxwIZk_O0bBe8ZxYihFebOE6-N6osvgiYm5FepxBW2uPIQ5bzA1c3cPpN/exec"; // URL /exec
 
-    // Đọc ?sheet=... từ URL nếu có
-    const urlParams = new URLSearchParams(location.search);
-    const initSheet = urlParams.get("sheet") || "Tram_bom_1";
-
+    const $ = s => document.querySelector(s);
     const els = {
-      sheet: document.getElementById('sheet'),
-      month: document.getElementById('filterMonth'),
-      btnLoad: document.getElementById('btnLoad'),
-      btnScrollForm: document.getElementById('btnScrollForm'),
-      form: document.getElementById('logForm'),
-      msg: document.getElementById('msg'),
-      tbody: document.querySelector('#tbl tbody'),
-      count: document.getElementById('count'),
-      formCard: document.getElementById('formCard'),
+      sheet: $('#sheet'),
+      month: $('#month'),
+      btnLoad: $('#btnLoad'),
+      btnClear: $('#btnClear'),
+      btnScrollForm: $('#btnScrollForm'),
+      form: $('#f'),
+      btnNew: $('#btnNew'),
+      msg: $('#msg'),
+      tblBody: $('#tbl tbody'),
+      count: $('#count'),
+      modeHint: $('#modeHint'),
+      stt: $('#stt')
     };
 
-    els.sheet.value = initSheet;
+    // URL params: ?sheet=&stt=
+    const qp = new URLSearchParams(location.search);
+    if (qp.get('sheet')) els.sheet.value = qp.get('sheet');
 
-    function fmtDateISOtoVN(iso) {
-      if (!iso) return "";
-      const d = new Date(iso);
-      if (isNaN(d)) return iso;
-      const dd = String(d.getDate()).padStart(2, '0');
-      const mm = String(d.getMonth()+1).padStart(2, '0');
-      const yy = d.getFullYear();
-      return `${dd}/${mm}/${yy}`;
-    }
-
-    async function loadData() {
-      els.msg.textContent = "";
-      els.tbody.innerHTML = `<tr><td colspan="13" class="text-center py-3">Đang tải...</td></tr>`;
-      try {
-        const url = `${WEB_APP_URL}?sheet=${encodeURIComponent(els.sheet.value)}`;
-        const res = await fetch(url, { method: 'GET' });
-        const data = await res.json();
-
-        // Lọc theo tháng (nếu chọn)
-        const monthVal = els.month.value; // yyyy-mm
-        let rows = Array.isArray(data) ? data : [];
-        if (monthVal) {
-          const [y, m] = monthVal.split('-').map(Number);
-          rows = rows.filter(r => {
-            // r.ngay đang dạng dd/MM/yyyy
-            const parts = String(r.ngay || "").split("/");
-            if (parts.length !== 3) return false;
-            const dd = Number(parts[0]), mm = Number(parts[1]), yy = Number(parts[2]);
-            return yy === y && mm === m;
-          });
-        }
-
-        els.tbody.innerHTML = rows.map(r => `
-          <tr>
-            <td>${r.stt ?? ""}</td>
-            <td>${r.thu ?? ""}</td>
-            <td>${r.ngay ?? ""}</td>
-            <td>${r.gioMo ?? ""}</td>
-            <td>${r.gioTat ?? ""}</td>
-            <td>${r.soMayVanHanh ?? ""}</td>
-            <td>${r.luuLuongBom ?? ""}</td>
-            <td>${r.dienTichTuoi ?? ""}</td>
-            <td>${r.tinhTrang ?? ""}</td>
-            <td>${r.ngayCapNhat ?? ""}</td>
-            <td>${r.nguoiCapNhat ?? ""}</td>
-            <td>${r.ghiChu ?? ""}</td>
-            <td>${r.kyTen ?? ""}</td>
-          </tr>
-        `).join('') || `<tr><td colspan="13" class="text-center py-3">Chưa có dữ liệu</td></tr>`;
-
-        els.count.textContent = `Tổng số: ${rows.length}`;
-      } catch (err) {
-        console.error(err);
-        els.tbody.innerHTML = `<tr><td colspan="13" class="text-center py-3 text-red-600">Lỗi tải dữ liệu</td></tr>`;
+    document.addEventListener('DOMContentLoaded', async () => {
+      // prefill theo stt nếu có; nếu không, chỉ tải list
+      if (qp.get('stt')) {
+        await prefillOne(els.sheet.value, qp.get('stt'));
+      } else {
+        resetFormToAdd();
       }
-    }
+      await loadList();
+      // default Ngày cập nhật = hôm nay
+      $('input[name="ngayCapNhat"]').valueAsDate = new Date();
+    });
 
-    async function submitForm(ev) {
+    els.btnLoad.onclick = loadList;
+    els.btnClear.onclick = () => { els.month.value = ""; loadList(); };
+    els.btnScrollForm.onclick = () => document.getElementById('formCard').scrollIntoView({behavior:'smooth'});
+    els.sheet.onchange = async () => { resetFormToAdd(); await loadList(); };
+    els.btnNew.onclick = () => resetFormToAdd();
+
+    els.form.onsubmit = async (ev) => {
       ev.preventDefault();
       els.msg.textContent = "Đang lưu...";
       const fd = new FormData(els.form);
-      // Đưa sheet vào URL (query) và POST body dùng form-urlencoded (tránh preflight)
-      const url = `${WEB_APP_URL}?sheet=${encodeURIComponent(els.sheet.value)}`;
-      const body = new URLSearchParams(fd); // application/x-www-form-urlencoded
+      const hasStt = (fd.get('stt') || '').trim() !== '';
+      const action = hasStt ? 'update' : 'add';
 
+      const body = new URLSearchParams(fd);
+      const url = `${WEB_APP_URL}?sheet=${encodeURIComponent(els.sheet.value)}&action=${action}`;
       try {
         const res = await fetch(url, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+          headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
           body
         });
         const out = await res.json();
         if (out && out.ok) {
-          els.msg.textContent = "✅ Đã lưu!";
-          els.form.reset();
-          // set mặc định Ngày cập nhật = hôm nay
-          document.querySelector('input[name="ngayCapNhat"]').valueAsDate = new Date();
-          await loadData();
+          els.msg.textContent = '✅ Lưu thành công';
+          await loadList();
+          if (!hasStt) resetFormToAdd();
         } else {
-          els.msg.textContent = "❌ Lưu thất bại";
+          els.msg.textContent = '❌ Lưu thất bại';
         }
-      } catch (err) {
-        console.error(err);
-        els.msg.textContent = "❌ Lỗi kết nối";
+      } catch (e) {
+        console.error(e);
+        els.msg.textContent = '❌ Lỗi kết nối';
+      }
+    };
+
+    // ===== FUNCTIONS =====
+    async function loadList() {
+      els.tblBody.innerHTML = `<tr><td colspan="13" class="text-center py-3">Đang tải...</td></tr>`;
+      try {
+        const url = `${WEB_APP_URL}?sheet=${encodeURIComponent(els.sheet.value)}`;
+        const res = await fetch(url);
+        let rows = await res.json();
+        if (!Array.isArray(rows)) rows = [];
+
+        // lọc theo tháng
+        if (els.month.value) {
+          const [y, m] = els.month.value.split('-').map(Number);
+          rows = rows.filter(r => {
+            const parts = String(r.ngay || '').split('/');
+            if (parts.length !== 3) return false;
+            const dd = +parts[0], mm = +parts[1], yy = +parts[2];
+            return yy === y && mm === m;
+          });
+        }
+
+        els.tblBody.innerHTML = rows.map(r => `
+          <tr data-clickable="1" data-stt="${r.stt ?? ''}">
+            <td>${r.stt ?? ''}</td>
+            <td>${r.thu ?? ''}</td>
+            <td>${r.ngay ?? ''}</td>
+            <td>${r.gioMo ?? ''}</td>
+            <td>${r.gioTat ?? ''}</td>
+            <td>${r.soMayVanHanh ?? ''}</td>
+            <td>${r.luuLuongBom ?? ''}</td>
+            <td>${r.dienTichTuoi ?? ''}</td>
+            <td>${r.tinhTrang ?? ''}</td>
+            <td>${r.ngayCapNhat ?? ''}</td>
+            <td>${r.nguoiCapNhat ?? ''}</td>
+            <td>${r.ghiChu ?? ''}</td>
+            <td>${r.kyTen ?? ''}</td>
+          </tr>
+        `).join('') || `<tr><td colspan="13" class="text-center py-3">Chưa có dữ liệu</td></tr>`;
+
+        els.count.textContent = `Tổng số: ${rows.length}`;
+
+        // gắn click → prefill
+        [...els.tblBody.querySelectorAll('tr[data-clickable="1"]')].forEach(tr => {
+          tr.addEventListener('click', async () => {
+            const stt = tr.getAttribute('data-stt');
+            await prefillOne(els.sheet.value, stt);
+            document.getElementById('formCard').scrollIntoView({behavior:'smooth'});
+          });
+        });
+      } catch (e) {
+        console.error(e);
+        els.tblBody.innerHTML = `<tr><td colspan="13" class="text-center py-3 text-red-600">Lỗi tải dữ liệu</td></tr>`;
       }
     }
 
-    // Sự kiện
-    els.btnLoad.addEventListener('click', loadData);
-    els.form.addEventListener('submit', submitForm);
-    els.btnScrollForm.addEventListener('click', () => els.formCard.scrollIntoView({ behavior: 'smooth' }));
-    els.sheet.addEventListener('change', () => loadData());
+    async function prefillOne(sheet, stt) {
+      try {
+        const url = `${WEB_APP_URL}?sheet=${encodeURIComponent(sheet)}&stt=${encodeURIComponent(stt)}`;
+        const r = await (await fetch(url)).json();
+        if (!r || !r.stt) { resetFormToAdd(); return; }
+        // đổ FULL vào form
+        els.stt.value = r.stt ?? '';
+        setVal('thu', r.thu);
+        setDate('ngay', r.ngay);
+        setVal('gioMo', r.gioMo);
+        setVal('gioTat', r.gioTat);
+        setVal('soMayVanHanh', r.soMayVanHanh);
+        setVal('luuLuongBom', r.luuLuongBom);
+        setVal('dienTichTuoi', r.dienTichTuoi);
+        setVal('tinhTrang', r.tinhTrang);
+        setDate('ngayCapNhat', r.ngayCapNhat);
+        setVal('nguoiCapNhat', r.nguoiCapNhat);
+        setVal('ghiChu', r.ghiChu);
+        setVal('kyTen', r.kyTen);
+        els.modeHint.textContent = `Chế độ: Cập nhật (STT=${r.stt})`;
+      } catch (e) {
+        console.error(e);
+      }
+    }
 
-    // Prefill hôm nay cho Ngày cập nhật
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelector('input[name="ngayCapNhat"]').valueAsDate = new Date();
-      loadData();
-    });
+    function resetFormToAdd() {
+      els.form.reset();
+      els.stt.value = '';
+      els.modeHint.textContent = 'Chế độ: Thêm mới';
+    }
+
+    function setVal(name, v){ const el = els.form.querySelector(`[name="${name}"]`); if (el) el.value = v ?? ''; }
+    function setDate(name, ddmmyyyy){
+      const el = els.form.querySelector(`[name="${name}"]`);
+      if (!el) return;
+      if (!ddmmyyyy) { el.value = ''; return; }
+      // dd/MM/yyyy -> yyyy-MM-dd
+      const p = String(ddmmyyyy).split('/');
+      if (p.length === 3){
+        el.value = `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+      } else {
+        // fallback nếu API trả ISO
+        const d = new Date(ddmmyyyy);
+        if (!isNaN(d)) el.valueAsDate = d;
+      }
+    }
   </script>
 </body>
 </html>
