@@ -38,9 +38,7 @@
     /* FULL VIEW trên mobile */
     html, body { height: 100%; }
     .full-viewport { min-height: 100vh; }
-    @supports (min-height: 100dvh) {
-      .full-viewport { min-height: 100dvh; } /* iOS 16+ */
-    }
+    @supports (min-height: 100dvh) { .full-viewport { min-height: 100dvh; } }
 
     /* Tránh tràn ngang, giữ tỷ lệ chữ */
     body { overflow-x: hidden; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -178,27 +176,45 @@
       gap: 0.25rem;
       transition: box-shadow 0.2s, transform 0.2s;
     }
-    .info-card:hover {
-      box-shadow: 0 8px 32px 0 rgba(30,41,59,0.12);
-      transform: scale(1.03);
-    }
-    .info-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #64748b;
-      letter-spacing: 0.04em;
-    }
-    .info-value {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-top: 0.25rem;
-    }
+    .info-card:hover { box-shadow: 0 8px 32px 0 rgba(30,41,59,0.12); transform: scale(1.03); }
+    .info-label { font-size: 0.75rem; font-weight: 600; color: #64748b; letter-spacing: 0.04em; }
+    .info-value { font-size: 1.5rem; font-weight: 700; margin-top: 0.25rem; }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-      // Hàm lấy giá trị theo nhãn
+
+      /* ====== Định dạng số kiểu Việt Nam (dấu ,) ====== */
+      function formatVN(n, digits = 2) {
+        try {
+          return Number(n).toLocaleString('vi-VN', {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits
+          });
+        } catch (e) {
+          const s = (Math.round(Number(n) * Math.pow(10, digits)) / Math.pow(10, digits)).toString();
+          return s.replace('.', ',');
+        }
+      }
+
+      // Đổi hiển thị tất cả .info-value từ . sang , (bỏ qua ô không phải số thuần)
+      function formatAllInfoValues() {
+        document.querySelectorAll('.info-card .info-value').forEach(function(el) {
+          const raw = el.textContent.trim();
+          const onlyNum = raw.replace(/\s/g, '');
+          if (/^-?\d+(?:[.,]\d+)?$/.test(onlyNum)) {
+            const num = Number(onlyNum.replace(',', '.'));
+            if (!isNaN(num)) {
+              const digits = Number.isInteger(num) ? 0 : 2;
+              el.textContent = formatVN(num, digits);
+            }
+          }
+        });
+      }
+      /* ================================================ */
+
+      // Lấy giá trị số theo nhãn (nhận cả "1.122" và "1,122")
       function getValueByLabel(label) {
         var cards = document.querySelectorAll('.info-card');
         for (var i = 0; i < cards.length; i++) {
@@ -206,7 +222,7 @@
           var val = cards[i].querySelector('.info-value');
           if (lbl && val && lbl.textContent.replace(/\s+/g, ' ').trim() === label) {
             var textValue = val.textContent.trim();
-            var num = parseFloat(textValue.replace(/[,]/g, '.'));
+            var num = parseFloat(textValue.replace(',', '.'));
             return isNaN(num) ? 0 : num;
           }
         }
@@ -220,14 +236,14 @@
           var text = elements[i].textContent;
           if (text.includes('{{' + variableName + '}}')) {
             var value = elements[i].getAttribute('data-value') || elements[i].textContent;
-            var num = parseFloat(value.replace(/[,]/g, '.'));
+            var num = parseFloat(value.replace(',', '.'));
             return isNaN(num) ? 0 : num;
           }
         }
         return 0;
       }
 
-      // Dữ liệu
+      // Dữ liệu cho biểu đồ
       var mucNuocHienTai = getValueByLabel("Cao trình mực nước hiện tại (m)") || getTemplateValue("caoTrinhMucNuoc");
       var mucNuocCungKy = getValueByLabel("Cao trình MN cùng kỳ (m)") || getTemplateValue("CTMNCK");
       var mucNuocChet = getValueByLabel("Cao trình MN chết (m)") || getTemplateValue("CTMNC");
@@ -277,7 +293,7 @@
             tooltip: {
               callbacks: {
                 label: function(context) {
-                  return context.dataset.label + ": " + context.parsed.y.toFixed(2) + " m";
+                  return context.dataset.label + ": " + formatVN(context.parsed.y, 2) + " m";
                 }
               }
             }
@@ -288,7 +304,7 @@
               title: { display: true, text: "Cao trình (m)", font: { size: 14, weight: 'bold' } },
               ticks: {
                 font: { size: 12 },
-                callback: function(value) { return value.toFixed(2) + " m"; }
+                callback: function(value) { return formatVN(value, 2) + " m"; }
               }
             },
             x: {
@@ -297,6 +313,9 @@
           }
         }
       });
+
+      // Chuẩn hóa hiển thị số trong các thẻ info-value sang dấu phẩy
+      formatAllInfoValues();
     });
   </script>
 </body>
