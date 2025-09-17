@@ -204,7 +204,40 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-      // Hàm cải tiến để lấy giá trị từ các thẻ đã render
+
+      /* ========= NEW: Định dạng số kiểu Việt Nam ========= */
+      function formatVN(n, digits = 2) {
+        try {
+          return Number(n).toLocaleString('vi-VN', {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits
+          });
+        } catch (e) {
+          // fallback rất đơn giản nếu trình duyệt cũ
+          const s = (Math.round(Number(n) * Math.pow(10, digits)) / Math.pow(10, digits)).toString();
+          return s.replace('.', ',');
+        }
+      }
+
+      // Quét mọi .info-value, nếu là số thuần (vd: 28.94, 1.122, 27, 0.389) => hiển thị với dấu ,
+      function formatAllInfoValues() {
+        document.querySelectorAll('.info-card .info-value').forEach(function(el) {
+          const raw = el.textContent.trim();
+          const onlyNum = raw.replace(/\s/g, '');
+          // chỉ xử lý nếu là số thuần (tránh "17/09/2025 06:39")
+          if (/^-?\d+(?:[.,]\d+)?$/.test(onlyNum)) {
+            const num = Number(onlyNum.replace(',', '.'));
+            if (!isNaN(num)) {
+              // Mặc định hiển thị 2 chữ số thập phân cho số thực, số nguyên giữ nguyên
+              const digits = Number.isInteger(num) ? 0 : 2;
+              el.textContent = formatVN(num, digits);
+            }
+          }
+        });
+      }
+      /* =================================================== */
+
+      // Hàm lấy giá trị số từ card theo nhãn (giữ nguyên, chấp nhận cả , và .)
       function getValueByLabel(label) {
         var cards = document.querySelectorAll('.info-card');
         for (var i = 0; i < cards.length; i++) {
@@ -212,7 +245,8 @@
           var val = cards[i].querySelector('.info-value');
           if (lbl && val && lbl.textContent.replace(/\s+/g, ' ').trim() === label) {
             var textValue = val.textContent.trim();
-            var num = parseFloat(textValue.replace(/[,]/g, '.'));
+            // chấp nhận 1.122 hoặc 1,122
+            var num = parseFloat(textValue.replace(',', '.'));
             return isNaN(num) ? 0 : num;
           }
         }
@@ -228,7 +262,7 @@
             var match = text.match(new RegExp('\\{\\{' + variableName + '\\}\\}'));
             if (match) {
               var value = elements[i].getAttribute('data-value') || elements[i].textContent;
-              var num = parseFloat(value.replace(/[,]/g, '.'));
+              var num = parseFloat(value.replace(',', '.'));
               return isNaN(num) ? 0 : num;
             }
           }
@@ -238,9 +272,9 @@
 
       // Lấy dữ liệu với fallback
       var mucNuocHienTai = getValueByLabel("Cao trình mực nước hiện tại (m)") || getTemplateValue("caoTrinhMucNuoc");
-      var mucNuocCungKy = getValueByLabel("Cao trình MN cùng kỳ (m)") || getTemplateValue("CTMNCK");
-      var mucNuocChet = getValueByLabel("Cao trình MN chết (m)") || getTemplateValue("CTMNC");
-      var mucNuocThietKe = getValueByLabel("Cao trình MN thiết kế (m)") || getTemplateValue("CTMNTK");
+      var mucNuocCungKy  = getValueByLabel("Cao trình MN cùng kỳ (m)")       || getTemplateValue("CTMNCK");
+      var mucNuocChet    = getValueByLabel("Cao trình MN chết (m)")          || getTemplateValue("CTMNC");
+      var mucNuocThietKe = getValueByLabel("Cao trình MN thiết kế (m)")      || getTemplateValue("CTMNTK");
 
       console.log("Mực nước hiện tại:", mucNuocHienTai);
       console.log("Mực nước cùng kỳ:", mucNuocCungKy);
@@ -248,13 +282,13 @@
       console.log("Mực nước thiết kế:", mucNuocThietKe);
 
       var labels = ["Hiện tại","Cùng kỳ","Mực nước chết","Thiết kế"];
-      var data = [mucNuocHienTai, mucNuocCungKy, mucNuocChet, mucNuocThietKe];
+      var data   = [mucNuocHienTai, mucNuocCungKy, mucNuocChet, mucNuocThietKe];
 
       var bgColors = [
-        "rgba(56,189,248,0.7)",   // xanh dương - hiện tại
-        "rgba(34,197,94,0.7)",    // xanh lá - cùng kỳ
-        "rgba(239,68,68,0.7)",    // đỏ - chết
-        "rgba(253,224,71,0.7)"    // vàng - thiết kế
+        "rgba(56,189,248,0.7)",
+        "rgba(34,197,94,0.7)",
+        "rgba(239,68,68,0.7)",
+        "rgba(253,224,71,0.7)"
       ];
       var borderColors = [
         "rgba(56,189,248,1)",
@@ -290,8 +324,9 @@
             },
             tooltip: {
               callbacks: {
+                // dùng formatVN => hiển thị 28,94 m
                 label: function(context) {
-                  return context.dataset.label + ": " + context.parsed.y.toFixed(2) + " m";
+                  return context.dataset.label + ": " + formatVN(context.parsed.y, 2) + " m";
                 }
               }
             }
@@ -306,7 +341,8 @@
               },
               ticks: {
                 font: { size: 12 },
-                callback: function(value) { return value.toFixed(2) + " m"; }
+                // dùng formatVN thay cho toFixed
+                callback: function(value) { return formatVN(value, 2) + " m"; }
               }
             },
             x: {
@@ -315,6 +351,9 @@
           }
         }
       });
+
+      // Sau khi mọi thứ render xong, chuẩn hoá hiển thị số trong các thẻ info-value sang dấu ,
+      formatAllInfoValues();
     });
   </script>
 </body>
