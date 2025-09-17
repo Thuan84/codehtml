@@ -192,7 +192,37 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-      // Hàm lấy giá trị theo nhãn
+
+      /* ===== Định dạng số theo chuẩn Việt Nam (dấu ,) ===== */
+      function formatVN(n, digits = 2) {
+        try {
+          return Number(n).toLocaleString('vi-VN', {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits
+          });
+        } catch (e) {
+          const s = (Math.round(Number(n) * Math.pow(10, digits)) / Math.pow(10, digits)).toString();
+          return s.replace('.', ',');
+        }
+      }
+
+      // Đổi hiển thị tất cả .info-value từ . sang , (bỏ qua ô không phải số thuần)
+      function formatAllInfoValues() {
+        document.querySelectorAll('.info-card .info-value').forEach(function(el) {
+          const raw = el.textContent.trim();
+          const onlyNum = raw.replace(/\s/g, '');
+          if (/^-?\d+(?:[.,]\d+)?$/.test(onlyNum)) {
+            const num = Number(onlyNum.replace(',', '.'));
+            if (!isNaN(num)) {
+              const digits = Number.isInteger(num) ? 0 : 2;
+              el.textContent = formatVN(num, digits);
+            }
+          }
+        });
+      }
+      /* ==================================================== */
+
+      // Hàm lấy giá trị theo nhãn (nhận cả . và ,)
       function getValueByLabel(label) {
         var cards = document.querySelectorAll('.info-card');
         for (var i = 0; i < cards.length; i++) {
@@ -200,7 +230,7 @@
           var val = cards[i].querySelector('.info-value');
           if (lbl && val && lbl.textContent.replace(/\s+/g, ' ').trim() === label) {
             var textValue = val.textContent.trim();
-            var num = parseFloat(textValue.replace(/[,]/g, '.'));
+            var num = parseFloat(textValue.replace(',', '.'));
             return isNaN(num) ? 0 : num;
           }
         }
@@ -214,7 +244,7 @@
           var text = elements[i].textContent;
           if (text.includes('{{' + variableName + '}}')) {
             var value = elements[i].getAttribute('data-value') || elements[i].textContent;
-            var num = parseFloat(value.replace(/[,]/g, '.'));
+            var num = parseFloat(value.replace(',', '.'));
             return isNaN(num) ? 0 : num;
           }
         }
@@ -266,7 +296,9 @@
             title: { display: true, text: 'So sánh mực nước hồ (m)', font: { size: 16, weight: 'bold' } },
             tooltip: {
               callbacks: {
-                label: function(context) { return context.dataset.label + ": " + context.parsed.y.toFixed(2) + " m"; }
+                label: function(context) {
+                  return context.dataset.label + ": " + formatVN(context.parsed.y, 2) + " m";
+                }
               }
             }
           },
@@ -276,13 +308,16 @@
               title: { display: true, text: "Cao trình (m)", font: { size: 14, weight: 'bold' } },
               ticks: {
                 font: { size: 12 },
-                callback: function(value) { return value.toFixed(2) + " m"; }
+                callback: function(value) { return formatVN(value, 2) + " m"; }
               }
             },
             x: { ticks: { font: { size: 12, weight: '500' } } }
           }
         }
       });
+
+      // Sau cùng: chuẩn hóa hiển thị số trong các thẻ info-value sang dấu phẩy
+      formatAllInfoValues();
     });
   </script>
 </body>
