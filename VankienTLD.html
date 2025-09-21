@@ -60,7 +60,10 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
         <h5 class="card-title mb-3 mb-md-0"><i class="fas fa-list-ul me-2"></i>Danh sách văn bản</h5>
         <div class="d-flex gap-2 flex-wrap justify-content-center justify-content-md-end">
-          <button id="print-btn" class="btn btn-info text-white"><i class="fas fa-print me-1"></i> In danh sách</button>
+          <!-- Đổi "In danh sách" -> "In dọc" và thêm "In ngang" -->
+          <button id="print-portrait-btn" class="btn btn-info text-white" title="In A4 dọc"><i class="fas fa-print me-1"></i> In dọc</button>
+          <button id="print-landscape-btn" class="btn btn-secondary" title="In A4 ngang"><i class="fas fa-print me-1"></i> In ngang</button>
+
           <input type="text" id="search-input" class="form-control" placeholder="Tìm kiếm nhanh..." style="width: 200px;">
           <button id="refresh-btn" class="btn btn-primary" title="Làm mới dữ liệu"><i class="fas fa-sync-alt"></i></button>
         </div>
@@ -143,39 +146,29 @@ let allData = [];
 let TERM_FIELD = null; // tên key thực tế của cột "Nhiệm kỳ"
 
 /* ====== Chuẩn hoá tên cột/giá trị ====== */
-// Bỏ dấu tiếng Việt, ký tự đặc biệt → chữ thường a-z0-9
 function normalizeKeyName(s){
   return String(s || '')
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .toLowerCase().replace(/[^a-z0-9]/g,'');
 }
-// Giá trị Nhiệm kỳ: bỏ khoảng trắng, quy mọi loại dấu gạch về '-'
 function normalizeTermValue(s){
   return String(s || '')
-    .replace(/[\u00A0\s]+/g,'')   // bỏ mọi khoảng trắng (kể cả NBSP)
-    .replace(/[–—−]/g,'-')        // các loại dash → '-'
+    .replace(/[\u00A0\s]+/g,'')
+    .replace(/[–—−]/g,'-')
     .trim();
 }
-
-// Tìm key tương ứng "Nhiệm kỳ" trong object (đề phòng Apps Script đổi tên)
 function detectTermFieldName(sampleRow){
   const TARGET = 'nhiemky';
   if (!sampleRow) return null;
   const keys = Object.keys(sampleRow);
-
-  // 1) match tuyệt đối sau chuẩn hoá
   let found = keys.find(k => normalizeKeyName(k) === TARGET);
   if (found) return found;
-
-  // 2) match "nhiem" + "ky" đều xuất hiện (phòng khi thêm ký tự)
   found = keys.find(k => {
     const n = normalizeKeyName(k);
     return n.includes('nhiem') && n.includes('ky');
   });
   return found || null;
 }
-
-// Lấy raw value Nhiệm kỳ từ 1 dòng
 function getTermRaw(item){
   if (!item || !TERM_FIELD) return '';
   const v = item[TERM_FIELD];
@@ -194,7 +187,11 @@ function setupEventListeners() {
   $('#search-input').on('keyup', function() { dataTable.search(this.value).draw(); });
   $('#filter-doc-type, #filter-agency, #filter-material-type, #filter-dispatch-type, #filter-term, #filter-year, #filter-start-date, #filter-end-date').on('change', applyFilters);
   $('#reset-filter-btn').on('click', resetFilters);
-  $('#print-btn').on('click', printFilteredData);
+
+  // Nút in
+  $('#print-portrait-btn').on('click', () => printFilteredData(false)); // dọc
+  $('#print-landscape-btn').on('click', () => printFilteredData(true)); // ngang
+
   $('#data-table tbody').on('click', 'button.view-detail', function() { showDocumentDetail($(this).data('id')); });
 }
 
@@ -214,7 +211,7 @@ function initializeDataTable() {
       { targets: 0, orderable: false, className: 'text-center', render: (_, __, ___, meta) => meta.row + 1 },
       { targets: 1, className: 'so-hieu-col' },
       {
-        targets: 3, // Ngày ban hành
+        targets: 3,
         className: 'text-nowrap',
         render: function(data, type) {
           if (type === 'sort' || type === 'type') {
@@ -252,11 +249,8 @@ function loadData(forceRefresh = false) {
     success: function(response) {
       if (response.status === 'error' || !response.data) { showError(response.message || 'Lỗi không xác định hoặc không có dữ liệu.'); return; }
       allData = response.data || [];
-
-      // PHÁT HIỆN TÊN TRƯỜNG "Nhiệm kỳ"
       TERM_FIELD = detectTermFieldName(allData[0]);
       console.log('TERM_FIELD_DETECTED:', TERM_FIELD, ' (normalized =', normalizeKeyName(TERM_FIELD || ''), ')');
-
       populateFilters(allData);
       updateStatistics(allData);
       resetFilters();
@@ -275,7 +269,7 @@ function applyFilters() {
   const agency = $('#filter-agency').val();
   const materialType = $('#filter-material-type').val();
   const dispatchType = $('#filter-dispatch-type').val();
-  const termKey = $('#filter-term').val();     // giá trị đã chuẩn hoá
+  const termKey = $('#filter-term').val();
   const selectedYear = $('#filter-year').val();
 
   const startDate = $('#filter-start-date').val() ? new Date($('#filter-start-date').val()) : null;
@@ -315,7 +309,7 @@ function resetFilters() {
 
 function populateFilters(data) {
   const docTypes = new Set(), agencies = new Set(), materialTypes = new Set(), dispatchTypes = new Set(), years = new Set();
-  const termMap  = new Map(); // key chuẩn hoá → label gốc
+  const termMap  = new Map();
 
   data.forEach(item => {
     if (item.loaiVanBan)    docTypes.add(item.loaiVanBan);
@@ -323,7 +317,6 @@ function populateFilters(data) {
     if (item.loaiTaiLieu)   materialTypes.add(item.loaiTaiLieu);
     if (item.loaiCongVan)   dispatchTypes.add(item.loaiCongVan);
 
-    // Thu thập nhiệm kỳ (nếu xác định được cột)
     if (TERM_FIELD) {
       const raw = getTermRaw(item);
       if (raw) {
@@ -344,14 +337,12 @@ function populateFilters(data) {
   populateSelect('#filter-dispatch-type', [...dispatchTypes].sort());
   populateSelect('#filter-year',          [...years].sort((a,b)=>b-a));
 
-  // Populate dropdown Nhiệm kỳ từ Map (value = key chuẩn hoá, label = hiển thị gốc)
   const termSelect = $('#filter-term');
   termSelect.find('option:not(:first)').remove();
   [...termMap.entries()]
     .sort((a,b)=> String(a[1]).localeCompare(String(b[1]), 'vi'))
     .forEach(([key,label]) => termSelect.append(`<option value="${key}">${label}</option>`));
 
-  // Gợi ý nếu không tìm được cột Nhiệm kỳ
   if (!TERM_FIELD) {
     console.warn('Không xác định được cột "Nhiệm kỳ" trong JSON. Vui lòng gửi mình Object.keys(allData[0]) để map chính xác.');
   }
@@ -411,15 +402,15 @@ function showDocumentDetail(stt) {
   new bootstrap.Modal(document.getElementById('detailModal')).show();
 }
 
-/* ====== HÀM IN ====== */
-function printFilteredData() {
+/* ====== HÀM IN (dọc/ngang) ====== */
+function printFilteredData(isLandscape = false) {
   const filteredData = dataTable.rows({ search: 'applied' }).data().toArray();
   if (filteredData.length === 0) {
     Swal.fire('Không có dữ liệu', 'Không có dữ liệu nào để in theo bộ lọc hiện tại.', 'warning');
     return;
   }
 
-  // Sắp xếp theo Số hiệu (asc), rồi Ngày ban hành (asc)
+  // Sắp xếp theo Số hiệu (asc) rồi Ngày ban hành (asc)
   filteredData.sort((a, b) => {
     if (a.soHieu && b.soHieu) {
       const cmp = a.soHieu.localeCompare(b.soHieu, 'vi', { numeric: true });
@@ -430,9 +421,9 @@ function printFilteredData() {
     return dateA.getTime() - dateB.getTime();
   });
 
-  let tableContent = '';
+  let rowsHtml = '';
   filteredData.forEach((item, idx) => {
-    tableContent += `
+    rowsHtml += `
       <tr>
         <td>${idx + 1}</td>
         <td>${item.soHieu || ''}</td>
@@ -443,6 +434,27 @@ function printFilteredData() {
       </tr>`;
   });
 
+  // Cấu hình trang: dọc hoặc ngang
+  const pageSizeRule = isLandscape ? 'A4 landscape' : 'A4';
+  // Điều chỉnh tỉ lệ cột khác nhau cho ngang/dọc để tối ưu hiển thị
+  const colStyles = isLandscape
+    ? [
+        '4%',  // STT
+        '10%', // Số hiệu
+        '46%', // Trích yếu (rộng hơn ở ngang)
+        '10%', // Ngày ban hành
+        '18%', // Cơ quan
+        '12%'  // Ghi chú
+      ]
+    : [
+        '4%',
+        '8%',
+        '42%',
+        '8%',
+        '20%',
+        '18%'
+      ];
+
   const printWindow = window.open('', '_blank');
   printWindow.document.write(`
     <html>
@@ -450,7 +462,7 @@ function printFilteredData() {
       <title>Danh sách văn bản</title>
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
       <style>
-        @page { size: A4; margin: 16mm; }
+        @page { size: ${pageSizeRule}; margin: 16mm; }
         body { font-family: "Times New Roman", Times, serif; }
         h1, h2 { text-align: center; margin: 0; }
         h1 { font-size: 20pt; font-weight: 700; }
@@ -466,12 +478,12 @@ function printFilteredData() {
       <h2>Chi bộ Trạm thủy nông Ninh Hải</h2>
       <table class="table table-bordered">
         <colgroup>
-          <col style="width:4%">
-          <col style="width:8%">
-          <col style="width:42%">
-          <col style="width:8%">
-          <col style="width:20%">
-          <col style="width:18%">
+          <col style="width:${colStyles[0]}">
+          <col style="width:${colStyles[1]}">
+          <col style="width:${colStyles[2]}">
+          <col style="width:${colStyles[3]}">
+          <col style="width:${colStyles[4]}">
+          <col style="width:${colStyles[5]}">
         </colgroup>
         <thead>
           <tr>
@@ -483,7 +495,7 @@ function printFilteredData() {
             <th>Ghi chú</th>
           </tr>
         </thead>
-        <tbody>${tableContent}</tbody>
+        <tbody>${rowsHtml}</tbody>
       </table>
     </body>
     </html>
