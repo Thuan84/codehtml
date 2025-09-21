@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quản lý Thu – Chi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root { --radius: 16px; }
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans"; }
+    .card { border-radius: var(--radius); box-shadow: 0 12px 30px rgba(2,6,23,.08); }
+    .kpi { border-radius: var(--radius); background: linear-gradient(180deg,#ffffff,#f8fafc); border:1px solid #eef2f7; }
+    .kpi h4 { color:#64748b; font-weight:600; letter-spacing:.2px; }
+    .kpi .val { font-weight:800; }
+    .table-wrap { overflow:auto; }
+    th, td { white-space: nowrap; }
+    .chip { padding:2px 8px; border-radius:999px; font-size:.75rem; }
+    .chip-thu { background:#e6f6ef; color:#047857; }
+    .chip-chi { background:#fff1f2; color:#be123c; }
+    .chip-xoa { background:#fde68a; color:#92400e; }
+    .modal-panel { border-radius: 18px; box-shadow: 0 30px 80px rgba(2,6,23,.25); }
+    .field { display:flex; flex-direction:column; gap:6px; }
+    .label { font-size:.85rem; color:#64748b; font-weight:600; }
+    .input, .select { border:1px solid #e5e7eb; border-radius:12px; padding:.65rem .8rem; background:#fff; }
+    .input:focus, .select:focus { outline: none; border-color:#60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,.25); }
+    @media print{ .no-print{ display:none!important; } body{ -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
+  </style>
+</head>
+<body class="bg-slate-50">
+  <div class="max-w-7xl mx-auto p-4 md:p-6">
+    <!-- Header -->
+    <div class="grid grid-cols-3 items-center mb-5">
+      <div></div>
+      <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-center">Quản lý Thu – Chi</h1>
+      <div class="no-print flex justify-end gap-2">
+        <button id="btnAdd" class="px-3 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">+ Thêm</button>
+        <button id="btnExport" class="px-3 py-2 rounded-xl bg-slate-800 text-white hover:bg-black">Xuất CSV</button>
+      </div>
+    </div>
+
+    <!-- Bộ lọc -->
+    <div class="no-print grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
+      <select id="year" class="select">
+        <option value="">Năm: Tất cả</option>
+        <option>2023</option><option>2024</option><option>2025</option>
+      </select>
+      <select id="month" class="select">
+        <option value="">Tháng: Tất cả</option>
+        <script>for(let m=1;m<=12;m++){document.write(`<option value="${m}">Tháng ${m}</option>`);}</script>
+      </select>
+      <select id="category" class="select">
+        <option>Tất cả</option><option>Thu</option><option>Chi</option>
+      </select>
+      <select id="status" class="select"><option>Tất cả</option></select>
+      <div></div>
+    </div>
+
+    <!-- KPI -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
+      <div class="kpi p-5 text-center">
+        <h4>Tổng Thu</h4>
+        <div id="kpiThu" class="val text-3xl mt-1">0</div>
+      </div>
+      <div class="kpi p-5 text-center">
+        <h4>Tổng Chi</h4>
+        <div id="kpiChi" class="val text-3xl mt-1">0</div>
+      </div>
+      <div class="kpi p-5 text-center">
+        <h4>Số tiền còn lại đã lọc</h4>
+        <div id="kpiBal" class="val text-3xl mt-1">0</div>
+      </div>
+      <div class="kpi p-5 text-center">
+        <h4>Số tiền còn lại (thực tế)</h4>
+        <div id="kpiActual" class="val text-3xl mt-1">0</div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="card bg-white p-4 mb-5 border border-slate-200">
+      <canvas id="chart"></canvas>
+    </div>
+
+    <!-- Table -->
+    <div class="card bg-white p-3 border border-slate-200">
+      <div class="table-wrap">
+        <table class="min-w-full text-sm">
+          <thead class="bg-slate-100 sticky top-0">
+            <tr id="thead"></tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="no-print flex items-center justify-end gap-4 mt-3">
+        <div class="flex items-center gap-2">
+          <button id="prev" class="px-3 py-1 rounded bg-slate-100">«</button>
+          <div id="page" class="text-sm"></div>
+          <button id="next" class="px-3 py-1 rounded bg-slate-100">»</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 bg-black/40 hidden items-center justify-center no-print">
+    <div class="bg-white modal-panel w-[95%] md:w-[780px]">
+      <div class="p-4 md:p-5 border-b bg-gradient-to-r from-slate-50 to-white rounded-t-2xl flex items-center justify-between">
+        <h3 id="modalTitle" class="text-xl font-bold">Thêm bản ghi</h3>
+        <button id="closeModal" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200">Đóng</button>
+      </div>
+      <div class="p-4 md:p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="field">
+            <label class="label">ID</label>
+            <input id="f_ID" class="input" placeholder="Tự tăng khi lưu (thêm mới)" disabled>
+          </div>
+          <div class="field">
+            <label class="label">Số phiếu (PT/PC sẽ tự gợi ý)</label>
+            <input id="f_Số phiếu" class="input" placeholder="PT0001 / PC0001">
+          </div>
+
+          <div class="field">
+            <label class="label">Hạng mục</label>
+            <select id="f_Hạng mục" class="select"><option>Thu</option><option>Chi</option></select>
+          </div>
+          <div class="field">
+            <label class="label">Ngày</label>
+            <input id="f_Ngày" type="date" class="input">
+          </div>
+
+          <div class="field">
+            <label class="label">Lý do</label>
+            <input id="f_Lý do" class="input" placeholder="Nhập lý do">
+          </div>
+          <div class="field">
+            <label class="label">Số tiền</label>
+            <input id="f_Số tiền" class="input" placeholder="VD: 4.370.484">
+          </div>
+
+          <div class="field">
+            <label class="label">Trạng thái</label>
+            <select id="f_Trạng thái" class="select">
+              <option>1. Chờ kiểm tra</option>
+              <option>2. Đã kiểm tra</option>
+              <option selected>3. Đã phê duyệt</option>
+            </select>
+          </div>
+
+          <div class="field md:col-span-2">
+            <label class="label">Ghi chú</label>
+            <input id="f_Ghi chú" class="input" placeholder="Ghi chú thêm (nếu có)">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 mt-6">
+          <button id="btnDelete" class="px-4 py-2 rounded-xl bg-rose-600 text-white hidden">Xóa</button>
+          <button id="btnSave" class="px-4 py-2 rounded-xl bg-emerald-600 text-white">Lưu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ======= STATE =======
+  let ROWS = [];
+  let ALL_ROWS = [];
+  let HEADERS = [];
+  const VISIBLE = ['Số phiếu','Hạng mục','Ngày','Lý do','Số tiền','Trạng thái'];
+  let PAGING = { page:1, size: 15 };
+  let CHART;
+  let FORM_MODE = 'add';   // 'add' | 'edit'
+
+  const $ = (id)=>document.getElementById(id);
+  const money = n => (Number(n)||0).toLocaleString('vi-VN');
+
+  function currentFilters(){
+    return {
+      year: Number($('year').value)||'',
+      month: Number($('month').value)||'',
+      category: $('category').value,
+      status: $('status').value
+    };
+  }
+
+  // ======= TABLE & KPI =======
+  function paintTable(){
+    $('thead').innerHTML = VISIBLE.map(h=>`<th class="px-3 py-2 text-left">${h}</th>`).join('');
+    const start = (PAGING.page-1)*PAGING.size;
+    const pageRows = ROWS.slice(start, start + PAGING.size);
+    $('tbody').innerHTML = pageRows.map(r=>{
+      const hm = String(r['Hạng mục']||'').toLowerCase();
+      const chip = hm==='thu' ? 'chip-thu' : (hm==='chi' ? 'chip-chi' : '');
+      const st  = (String(r['Trạng thái']).toUpperCase()==='ĐÃ XÓA') ? 'chip chip-xoa' : `chip ${chip}`;
+      const tds = VISIBLE.map(h=>{
+        let v = r[h] ?? '';
+        if (h==='Số tiền') v = money(v);
+        if (h==='Hạng mục') v = `<span class="chip ${chip}">${r[h]}</span>`;
+        if (h==='Trạng thái') v = `<span class="${st}">${r[h]||''}</span>`;
+        return `<td class="px-3 py-2 border-t">${v}</td>`;
+      }).join('');
+      return `<tr class="hover:bg-slate-50 cursor-pointer" onclick='openEdit(${JSON.stringify(r["ID"])})'>${tds}</tr>`;
+    }).join('');
+
+    const totalPages = Math.max(1, Math.ceil(ROWS.length / PAGING.size));
+    $('page').textContent = `Trang ${PAGING.page}/${totalPages}`;
+    $('prev').disabled = PAGING.page<=1;
+    $('next').disabled = PAGING.page>=totalPages;
+  }
+
+  function applySignColor(el, val){
+    el.classList.remove('text-emerald-700','text-rose-700','text-slate-900');
+    if (Number(val) > 0) el.classList.add('text-emerald-700'); 
+    else if (Number(val) < 0) el.classList.add('text-rose-700');
+    else el.classList.add('text-slate-900');
+  }
+  function paintKPIFiltered(m){
+    $('kpiThu').textContent = money(m.totalThu);
+    $('kpiChi').textContent = money(m.totalChi);
+    $('kpiBal').textContent = money(m.balance);
+    applySignColor($('kpiBal'), m.balance);
+  }
+  function paintActualBalance(bal){
+    $('kpiActual').textContent = money(bal);
+    applySignColor($('kpiActual'), bal);
+  }
+
+  function paintChart(monthly){
+    const ctx = $('chart');
+    if (CHART) CHART.destroy();
+    CHART = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: monthly.labels, datasets: [{ label: 'Thu', data: monthly.thu }, { label: 'Chi', data: monthly.chi }] },
+      options: { responsive: true, plugins: { legend: { position:'top' } }, scales: { y: { beginAtZero: true } } }
+    });
+  }
+
+  // ======= LOAD =======
+  function loadAll(){
+    const filters = currentFilters();
+    google.script.run.withSuccessHandler(res=>{
+      HEADERS = res.headers;
+      ROWS = res.rows;
+      $('status').innerHTML = `<option>Tất cả</option>` + res.options.statuses.map(x=>`<option>${x}</option>`).join('');
+      paintKPIFiltered(res.metrics);
+      paintTable();
+      paintChart(res.monthly);
+
+      google.script.run.withSuccessHandler(resAll=>{
+        ALL_ROWS = resAll.rows || [];
+        paintActualBalance(resAll.metrics.balance);
+      }).api_getAll({});
+    }).api_getAll(filters);
+  }
+
+  // ======= GỢI Ý SỐ PHIẾU =======
+  function nextVoucherFromAll(category){
+    const cat = String(category||'').toLowerCase();
+    const prefix = (cat==='thu') ? 'PT' : (cat==='chi' ? 'PC' : '');
+    let maxNum = 0, pad = 4;
+    ALL_ROWS.forEach(r=>{
+      if (String(r['Hạng mục']||'').toLowerCase() !== cat) return;
+      const code = String(r['Số phiếu']||'').trim();
+      const m = code.match(/(\d+)\s*$/);
+      if (!m) return;
+      const n = parseInt(m[1],10);
+      if (!isNaN(n)){ pad = Math.max(pad, m[1].length); maxNum = Math.max(maxNum, n); }
+    });
+    const numStr = String(maxNum+1).padStart(pad, '0');
+    return prefix ? `${prefix}${numStr}` : numStr;
+  }
+
+  // ======= CRUD =======
+  function openAdd(){
+    FORM_MODE = 'add';
+    $('modalTitle').textContent = 'Thêm bản ghi';
+    HEADERS.forEach(h=>{ const el = $('f_'+h); if (el) el.value = ''; });
+    $('btnDelete').classList.add('hidden');
+    $('modal').classList.remove('hidden');
+
+    // ID tự tăng -> khoá ô ID
+    const idEl = $('f_ID'); idEl.value=''; idEl.disabled = true;
+
+    // mặc định
+    const hm = $('f_Hạng mục'); if (hm) hm.value = 'Thu';
+    const st = $('f_Trạng thái'); if (st) st.value = '3. Đã phê duyệt';
+
+    // gợi ý số phiếu ban đầu và khi đổi hạng mục
+    if (hm) $('f_Số phiếu').value = nextVoucherFromAll(hm.value);
+    hm && hm.addEventListener('change', ()=>{ $('f_Số phiếu').value = nextVoucherFromAll(hm.value); }, { once:false });
+  }
+
+  function openEdit(id){
+    FORM_MODE = 'edit';
+    const r = ROWS.find(x=>String(x['ID'])===String(id));
+    if(!r) return;
+    $('modalTitle').textContent = `Sửa ID #${id}`;
+    HEADERS.forEach(h=>{
+      const el = $('f_'+h); if(!el) return;
+      if (h==='Số tiền') el.value = money(r[h]); else el.value = r[h] ?? '';
+    });
+    // ID khóa để tránh đổi ID
+    const idEl = $('f_ID'); idEl.disabled = true;
+    $('btnDelete').classList.remove('hidden');
+    $('modal').classList.remove('hidden');
+  }
+
+  function collectPayload(){
+    const data = {};
+    HEADERS.forEach(h=>{
+      const el = $('f_'+h); if (!el) return;
+      let v = el.value;
+      if (h==='Số tiền') v = String(v).replace(/\s/g,'');
+      data[h] = v;
+    });
+    return data;
+  }
+
+  function save(){
+    const data = collectPayload();
+    const cb = _=>{ closeModal(); loadAll(); };
+
+    if (FORM_MODE === 'add'){
+      // đảm bảo không gửi ID để server tự tăng
+      delete data['ID'];
+      google.script.run.withSuccessHandler(cb).withFailureHandler(alert).api_add({data, user:''});
+    } else {
+      google.script.run.withSuccessHandler(cb).withFailureHandler(alert).api_update({data, user:''});
+    }
+  }
+
+  function removeRow(){
+    const id = $('f_ID').value;
+    if (!id) return;
+    if (!confirm('Xác nhận xóa (mềm) bản ghi này?')) return;
+    google.script.run.withSuccessHandler(()=>{ closeModal(); loadAll(); })
+      .withFailureHandler(alert).api_delete(id);
+  }
+
+  function closeModal(){ $('modal').classList.add('hidden'); }
+
+  // ======= EXPORT =======
+  function exportCSV(){
+    const filters = currentFilters();
+    google.script.run.withSuccessHandler(b64=>{
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;base64,' + b64;
+      a.download = 'thu-chi.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+    }).api_exportCSV(filters);
+  }
+
+  // Events
+  $('btnAdd').onclick = openAdd;
+  $('btnSave').onclick = save;
+  $('btnDelete').onclick = removeRow;
+  $('closeModal').onclick = closeModal;
+  $('btnExport').onclick = exportCSV;
+  $('prev').onclick = ()=>{ if(PAGING.page>1){ PAGING.page--; paintTable(); } };
+  $('next').onclick = ()=>{ const tp=Math.ceil(ROWS.length/PAGING.size)||1; if(PAGING.page<tp){ PAGING.page++; paintTable(); } };
+  ['year','month','category','status'].forEach(id=>{ const el=$(id); el&&el.addEventListener('change', ()=>{ PAGING.page=1; loadAll(); }); });
+
+  loadAll();
+</script>
+</body>
+</html>
