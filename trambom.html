@@ -20,73 +20,117 @@
     }
     .card{ border-radius: var(--radius); }
     .table-wrap{ height: calc(100vh - 310px); min-height: 360px; overflow:auto; border-radius: 12px; }
-    table.grid-borders{ border-collapse: separate; border-spacing:0; table-layout: fixed; width:100% }
-    table.grid-borders thead th, table.grid-borders tbody td{ border-right:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb }
-    table.grid-borders thead th:first-child, table.grid-borders tbody td:first-child{ border-left:1px solid #e5e7eb }
-    table.grid-borders thead tr:first-child th{ border-top:1px solid #e5e7eb }
-    thead th{ position:sticky; top:0; z-index:2; background:linear-gradient(180deg,#f8fafc 0%,#eef2ff 100%); color:#0f172a; white-space:normal; line-height:1.25; padding:.55rem .6rem; font-weight:600 }
-    thead tr:nth-child(2) th{ top:52px; z-index:1 }
-    tbody td{ padding:.55rem .6rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-    td.wrap{ white-space:normal; word-break: break-word }
-    .filter-bar{ background:#f2fffa; border:1.5px solid #10b981; border-radius:18px; padding:10px 14px }
-    .filter-pill{ border:1.5px solid #10b981; border-radius:12px; background:#fff; padding:8px 12px; min-width:160px }
 
-    @media print{
-      @page{ size:A4 landscape; margin:10mm }
-      body{ background:#fff!important }
-      .no-print{ display:none!important }
-      .table-wrap{ height:auto; overflow:visible }
-      thead th{ position: static }
-      thead{ display: table-row-group }
-      tfoot{ display: table-row-group }
-      colgroup, col{ display:none!important }
-      table.grid-borders{ table-layout:auto!important; width:100%!important; border-collapse: collapse!important }
-      thead th, tbody td{
-        white-space: normal!important; overflow: visible!important; text-overflow: clip!important;
-        word-break: break-word; hyphens: auto; line-height:1.25; border:1px solid #000!important;
-      }
-      thead th:nth-child(1),tbody td:nth-child(1){width:5%;text-align:center}
-      thead th:nth-child(2),tbody td:nth-child(2){width:7%;text-align:center}
-      thead th:nth-child(3),tbody td:nth-child(3){width:10%;text-align:center}
-      thead th:nth-child(4),tbody td:nth-child(4){width:7%;text-align:center}
-      thead th:nth-child(5),tbody td:nth-child(5){width:7%;text-align:center}
-      thead th:nth-child(6),tbody td:nth-child(6){width:9%;text-align:center}
-      thead th:nth-child(7),tbody td:nth-child(7){width:9%;text-align:center}
-      thead th:nth-child(8),tbody td:nth-child(8){width:9%;text-align:center}
-      thead th:nth-child(9),tbody td:nth-child(9){width:15%}
-      thead th:nth-child(10),tbody td:nth-child(10){width:15%}
-      thead th:nth-child(11),tbody td:nth-child(11){width:10%;text-align:center}
-      thead th,tbody td{padding:6px 6px!important;font-size:11pt}
-      #pageTitle{font-size:18pt!important} #monthText{font-size:12pt!important}
-      tr,td,th{page-break-inside:avoid}
-      #pageTitle,#monthText{display:block!important}
+    table.grid-borders{ border-collapse: separate; border-spacing: 0; table-layout: fixed; width: 100%; }
+    table.grid-borders thead th, table.grid-borders tbody td{ border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
+    table.grid-borders thead th:first-child, table.grid-borders tbody td:first-child{ border-left: 1px solid #e5e7eb; }
+    table.grid-borders thead tr:first-child th{ border-top: 1px solid #e5e7eb; }
+
+    thead th{
+      position: sticky; top: 0; z-index: 2;
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      color: #0f172a; white-space: normal; line-height: 1.25;
+      padding: .55rem .6rem; font-weight: 600;
     }
-    @media (max-width:640px){ thead tr:nth-child(2) th{ top:48px } th,td{font-size:13px} .table-wrap{height:calc(100vh - 340px)} }
+    thead tr:nth-child(2) th{ top: 52px; z-index: 1; }
+    tbody td{ padding: .55rem .6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    td.wrap{ white-space: normal; word-break: break-word; }
+
+    .filter-bar{ background:#f2fffa; border:1.5px solid #10b981; border-radius: 18px; padding: 10px 14px; }
+    .filter-pill{ border:1.5px solid #10b981; border-radius:12px; background:#fff; padding: 8px 12px; min-width: 160px; }
+
+    /* --- IN PDF tối ưu & viền rõ --- */
+    @media print{
+      @page{ size: A4 landscape; margin: 10mm; }
+      body{ background:#fff !important; }
+      .no-print{ display: none !important; }
+      .table-wrap{ height:auto; overflow:visible; }
+
+      thead th{ position: static; }
+      thead{ display: table-row-group; }
+      tfoot{ display: table-row-group; }
+
+      colgroup, col{ display: none !important; }
+      table.grid-borders{ table-layout: auto !important; width: 100% !important; border-collapse: collapse !important; }
+
+      thead th, tbody td{
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        word-break: break-word; hyphens: auto; line-height: 1.25;
+        border: 1px solid #000 !important;
+      }
+
+      thead th:nth-child(1),  tbody td:nth-child(1)  { width: 5%;  text-align:center; }
+      thead th:nth-child(2),  tbody td:nth-child(2)  { width: 7%;  text-align:center; }
+      thead th:nth-child(3),  tbody td:nth-child(3)  { width:10%;  text-align:center; }
+      thead th:nth-child(4),  tbody td:nth-child(4)  { width: 7%;  text-align:center; }
+      thead th:nth-child(5),  tbody td:nth-child(5)  { width: 7%;  text-align:center; }
+      thead th:nth-child(6),  tbody td:nth-child(6)  { width: 9%;  text-align:center; }
+      thead th:nth-child(7),  tbody td:nth-child(7)  { width: 9%;  text-align:center; }
+      thead th:nth-child(8),  tbody td:nth-child(8)  { width: 9%;  text-align:center; }
+      thead th:nth-child(9),  tbody td:nth-child(9)  { width:15%; }   /* Tình trạng */
+      thead th:nth-child(10), tbody td:nth-child(10) { width:15%; }   /* Người cập nhật */
+      thead th:nth-child(11), tbody td:nth-child(11) { width:10%;  text-align:center; } /* Ký tên */
+
+      thead th, tbody td{ padding: 6px 6px !important; font-size: 11pt; }
+      #pageTitle{ font-size: 18pt !important; }
+      #monthText{ font-size: 12pt !important; }
+
+      tr, td, th{ page-break-inside: avoid; }
+      #pageTitle, #monthText{ display: block !important; }
+    }
+
+    @media (max-width: 640px){
+      thead tr:nth-child(2) th{ top: 48px; }
+      th, td { font-size: 13px; }
+      .table-wrap{ height: calc(100vh - 340px); }
+    }
   </style>
 </head>
 <body class="min-h-screen">
   <div class="max-w-screen-2xl mx-auto p-4 sm:p-6">
+
+    <!-- TIÊU ĐỀ -->
     <div class="p-0 mb-1">
-      <h1 id="pageTitle" class="text-3xl sm:text-4xl font-extrabold text-center tracking-wide text-slate-900">NHẬT KÝ VẬN HÀNH TRẠM BƠM</h1>
-      <div class="mt-1 text-center"><span id="monthText" class="text-slate-500 text-lg">Tất cả dữ liệu</span></div>
+      <h1 id="pageTitle" class="text-3xl sm:text-4xl font-extrabold text-center tracking-wide text-slate-900">
+        NHẬT KÝ VẬN HÀNH TRẠM BƠM
+      </h1>
+      <div class="mt-1 text-center">
+        <span id="monthText" class="text-slate-500 text-lg">Tất cả dữ liệu</span>
+      </div>
     </div>
 
+    <!-- BỘ LỌC -->
     <div class="filter-bar mb-3 no-print">
       <div class="flex flex-wrap items-center gap-3">
         <span class="font-semibold text-slate-800 mr-1">Bộ lọc:</span>
-        <div class="flex items-center gap-2"><span class="text-slate-700">Nguồn</span>
+
+        <div class="flex items-center gap-2">
+          <span class="text-slate-700">Nguồn</span>
           <select id="sheetSelect" class="filter-pill">
             <option value="Tram_bom_1">Trạm bơm 1</option>
             <option value="Tram_bom_2">Trạm bơm 2</option>
             <option value="Tram_bom_MN">Trạm bơm MN</option>
           </select>
         </div>
-        <div class="flex items-center gap-2"><span class="text-slate-700">Năm</span><select id="yearSelect" class="filter-pill"></select></div>
-        <div class="flex items-center gap-2"><span class="text-slate-700">Quý</span><select id="quarterSelect" class="filter-pill"></select></div>
-        <div class="flex items-center gap-2"><span class="text-slate-700">Tháng</span><select id="monthSelect" class="filter-pill"></select></div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-slate-700">Năm</span>
+          <select id="yearSelect" class="filter-pill"></select>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-700">Quý</span>
+          <select id="quarterSelect" class="filter-pill"></select>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-700">Tháng</span>
+          <select id="monthSelect" class="filter-pill"></select>
+        </div>
       </div>
     </div>
 
+    <!-- TOOLBAR -->
     <div class="no-print flex flex-wrap items-center justify-between gap-3 mb-2">
       <div class="flex items-center gap-2">
         <button id="btnPrint" class="px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 shadow-sm">In PDF</button>
@@ -102,6 +146,7 @@
       </div>
     </div>
 
+    <!-- BẢNG -->
     <div class="bg-white card shadow-md border border-slate-200">
       <div class="table-wrap">
         <table id="dataTable" class="grid-borders text-sm">
@@ -113,7 +158,9 @@
           </colgroup>
           <thead>
             <tr>
-              <th>STT</th><th>Thứ</th><th>Ngày</th>
+              <th>STT</th>
+              <th>Thứ</th>
+              <th>Ngày</th>
               <th colspan="2">Thời gian vận hành<br><span class="text-[11px] text-slate-600 font-normal">(Giờ mở / Giờ tắt)</span></th>
               <th>Số máy vận hành</th>
               <th>Lưu lượng bơm (m³/s)</th>
@@ -132,6 +179,7 @@
         </table>
       </div>
 
+      <!-- PHÂN TRANG -->
       <div class="no-print flex flex-wrap items-center justify-between gap-3 p-3 text-slate-700">
         <div id="pageInfo" class="text-sm">Trang 1/1 — 0 dòng</div>
         <div class="flex items-center gap-2">
@@ -143,32 +191,51 @@
   </div>
 
   <script>
+    /* ===== CẤU HÌNH ===== */
     const API_URL = "https://script.google.com/macros/s/AKfycbyzl8Ftfd6NnHsLmPgMUuzud6nYQlpY1fCVLw047McQed5cNhoSDPlp5A1IC-tyMhFe/exec";
-    let RAW=[], YEARS=[], FILTERED=[]; let PAGE_SIZE=50, PAGE=1; let CURRENT_SHEET='Tram_bom_1';
 
-    function safe(v){ return (v===null||v===undefined) ? "" : String(v) }
-    function toDMY(d){ const dd=String(d.getDate()).padStart(2,"0"), mm=String(d.getMonth()+1).padStart(2,"0"), yy=d.getFullYear(); return `${dd}/${mm}/${yy}` }
-    function parseToDate(v){
-      if(v==null || v==="") return null;
-      if(typeof v==="number" || (!isNaN(v) && typeof v!=="string")){ const epoch=new Date(1899,11,30); return new Date(epoch.getTime()+Number(v)*86400000); }
-      const d=new Date(v); return isNaN(d)?null:d;
+    /* ===== STATE ===== */
+    let RAW = [], YEARS = [], FILTERED = [];
+    let PAGE_SIZE = 50, PAGE = 1;
+    let CURRENT_SHEET = 'Tram_bom_1';
+
+    /* ===== UTIL ===== */
+    function safe(v){ return (v===null || v===undefined) ? "" : String(v); }
+    function toDMY(d){
+      const dd = String(d.getDate()).padStart(2,"0");
+      const mm = String(d.getMonth()+1).padStart(2,"0");
+      const yy = d.getFullYear();
+      return `${dd}/${mm}/${yy}`;
     }
-    function quarterOfMonth(m){ return m<=3?1:m<=6?2:m<=9?3:4 }
+    function parseToDate(v){
+      if(v === null || v === undefined || v === "") return null;
+      if(typeof v === "number" || (!isNaN(v) && typeof v !== "string")){
+        const epoch = new Date(1899,11,30);
+        return new Date(epoch.getTime() + Number(v) * 86400000);
+      }
+      const d = new Date(v);
+      return isNaN(d) ? null : d;
+    }
+    function quarterOfMonth(m){ return m<=3?1:m<=6?2:m<=9?3:4; }
     function labelSelected(ySel,qSel,mSel){
       if(mSel!=="all") return (ySel==="all")?`Tháng ${String(mSel).padStart(2,'0')} (tất cả năm)`: `Tháng ${String(mSel).padStart(2,'0')} năm ${ySel}`;
       if(qSel!=="all") return (ySel==="all")?`Quý ${qSel} (tất cả năm)`: `Quý ${qSel} năm ${ySel}`;
-      if(ySel!=="all") return `Năm ${ySel}`; return "Tất cả dữ liệu";
+      if(ySel!=="all") return `Năm ${ySel}`;
+      return "Tất cả dữ liệu";
     }
 
-    /* ---- FIX QUAN TRỌNG: parse & format số VI cho cột Diện tích ---- */
+    /* ===== Parse & format số VI cho cột Diện tích (bắt buộc dùng dấu phẩy thập phân) ===== */
     function parseLocaleNumber(value) {
       if (value === null || value === undefined || value === "") return null;
       if (typeof value === "number") return value;
+
+      // Giữ lại số, dấu . , -
       let s = String(value).trim().replace(/[^\d.,-]/g, "");
       const lastComma = s.lastIndexOf(","), lastDot = s.lastIndexOf(".");
       const decIdx = Math.max(lastComma, lastDot);
+
       if (decIdx > -1) {
-        const intPart  = s.slice(0, decIdx).replace(/[^\d-]/g, "");
+        const intPart  = s.slice(0, decIdx).replace(/[^\d-]/g, "");   // bỏ ngăn cách nghìn
         const fracPart = s.slice(decIdx + 1).replace(/[^\d]/g, "");
         const n = Number(intPart + "." + fracPart);
         return isNaN(n) ? null : n;
@@ -176,22 +243,26 @@
       const n = Number(s.replace(/[^\d-]/g, ""));
       return isNaN(n) ? null : n;
     }
-    function formatDecimalVI(value, maxDigits=2){
+    function formatDecimalVI(value, maxDigits = 2) {
       const num = parseLocaleNumber(value);
       if (num === null) return "";
-      const isInt = Math.abs(num % 1) < 1e-12;
+      const isInt = Number.isInteger(num);
+      // Luôn xuất theo vi-VN: nghìn '.'; thập phân ','
       return num.toLocaleString("vi-VN", {
         minimumFractionDigits: isInt ? 0 : 1,
         maximumFractionDigits: maxDigits
       });
     }
 
+    /* ===== RENDER PAGE ===== */
     function renderPage(){
       const tbody=document.getElementById("tbody");
       tbody.innerHTML="";
-      const total=FILTERED.length, totalPages=Math.max(1,Math.ceil(total/PAGE_SIZE));
+      const total=FILTERED.length;
+      const totalPages=Math.max(1,Math.ceil(total/PAGE_SIZE));
       PAGE=Math.min(Math.max(1,PAGE),totalPages);
-      const start=(PAGE-1)*PAGE_SIZE, end=Math.min(start+PAGE_SIZE,total), slice=FILTERED.slice(start,end);
+      const start=(PAGE-1)*PAGE_SIZE, end=Math.min(start+PAGE_SIZE,total);
+      const slice=FILTERED.slice(start,end);
 
       if(!slice.length){
         tbody.innerHTML=`<tr><td colspan="11" class="px-3 py-4 text-center text-slate-500">Không có dữ liệu.</td></tr>`;
@@ -207,7 +278,7 @@
             <td class="text-center">${safe(r.gioTat)}</td>
             <td class="text-center">${safe(r.soMay)}</td>
             <td class="text-center">${safe(r.luuLuong)}</td>
-            <td class="text-center">${formatDecimalVI(r.dienTich)}</td>
+            <td class="text-center">${formatDecimalVI(r.dienTich, 2)}</td>
             <td class="wrap">${safe(r.tinhTrang)}</td>
             <td>${safe(r.nguoiCapNhat)}</td>
             <td class="text-center">${safe(r.kyTen)}</td>`;
@@ -215,51 +286,63 @@
         });
         tbody.appendChild(frag);
       }
-      document.getElementById("pageInfo").textContent=`Trang ${PAGE}/${Math.max(1,Math.ceil(total/PAGE_SIZE))} — ${total} dòng`;
+      document.getElementById("pageInfo").textContent=
+        `Trang ${PAGE}/${Math.max(1,Math.ceil(total/PAGE_SIZE))} — ${total} dòng`;
     }
 
+    /* ===== FILTER ===== */
     function applyFilter(){
-      const mSel=document.getElementById('monthSelect').value,
-            ySel=document.getElementById('yearSelect').value,
-            qSel=document.getElementById('quarterSelect').value;
-      document.getElementById('monthText').textContent=labelSelected(ySel,qSel,mSel);
+      const mSel=document.getElementById('monthSelect').value;
+      const ySel=document.getElementById('yearSelect').value;
+      const qSel=document.getElementById('quarterSelect').value;
+
+      document.getElementById('monthText').textContent = labelSelected(ySel, qSel, mSel);
+
       let arr=RAW;
-      if(mSel!=="all"){ const m=Number(mSel); arr=arr.filter(r=>r._date && (r._date.getMonth()+1)===m) }
-      else if(qSel!=="all"){ const q=Number(qSel); arr=arr.filter(r=>r._date && quarterOfMonth(r._date.getMonth()+1)===q) }
-      if(ySel!=="all"){ const y=Number(ySel); arr=arr.filter(r=>r._date && r._date.getFullYear()===y) }
+      if(mSel!=="all"){ const m=Number(mSel); arr=arr.filter(r=>r._date && (r._date.getMonth()+1)===m); }
+      else if(qSel!=="all"){ const q=Number(qSel); arr=arr.filter(r=>r._date && quarterOfMonth(r._date.getMonth()+1)===q); }
+      if(ySel!=="all"){ const y=Number(ySel); arr=arr.filter(r=>r._date && r._date.getFullYear()===y); }
+
       FILTERED=arr; PAGE=1; renderPage();
     }
 
+    /* ===== INIT SELECTORS ===== */
     function initSelectors(){
-      const mEl=document.getElementById('monthSelect'),
-            yEl=document.getElementById('yearSelect'),
-            qEl=document.getElementById('quarterSelect');
+      const mEl=document.getElementById('monthSelect');
+      const yEl=document.getElementById('yearSelect');
+      const qEl=document.getElementById('quarterSelect');
 
       mEl.innerHTML=`<option value="all">Tất cả</option>`;
-      for(let i=1;i<=12;i++){ const o=document.createElement('option'); o.value=String(i); o.textContent=`Tháng ${String(i).padStart(2,'0')}`; mEl.appendChild(o) }
+      for(let i=1;i<=12;i++){ const o=document.createElement('option'); o.value=String(i); o.textContent=`Tháng ${i.toString().padStart(2,'0')}`; mEl.appendChild(o); }
+
       qEl.innerHTML=`<option value="all">Tất cả</option>`;
-      for(let i=1;i<=4;i++){ const o=document.createElement('option'); o.value=String(i); o.textContent=`Quý ${i}`; qEl.appendChild(o) }
+      for(let i=1;i<=4;i++){ const o=document.createElement('option'); o.value=String(i); o.textContent=`Quý ${i}`; qEl.appendChild(o); }
+
       yEl.innerHTML=`<option value="all">Tất cả</option>`;
-      const years=YEARS.length?YEARS.sort((a,b)=>a-b):Array.from({length:11},(_,k)=>new Date().getFullYear()-5+k);
-      years.forEach(y=>{ const o=document.createElement('option'); o.value=String(y); o.textContent=String(y); yEl.appendChild(o) });
+      const years=YEARS.length?YEARS.sort((a,b)=>a-b):Array.from({length:11},(_,k)=> new Date().getFullYear()-5+k);
+      years.forEach(y=>{ const o=document.createElement('option'); o.value=String(y); o.textContent=String(y); yEl.appendChild(o); });
+
       mEl.value="all"; qEl.value="all"; yEl.value="all";
       mEl.addEventListener('change',applyFilter);
       qEl.addEventListener('change',applyFilter);
       yEl.addEventListener('change',applyFilter);
-      document.getElementById('monthText').textContent=labelSelected("all","all","all");
+      document.getElementById('monthText').textContent = labelSelected("all","all","all");
     }
 
+    /* ===== PAGE SIZE + NAV ===== */
     document.getElementById('pageSize').addEventListener('change',e=>{ PAGE_SIZE=Number(e.target.value); PAGE=1; renderPage(); });
     document.getElementById('prevBtn').addEventListener('click',()=>{ PAGE=Math.max(1,PAGE-1); renderPage(); });
     document.getElementById('nextBtn').addEventListener('click',()=>{ const totalPages=Math.max(1,Math.ceil(FILTERED.length/PAGE_SIZE)); PAGE=Math.min(totalPages,PAGE+1); renderPage(); });
 
+    /* ===== PRINT & EXCEL ===== */
     document.getElementById('btnPrint').addEventListener('click',()=>{ window.print(); });
     document.getElementById('btnExcel').addEventListener('click',()=>{
       if(!FILTERED.length) return;
       const header=["STT","Thứ","Ngày","Giờ mở","Giờ tắt","Số máy vận hành","Lưu lượng bơm (m3/s)","Diện tích tưới/ngày (ha)","Tình trạng trạm bơm","Họ, tên người cập nhật","Ký tên"];
       const rows=FILTERED.map((r,i)=>[
         i+1, r.thu, r._date?toDMY(r._date):r.ngay, r.gioMo, r.gioTat, r.soMay, r.luuLuong,
-        parseLocaleNumber(r.dienTich),  // xuất Excel: số thật
+        // Excel: giữ là số thật để định dạng theo locale trên máy người dùng
+        parseLocaleNumber(r.dienTich),
         r.tinhTrang, r.nguoiCapNhat, r.kyTen
       ]);
       const ws=XLSX.utils.aoa_to_sheet([header,...rows]);
@@ -267,28 +350,39 @@
       const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Nhat_ky_tram_bom"); XLSX.writeFile(wb,"nhat_ky_tram_bom.xlsx");
     });
 
+    /* ===== LOAD DATA ===== */
     async function loadData(){
       const url = `${API_URL}?sheet=${encodeURIComponent(CURRENT_SHEET)}`;
       const res = await fetch(url);
       if(!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
-      RAW = (Array.isArray(data)?data:[]).map(it=>{
-        const d=parseToDate(it.ngay);
-        return {thu:it.thu??"", ngay:it.ngay??"", gioMo:it.gioMo??"", gioTat:it.gioTat??"",
-                soMay:it.soMay??"", luuLuong:it.luuLuong??"", dienTich:it.dienTich??"",
-                tinhTrang:it.tinhTrang??"", nguoiCapNhat:it.nguoiCapNhat??"", kyTen:it.kyTen??"", _date:d};
+
+      RAW = (Array.isArray(data) ? data : []).map(it => {
+        const d = parseToDate(it.ngay);
+        return {
+          thu: it.thu ?? "", ngay: it.ngay ?? "", gioMo: it.gioMo ?? "", gioTat: it.gioTat ?? "",
+          soMay: it.soMay ?? "", luuLuong: it.luuLuong ?? "", dienTich: it.dienTich ?? "",
+          tinhTrang: it.tinhTrang ?? "", nguoiCapNhat: it.nguoiCapNhat ?? "", kyTen: it.kyTen ?? "", _date: d
+        };
       });
-      YEARS=Array.from(new Set(RAW.filter(r=>r._date).map(r=>r._date.getFullYear())));
-      initSelectors(); applyFilter();
+
+      YEARS = Array.from(new Set(RAW.filter(r=>r._date).map(r=>r._date.getFullYear())));
+      initSelectors();
+      applyFilter();
     }
 
+    /* ===== SHEET CHANGE ===== */
     document.getElementById('sheetSelect').addEventListener('change', async (e)=>{
-      CURRENT_SHEET=e.target.value; document.getElementById('monthText').textContent="Tất cả dữ liệu"; await loadData();
+      CURRENT_SHEET = e.target.value;
+      document.getElementById('monthText').textContent = "Tất cả dữ liệu";
+      await loadData();
     });
 
+    /* ===== START ===== */
     loadData().catch(err=>{
       console.error(err);
-      document.getElementById("tbody").innerHTML=`<tr><td colspan="11" class="px-3 py-4 text-center text-slate-500">Không tải được dữ liệu.</td></tr>`;
+      document.getElementById("tbody").innerHTML =
+        `<tr><td colspan="11" class="px-3 py-4 text-center text-slate-500">Không tải được dữ liệu.</td></tr>`;
     });
   </script>
 </body>
