@@ -226,6 +226,25 @@
       return "Tất cả dữ liệu";
     }
 
+    /* === ĐỊNH DẠNG THẬP PHÂN (VI) CHO CỘT DIỆN TÍCH === */
+    function formatDecimalVI(value, opts = { maximumFractionDigits: 2 }) {
+      if (value === null || value === undefined || value === "") return "";
+      // Chuyển "2,5" thành 2.5 để parse, hoặc giữ nguyên số
+      const num = (typeof value === "number")
+        ? value
+        : Number(String(value).replace(/\./g, "").replace(",", "."));
+      if (!isNaN(num)) {
+        return new Intl.NumberFormat("vi-VN", {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: opts.maximumFractionDigits ?? 2
+        }).format(num);
+      }
+      // Fallback: thay dấu chấm bằng dấu phẩy nếu là chuỗi số đơn giản
+      const s = String(value);
+      if (/^\d+(\.\d+)?$/.test(s)) return s.replace(".", ",");
+      return s;
+    }
+
     // ===== TABLE RENDER (PAGE) =====
     function renderPage(){
       const tbody=document.getElementById("tbody");
@@ -250,7 +269,7 @@
             <td class="text-center">${safe(r.gioTat)}</td>
             <td class="text-center">${safe(r.soMay)}</td>
             <td class="text-center">${safe(r.luuLuong)}</td>
-            <td class="text-center">${safe(r.dienTich)}</td>
+            <td class="text-center">${formatDecimalVI(r.dienTich)}</td>
             <td class="wrap">${safe(r.tinhTrang)}</td>
             <td>${safe(r.nguoiCapNhat)}</td>
             <td class="text-center">${safe(r.kyTen)}</td>`;
@@ -311,7 +330,10 @@
     document.getElementById('btnExcel').addEventListener('click',()=>{
       if(!FILTERED.length) return;
       const header=["STT","Thứ","Ngày","Giờ mở","Giờ tắt","Số máy vận hành","Lưu lượng bơm (m3/s)","Diện tích tưới/ngày (ha)","Tình trạng trạm bơm","Họ, tên người cập nhật","Ký tên"];
-      const rows=FILTERED.map((r,i)=>[i+1,r.thu,r._date?toDMY(r._date):r.ngay,r.gioMo,r.gioTat,r.soMay,r.luuLuong,r.dienTich,r.tinhTrang,r.nguoiCapNhat,r.kyTen]);
+      // Xuất Excel: giữ giá trị số gốc để Excel hiểu là số (dùng dấu chấm theo chuẩn số học)
+      const rows=FILTERED.map((r,i)=>[
+        i+1, r.thu, r._date?toDMY(r._date):r.ngay, r.gioMo, r.gioTat, r.soMay, r.luuLuong, r.dienTich, r.tinhTrang, r.nguoiCapNhat, r.kyTen
+      ]);
       const ws=XLSX.utils.aoa_to_sheet([header,...rows]);
       ws['!cols']=header.map((h,idx)=>({wch:Math.min(40,Math.max(8,Math.ceil(Math.max(h.length,...rows.map(r=>String(r[idx]??'').length))*0.9)))}));
       const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Nhat_ky_tram_bom"); XLSX.writeFile(wb,"nhat_ky_tram_bom.xlsx");
@@ -326,9 +348,11 @@
 
       RAW = (Array.isArray(data) ? data : []).map(it => {
         const d = parseToDate(it.ngay);
-        return { thu: it.thu ?? "", ngay: it.ngay ?? "", gioMo: it.gioMo ?? "", gioTat: it.gioTat ?? "",
-                 soMay: it.soMay ?? "", luuLuong: it.luuLuong ?? "", dienTich: it.dienTich ?? "",
-                 tinhTrang: it.tinhTrang ?? "", nguoiCapNhat: it.nguoiCapNhat ?? "", kyTen: it.kyTen ?? "", _date: d };
+        return {
+          thu: it.thu ?? "", ngay: it.ngay ?? "", gioMo: it.gioMo ?? "", gioTat: it.gioTat ?? "",
+          soMay: it.soMay ?? "", luuLuong: it.luuLuong ?? "", dienTich: it.dienTich ?? "",
+          tinhTrang: it.tinhTrang ?? "", nguoiCapNhat: it.nguoiCapNhat ?? "", kyTen: it.kyTen ?? "", _date: d
+        };
       });
 
       YEARS = Array.from(new Set(RAW.filter(r=>r._date).map(r=>r._date.getFullYear())));
@@ -339,7 +363,6 @@
     // đổi nguồn dữ liệu (sheet)
     document.getElementById('sheetSelect').addEventListener('change', async (e)=>{
       CURRENT_SHEET = e.target.value;
-      // Gợi ý: thay dòng tháng/năm về "Tất cả dữ liệu" khi đổi nguồn
       document.getElementById('monthText').textContent = "Tất cả dữ liệu";
       await loadData();
     });
