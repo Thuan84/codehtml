@@ -39,7 +39,7 @@
     .filter-bar{ background:#f2fffa; border:1.5px solid #10b981; border-radius: 18px; padding: 10px 14px; }
     .filter-pill{ border:1.5px solid #10b981; border-radius:12px; background:#fff; padding: 8px 12px; min-width: 160px; }
 
-    /* --- IN PDF tối ưu & viền rõ --- */
+    /* --- IN PDF --- */
     @media print{
       @page{ size: A4 landscape; margin: 10mm; }
       body{ background:#fff !important; }
@@ -69,18 +69,16 @@
       thead th:nth-child(6),  tbody td:nth-child(6)  { width: 9%;  text-align:center; }
       thead th:nth-child(7),  tbody td:nth-child(7)  { width: 9%;  text-align:center; }
       thead th:nth-child(8),  tbody td:nth-child(8)  { width: 9%;  text-align:center; }
-      thead th:nth-child(9),  tbody td:nth-child(9)  { width:15%; }   /* Tình trạng */
-      thead th:nth-child(10), tbody td:nth-child(10) { width:15%; }   /* Người cập nhật */
-      thead th:nth-child(11), tbody td:nth-child(11) { width:10%;  text-align:center; } /* Ký tên */
+      thead th:nth-child(9),  tbody td:nth-child(9)  { width:15%; }
+      thead th:nth-child(10), tbody td:nth-child(10) { width:15%; }
+      thead th:nth-child(11), tbody td:nth-child(11) { width:10%;  text-align:center; }
 
       thead th, tbody td{ padding: 6px 6px !important; font-size: 11pt; }
       #pageTitle{ font-size: 18pt !important; }
       #monthText{ font-size: 12pt !important; }
-
       tr, td, th{ page-break-inside: avoid; }
       #pageTitle, #monthText{ display: block !important; }
     }
-
     @media (max-width: 640px){
       thead tr:nth-child(2) th{ top: 48px; }
       th, td { font-size: 13px; }
@@ -224,18 +222,16 @@
       return "Tất cả dữ liệu";
     }
 
-    /* ===== Parse & format số VI cho cột Diện tích (bắt buộc dùng dấu phẩy thập phân) ===== */
+    /* ===== Parse & Format VI "cứng" (không phụ thuộc Intl) ===== */
+    // Chuyển chuỗi số bất kỳ (1.234,56 / 1,234.56 / 2.5 / 2,5) -> Number
     function parseLocaleNumber(value) {
       if (value === null || value === undefined || value === "") return null;
       if (typeof value === "number") return value;
-
-      // Giữ lại số, dấu . , -
       let s = String(value).trim().replace(/[^\d.,-]/g, "");
       const lastComma = s.lastIndexOf(","), lastDot = s.lastIndexOf(".");
       const decIdx = Math.max(lastComma, lastDot);
-
       if (decIdx > -1) {
-        const intPart  = s.slice(0, decIdx).replace(/[^\d-]/g, "");   // bỏ ngăn cách nghìn
+        const intPart  = s.slice(0, decIdx).replace(/[^\d-]/g, "");
         const fracPart = s.slice(decIdx + 1).replace(/[^\d]/g, "");
         const n = Number(intPart + "." + fracPart);
         return isNaN(n) ? null : n;
@@ -243,15 +239,19 @@
       const n = Number(s.replace(/[^\d-]/g, ""));
       return isNaN(n) ? null : n;
     }
-    function formatDecimalVI(value, maxDigits = 2) {
+    // Format theo vi-VN: nghìn '.' và thập phân ','; tối đa 2 chữ số thập phân, bỏ số 0 dư
+    function formatVNDecimal(value, maxDigits = 2) {
       const num = parseLocaleNumber(value);
       if (num === null) return "";
-      const isInt = Number.isInteger(num);
-      // Luôn xuất theo vi-VN: nghìn '.'; thập phân ','
-      return num.toLocaleString("vi-VN", {
-        minimumFractionDigits: isInt ? 0 : 1,
-        maximumFractionDigits: maxDigits
-      });
+      const sign = num < 0 ? "-" : "";
+      const abs = Math.abs(num);
+      const fixed = abs.toFixed(maxDigits);            // "1234.50"
+      let [intStr, fracStr] = fixed.split(".");
+      // thêm dấu . cho phần nguyên
+      intStr = intStr.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      // bỏ 0 dư bên phải phần thập phân
+      fracStr = (fracStr || "").replace(/0+$/,"");
+      return sign + intStr + (fracStr ? "," + fracStr : "");
     }
 
     /* ===== RENDER PAGE ===== */
@@ -278,7 +278,7 @@
             <td class="text-center">${safe(r.gioTat)}</td>
             <td class="text-center">${safe(r.soMay)}</td>
             <td class="text-center">${safe(r.luuLuong)}</td>
-            <td class="text-center">${formatDecimalVI(r.dienTich, 2)}</td>
+            <td class="text-center">${formatVNDecimal(r.dienTich, 2)}</td>
             <td class="wrap">${safe(r.tinhTrang)}</td>
             <td>${safe(r.nguoiCapNhat)}</td>
             <td class="text-center">${safe(r.kyTen)}</td>`;
@@ -340,9 +340,11 @@
       if(!FILTERED.length) return;
       const header=["STT","Thứ","Ngày","Giờ mở","Giờ tắt","Số máy vận hành","Lưu lượng bơm (m3/s)","Diện tích tưới/ngày (ha)","Tình trạng trạm bơm","Họ, tên người cập nhật","Ký tên"];
       const rows=FILTERED.map((r,i)=>[
-        i+1, r.thu, r._date?toDMY(r._date):r.ngay, r.gioMo, r.gioTat, r.soMay, r.luuLuong,
-        // Excel: giữ là số thật để định dạng theo locale trên máy người dùng
-        parseLocaleNumber(r.dienTich),
+        i+1,
+        r.thu,
+        r._date?toDMY(r._date):r.ngay,
+        r.gioMo, r.gioTat, r.soMay, r.luuLuong,
+        parseLocaleNumber(r.dienTich),   // Excel: xuất số thật để máy tự định dạng
         r.tinhTrang, r.nguoiCapNhat, r.kyTen
       ]);
       const ws=XLSX.utils.aoa_to_sheet([header,...rows]);
