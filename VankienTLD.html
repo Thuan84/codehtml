@@ -118,6 +118,7 @@ body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-c
               <th>Trích yếu</th>
               <th>Ngày ban hành</th>
               <th>Cơ quan BH</th>
+              <th>Link</th>
               <th>Ghi chú</th>
               <th class="text-center" title="Hành động"><i class="fas fa-tools"></i></th>
             </tr>
@@ -160,19 +161,12 @@ let dataTable;
 let allData = [];
 let TERM_FIELD = null;
 
-/* --------- Helpers (chuẩn hoá & lấy trường) --------- */
+/* ====== BỔ SUNG: phát hiện cột Link (URL) linh hoạt ====== */
+let LINK_FIELD = null;
+
 function normalizeKeyName(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,''); }
 function normalizeTermValue(s){ return String(s||'').replace(/[\u00A0\s]+/g,'').replace(/[–—−]/g,'-').trim(); }
-function getFieldByNormalizedName(obj, targetNames = []){
-  if(!obj) return undefined;
-  const map = {};
-  for(const k of Object.keys(obj)){ map[normalizeKeyName(k)] = k; }
-  for(const t of targetNames){
-    const nk = normalizeKeyName(t);
-    if(map[nk] !== undefined) return obj[map[nk]];
-  }
-  return undefined;
-}
+
 function detectTermFieldName(sampleRow){
   const TARGET='nhiemky'; if(!sampleRow) return null;
   const keys=Object.keys(sampleRow); let found=keys.find(k=>normalizeKeyName(k)===TARGET);
@@ -181,6 +175,45 @@ function detectTermFieldName(sampleRow){
   return found||null;
 }
 function getTermRaw(item){ if(!item||!TERM_FIELD) return ''; const v=item[TERM_FIELD]; return (v===undefined||v===null)?'':String(v).trim(); }
+
+/* Phát hiện tên cột Link */
+function detectLinkFieldName(sampleRow){
+  if(!sampleRow) return null;
+  const keys = Object.keys(sampleRow);
+  // ưu tiên trùng khớp tuyệt đối
+  let found = keys.find(k => ['link','url'].includes(normalizeKeyName(k)));
+  if(found) return found;
+  // fallback theo chứa từ khóa
+  found = keys.find(k => {
+    const n = normalizeKeyName(k);
+    return n.includes('link') || n.includes('url') || n.includes('duongdan');
+  });
+  return found || null;
+}
+
+/* Truy xuất giá trị Link */
+function getLinkValue(item){
+  if(!item || !LINK_FIELD) return '';
+  const v = item[LINK_FIELD];
+  return (v===undefined || v===null) ? '' : String(v).trim();
+}
+
+/* Chuẩn hóa URL đơn giản (nếu thiếu protocol) */
+function toSafeUrl(s){
+  if(!s) return '';
+  if(/^https?:\/\//i.test(s)) return s;
+  // nếu là drive hoặc domain rõ ràng mà thiếu protocol -> thêm https
+  return 'https://' + s.replace(/^\/+/, '');
+}
+
+/* Render icon link hoặc dấu gạch ngang */
+function renderLinkCell(val){
+  if(!val) return '<span class="text-muted">—</span>';
+  const u = toSafeUrl(val);
+  return `<a href="${u}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info" title="Mở liên kết">
+            <i class="fas fa-link"></i>
+          </a>`;
+}
 
 $(document).ready(function(){ updateCurrentDate(); initializeDataTable(); loadData(); setupEventListeners(); });
 
@@ -198,14 +231,32 @@ function initializeDataTable(){
   dataTable = $('#data-table').DataTable({
     data: [],
     columns: [
-      { data:null, width:'5%' }, { data:'soHieu', width:'12%' }, { data:'trichYeu', width:'35%' },
-      { data:'ngayBanHanh', width:'12%' }, { data:'coQuanBanHanh', width:'15%' }, { data:'ghiChu', width:'16%' }, { data:'stt', width:'5%' }
+      { data:null, width:'5%' },
+      { data:'soHieu', width:'12%' },
+      { data:'trichYeu', width:'33%' },
+      { data:'ngayBanHanh', width:'10%' },
+      { data:'coQuanBanHanh', width:'14%' },
+      /* ====== BỔ SUNG: Cột Link ====== */
+      { data:null, width:'6%', defaultContent:'' },
+      { data:'ghiChu', width:'14%' },
+      { data:'stt', width:'6%' }
     ],
     columnDefs: [
       { targets:0, orderable:false, className:'text-center', render:(_,__,___,meta)=> meta.row+1 },
       { targets:1, className:'so-hieu-col' },
-      { targets:3, className:'text-nowrap', render:function(data,type){ if(type==='sort'||type==='type'){ if(!data) return 0; const dt=new Date(data); return isNaN(dt.getTime())?0:dt.getTime(); } return formatDateForDisplay(data); } },
-      { targets:6, orderable:false, className:'text-center action-buttons', render:(_,__,row)=> `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${row.stt}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>` }
+      { targets:3, className:'text-nowrap', render:function(data,type){
+          if(type==='sort'||type==='type'){ if(!data) return 0; const dt=new Date(data); return isNaN(dt.getTime())?0:dt.getTime(); }
+          return formatDateForDisplay(data);
+        }
+      },
+      /* Render cột Link */
+      { targets:5, orderable:false, className:'text-center', render:(_,__,row)=>{
+          return renderLinkCell(getLinkValue(row));
+        }
+      },
+      { targets:7, orderable:false, className:'text-center action-buttons',
+        render:(_,__,row)=> `<button class="btn btn-sm btn-outline-primary view-detail" data-id="${row.stt}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>`
+      }
     ],
     order:[[3,'desc'],[1,'desc']],
     language:{ url:'//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' },
@@ -223,6 +274,8 @@ function loadData(forceRefresh=false){
       if(response.status==='error'||!response.data){ showError(response.message||'Lỗi không xác định hoặc không có dữ liệu.'); return; }
       allData = response.data||[];
       TERM_FIELD = detectTermFieldName(allData[0]);
+      LINK_FIELD = detectLinkFieldName(allData[0]); // <<< BỔ SUNG
+      if(!LINK_FIELD){ console.warn('Không tìm thấy cột Link/URL trong dữ liệu.'); }
       populateFilters(allData);
       updateStatistics(allData);
       resetFilters();
@@ -306,28 +359,23 @@ function populateSelect(selector, options){
   options.forEach(opt=> select.append(`<option value="${opt}">${opt}</option>`));
 }
 
-/* === ĐỔI SANG DÙNG CỘT "Link" (URL) THAY CHO "đính kèm" === */
 function showDocumentDetail(stt){
   const doc=allData.find(item=>item.stt==stt);
   if(!doc){ alert('Lỗi: Không tìm thấy văn bản!'); return; }
-
   const createRow=(label,val)=>`<tr><th scope="row" class="w-25 bg-light">${label}:</th><td>${val||'---'}</td></tr>`;
 
-  // Ưu tiên lấy từ cột Link; tương thích ngược nếu còn dữ liệu cũ "Đính kèm"/dinhKem
-  const rawLink = getFieldByNormalizedName(doc, ['Link','đính kèm','dinhKem','dinh kem','dinh-kem']);
-  let filesHtml='<p class="text-muted fst-italic">Không có liên kết.</p>';
-  if(rawLink){
-    const items = String(rawLink).split(',').map(s=>s.trim()).filter(Boolean);
-    if(items.length>0){
-      filesHtml = items.map(url=>{
-        const safeUrl = url;
-        const label = decodeURIComponent((url.split('/').pop()||'').split('?')[0]) || 'Mở liên kết';
-        return `<a href="${safeUrl}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary me-2 mb-2">
-                  <i class="fas fa-link me-1"></i> ${label}
-                </a>`;
-      }).join('');
+  // Files từ cột đính kèm cũ (giữ nguyên)
+  let filesHtml='<p class="text-muted fst-italic">Không có tệp đính kèm.</p>';
+  if(doc.dinhKem){
+    const files=doc.dinhKem.split(',').filter(i=>i.trim());
+    if(files.length>0){
+      filesHtml = files.map(url=>`<a href="${toSafeUrl(url.trim())}" target="_blank" class="btn btn-sm btn-outline-primary me-2 mb-2"><i class="fas fa-paperclip me-1"></i> ${decodeURIComponent(url.trim().split('/').pop())}</a>`).join('');
     }
   }
+
+  // Link mới (URL)
+  const singleLink = getLinkValue(doc);
+  const linkHtml = singleLink ? `<a href="${toSafeUrl(singleLink)}" target="_blank" class="btn btn-sm btn-outline-info"><i class="fas fa-link me-1"></i> Mở liên kết</a>` : '---';
 
   $('#modal-body-content').html(`
     <div class="row">
@@ -354,14 +402,13 @@ function showDocumentDetail(stt){
             ${createRow('Người thảo', doc.nguoiThaoVanBan)}
             ${createRow('Ngày tạo', formatDateForDisplay(doc.thoiGianTao))}
             ${createRow('Cập nhật', formatDateForDisplay(doc.thoiGianCapNhat))}
+            ${createRow('Link (URL)', linkHtml)}
             ${createRow('Ghi chú', doc.ghiChu)}
           </tbody>
         </table>
       </div>
     </div>
-    <hr>
-    <h6 class="mb-3">Liên kết</h6>
-    <div>${filesHtml}</div>
+    <hr><h6 class="mb-3">Tệp đính kèm</h6><div>${filesHtml}</div>
   `);
   new bootstrap.Modal(document.getElementById('detailModal')).show();
 }
@@ -376,29 +423,54 @@ function printFilteredData(isLandscape=false){
     const B=b.ngayBanHanh?new Date(b.ngayBanHanh):new Date(0);
     return A.getTime()-B.getTime();
   });
-  let rowsHtml=''; filteredData.forEach((item,idx)=>{ rowsHtml+=`
-    <tr>
-      <td>${idx+1}</td><td>${item.soHieu||''}</td><td>${item.trichYeu||''}</td>
-      <td>${formatDateForDisplay(item.ngayBanHanh)}</td><td>${item.coQuanBanHanh||''}</td><td>${item.ghiChu||''}</td>
-    </tr>`; });
+
+  let rowsHtml='';
+  filteredData.forEach((item,idx)=>{
+    const linkText = getLinkValue(item) || '';
+    rowsHtml+=`
+      <tr>
+        <td>${idx+1}</td>
+        <td>${item.soHieu||''}</td>
+        <td>${item.trichYeu||''}</td>
+        <td>${formatDateForDisplay(item.ngayBanHanh)}</td>
+        <td>${item.coQuanBanHanh||''}</td>
+        <td>${linkText}</td>
+        <td>${item.ghiChu||''}</td>
+      </tr>`;
+  });
+
   const pageSizeRule=isLandscape?'A4 landscape':'A4';
-  const colStyles=isLandscape?['6%','12%','44%','10%','16%','12%']:['4%','8%','42%','8%','20%','18%'];
+  const colStyles=isLandscape
+    ? ['5%','11%','40%','9%','14%','11%','10%']
+    : ['4%','8%','38%','8%','18%','10%','14%'];
+
   const w=window.open('','_blank');
   w.document.write(`
     <html><head><title>Danh sách văn bản</title>
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-      <style>@page{size:${pageSizeRule};margin:16mm;} body{font-family:"Times New Roman", Times, serif;}
-      h1,h2{text-align:center;margin:0;} h1{font-size:20pt;font-weight:700;} h2{font-size:14pt;margin-top:6px;margin-bottom:14px;}
-      table{width:100%;border-collapse:collapse;table-layout:fixed;} th,td{border:1px solid #000;padding:6px 8px;vertical-align:top;}
-      thead th{background:#f2f2f2;font-weight:700;} th,td{white-space:normal;word-break:break-word;overflow-wrap:anywhere;}</style>
+      <style>
+        @page{size:${pageSizeRule};margin:16mm;}
+        body{font-family:"Times New Roman", Times, serif;}
+        h1,h2{text-align:center;margin:0;}
+        h1{font-size:20pt;font-weight:700;}
+        h2{font-size:14pt;margin-top:6px;margin-bottom:14px;}
+        table{width:100%;border-collapse:collapse;table-layout:fixed;}
+        th,td{border:1px solid #000;padding:6px 8px;vertical-align:top;}
+        thead th{background:#f2f2f2;font-weight:700;}
+        th,td{white-space:normal;word-break:break-word;overflow-wrap:anywhere;}
+      </style>
     </head><body>
       <h1>SỔ THEO DÕI CÔNG VĂN</h1><h2>Chi bộ Trạm thủy nông Ninh Hải</h2>
       <table class="table table-bordered">
         <colgroup>
           <col style="width:${colStyles[0]}"><col style="width:${colStyles[1]}"><col style="width:${colStyles[2]}">
-          <col style="width:${colStyles[3]}"><col style="width:${colStyles[4]}"><col style="width:${colStyles[5]}">
+          <col style="width:${colStyles[3]}"><col style="width:${colStyles[4]}"><col style="width:${colStyles[5]}"><col style="width:${colStyles[6]}">
         </colgroup>
-        <thead><tr><th>STT</th><th>Số hiệu</th><th>Trích yếu</th><th>Ngày ban hành</th><th>Cơ quan ban hành</th><th>Ghi chú</th></tr></thead>
+        <thead>
+          <tr>
+            <th>STT</th><th>Số hiệu</th><th>Trích yếu</th><th>Ngày ban hành</th><th>Cơ quan ban hành</th><th>Link</th><th>Ghi chú</th>
+          </tr>
+        </thead>
         <tbody>${rowsHtml}</tbody>
       </table>
     </body></html>
