@@ -34,7 +34,7 @@ body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-c
 .action-buttons .btn:hover{ transform:scale(1.1); }
 
 /* ====== Card thống kê - phiên bản compact (gọn) ====== */
-.stat-grid.row { --bs-gutter-x:.5rem; --bs-gutter-y:.5rem; }       /* thu nhỏ khoảng cách */
+.stat-grid.row { --bs-gutter-x:.5rem; --bs-gutter-y:.5rem; }
 .stat-card-item{
   background:#fff; border:1px solid var(--border-color);
   border-radius:10px; padding:.65rem .8rem; display:flex; align-items:center;
@@ -78,7 +78,6 @@ body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-c
     <div class="card-body p-lg-4">
       <!-- Khu vực thống kê động -->
       <section id="statistics-section" class="mb-3">
-        <!-- dùng row-cols để tự căn 2-6 cột/ hàng, khoảng cách g-1/2 -->
         <div id="stats-container" class="stat-grid row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xxl-6 g-2"></div>
       </section>
 
@@ -161,8 +160,19 @@ let dataTable;
 let allData = [];
 let TERM_FIELD = null;
 
+/* --------- Helpers (chuẩn hoá & lấy trường) --------- */
 function normalizeKeyName(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,''); }
 function normalizeTermValue(s){ return String(s||'').replace(/[\u00A0\s]+/g,'').replace(/[–—−]/g,'-').trim(); }
+function getFieldByNormalizedName(obj, targetNames = []){
+  if(!obj) return undefined;
+  const map = {};
+  for(const k of Object.keys(obj)){ map[normalizeKeyName(k)] = k; }
+  for(const t of targetNames){
+    const nk = normalizeKeyName(t);
+    if(map[nk] !== undefined) return obj[map[nk]];
+  }
+  return undefined;
+}
 function detectTermFieldName(sampleRow){
   const TARGET='nhiemky'; if(!sampleRow) return null;
   const keys=Object.keys(sampleRow); let found=keys.find(k=>normalizeKeyName(k)===TARGET);
@@ -296,22 +306,36 @@ function populateSelect(selector, options){
   options.forEach(opt=> select.append(`<option value="${opt}">${opt}</option>`));
 }
 
+/* === ĐỔI SANG DÙNG CỘT "Link" (URL) THAY CHO "đính kèm" === */
 function showDocumentDetail(stt){
   const doc=allData.find(item=>item.stt==stt);
   if(!doc){ alert('Lỗi: Không tìm thấy văn bản!'); return; }
+
   const createRow=(label,val)=>`<tr><th scope="row" class="w-25 bg-light">${label}:</th><td>${val||'---'}</td></tr>`;
-  let filesHtml='<p class="text-muted fst-italic">Không có tệp đính kèm.</p>';
-  if(doc.dinhKem){
-    const files=doc.dinhKem.split(',').filter(i=>i.trim());
-    if(files.length>0){ filesHtml = files.map(url=>`<a href="${url.trim()}" target="_blank" class="btn btn-sm btn-outline-primary me-2 mb-2"><i class="fas fa-paperclip me-1"></i> ${decodeURIComponent(url.trim().split('/').pop())}</a>`).join(''); }
+
+  // Ưu tiên lấy từ cột Link; tương thích ngược nếu còn dữ liệu cũ "Đính kèm"/dinhKem
+  const rawLink = getFieldByNormalizedName(doc, ['Link','đính kèm','dinhKem','dinh kem','dinh-kem']);
+  let filesHtml='<p class="text-muted fst-italic">Không có liên kết.</p>';
+  if(rawLink){
+    const items = String(rawLink).split(',').map(s=>s.trim()).filter(Boolean);
+    if(items.length>0){
+      filesHtml = items.map(url=>{
+        const safeUrl = url;
+        const label = decodeURIComponent((url.split('/').pop()||'').split('?')[0]) || 'Mở liên kết';
+        return `<a href="${safeUrl}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary me-2 mb-2">
+                  <i class="fas fa-link me-1"></i> ${label}
+                </a>`;
+      }).join('');
+    }
   }
+
   $('#modal-body-content').html(`
     <div class="row">
       <div class="col-md-6">
         <h6 class="border-bottom pb-2 mb-3">Thông tin cơ bản</h6>
         <table class="table table-bordered table-sm">
           <tbody>
-            ${createRow('Số hiệu', `<span class="fw-bold text-primary">${doc.soHieu}</span>`)}
+            ${createRow('Số hiệu', `<span class="fw-bold text-primary">${doc.soHieu||''}</span>`)}
             ${createRow('Trích yếu', doc.trichYeu)}
             ${createRow('Loại VB', doc.loaiVanBan)}
             ${createRow('Loại Tài liệu', doc.loaiTaiLieu)}
@@ -335,7 +359,9 @@ function showDocumentDetail(stt){
         </table>
       </div>
     </div>
-    <hr><h6 class="mb-3">Tệp đính kèm</h6><div>${filesHtml}</div>
+    <hr>
+    <h6 class="mb-3">Liên kết</h6>
+    <div>${filesHtml}</div>
   `);
   new bootstrap.Modal(document.getElementById('detailModal')).show();
 }
