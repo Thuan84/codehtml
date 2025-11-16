@@ -36,6 +36,7 @@
     }
     .exports button{ font-weight:bold; color:#fff; border:none; transition:transform .08s ease, opacity .2s; }
     .exports button:hover{ opacity:.95; transform: translateY(-1px); }
+    #toggle-custom-time{ background:#6f42c1; }
     #export-excel{ background:#218838; }
     #print-page{ background:#c82333; }
     #toggle-fullscreen{ background:#0b5ed7; }
@@ -130,7 +131,9 @@
       .pager-bar,
       #toggle-fullscreen,
       #print-page,
-      #export-excel { display: none !important; }
+      #export-excel,
+      #toggle-custom-time,
+      #custom-time-panel { display: none !important; }
 
       body { background: #fff !important; color: #000 !important; }
       .container { padding: 0 !important; }
@@ -189,11 +192,46 @@
           <option value="all">Tất cả</option>
           <script>for(let i=1;i<=12;i++)document.write(`<option value="${i}">Tháng ${i}</option>`);</script>
         </select>
+        <label for="week-filter">Tuần:</label>
+        <select id="week-filter">
+          <option value="all">Tất cả</option>
+        </select>
+        <label for="daynight-filter">Ngày/Đêm:</label>
+        <select id="daynight-filter">
+          <option value="all">Tất cả</option>
+          <option value="day">Ngày (7h-19h)</option>
+          <option value="night">Đêm (19h-7h)</option>
+        </select>
       </div>
       <div class="exports">
+        <button id="toggle-custom-time" title="Lọc theo khoảng thời gian tùy chỉnh">⏱️ Thời gian tùy chỉnh</button>
         <button id="toggle-fullscreen" title="Bật/Tắt toàn màn hình">Toàn màn hình</button>
         <button id="export-excel">Xuất Excel</button>
         <button id="print-page">In</button>
+      </div>
+    </div>
+
+    <!-- Custom Time Range Panel -->
+    <div id="custom-time-panel" style="display:none; padding:16px; background:#f8f9fa; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:10px;">
+      <div style="display:flex; gap:20px; align-items:end; flex-wrap:wrap;">
+        <div>
+          <label style="font-weight:bold; display:block; margin-bottom:4px;">Từ ngày:</label>
+          <input type="date" id="custom-from-date" style="padding:8px; border:1px solid #d1d5db; border-radius:8px; font-size:13pt;">
+        </div>
+        <div>
+          <label style="font-weight:bold; display:block; margin-bottom:4px;">Giờ:phút:giây</label>
+          <input type="time" id="custom-from-time" step="1" style="padding:8px; border:1px solid #d1d5db; border-radius:8px; font-size:13pt;">
+        </div>
+        <div>
+          <label style="font-weight:bold; display:block; margin-bottom:4px;">Đến ngày:</label>
+          <input type="date" id="custom-to-date" style="padding:8px; border:1px solid #d1d5db; border-radius:8px; font-size:13pt;">
+        </div>
+        <div>
+          <label style="font-weight:bold; display:block; margin-bottom:4px;">Giờ:phút:giây</label>
+          <input type="time" id="custom-to-time" step="1" style="padding:8px; border:1px solid #d1d5db; border-radius:8px; font-size:13pt;">
+        </div>
+        <button id="apply-custom-time" style="padding:8px 16px; background:#1EA48D; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13pt;">Áp dụng</button>
+        <button id="clear-custom-time" style="padding:8px 16px; background:#6c757d; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:13pt;">Xóa</button>
       </div>
     </div>
 
@@ -278,7 +316,8 @@
     const DEAD_LEVEL = 27.5;
 
     /* ================== STATE ================== */
-    let selectedYear = 'all', selectedQuarter = 'all', selectedMonth = 'all';
+    let selectedYear = 'all', selectedQuarter = 'all', selectedMonth = 'all', selectedWeek = 'all', selectedDayNight = 'all';
+    let customTimeRange = null; // {fromDate, fromTime, toDate, toTime}
     let allData = [], filteredData = [], currentFetchCtrl = null;
     const cacheByScope = new Map(); // keys: 'all', 'year:YYYY'
     let rainChart = null, waterLevelChart = null, ChartLibLoaded = false;
@@ -291,6 +330,8 @@
     const yearFilter = document.getElementById('year-filter');
     const quarterFilter = document.getElementById('quarter-filter');
     const monthFilter = document.getElementById('month-filter');
+    const weekFilter = document.getElementById('week-filter');
+    const dayNightFilter = document.getElementById('daynight-filter');
     const tableBody = document.getElementById('table-body');
     const errorDiv = document.getElementById('error-message');
     const subtitleDiv = document.getElementById('subtitle');
@@ -301,6 +342,16 @@
     const elAvgRainy = document.getElementById('m-avg-rainy');
     const elMax = document.getElementById('m-max');
     const elMaxDate = document.getElementById('m-max-date');
+
+    // Custom time range
+    const customTimePanel = document.getElementById('custom-time-panel');
+    const customFromDate = document.getElementById('custom-from-date');
+    const customFromTime = document.getElementById('custom-from-time');
+    const customToDate = document.getElementById('custom-to-date');
+    const customToTime = document.getElementById('custom-to-time');
+    const btnToggleCustomTime = document.getElementById('toggle-custom-time');
+    const btnApplyCustomTime = document.getElementById('apply-custom-time');
+    const btnClearCustomTime = document.getElementById('clear-custom-time');
 
     // DOM phân trang
     const pagerBar = document.getElementById('pager-bar');
@@ -352,6 +403,27 @@
       errorDiv.style.display = 'block';
       tableBody.innerHTML = `<tr><td colspan="16" class="status-message">${message}</td></tr>`;
     }
+    
+    // Lấy số tuần trong năm
+    function getWeekNumber(date) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+      const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+      return weekNo;
+    }
+    
+    // Kiểm tra giờ thuộc ngày hay đêm
+    function isDayTime(date) {
+      const hour = date.getHours();
+      return hour >= 7 && hour < 19;
+    }
+    
+    function isNightTime(date) {
+      const hour = date.getHours();
+      return hour >= 19 || hour < 7;
+    }
 
     /* ================== TABLE (có phân trang) ================== */
     function renderTable(data, baseIndex=0){
@@ -383,7 +455,7 @@
       tableBody.innerHTML = html;
     }
 
-    /* ================== YEAR DROPDOWN ================== */
+    /* ================== YEAR DROPDOWN & WEEK DROPDOWN ================== */
     function populateYearFilter(data){
       const years = [...new Set(data.map(r => r._y).filter(v => v!=null))].sort((a,b)=>b-a);
       const prev = yearFilter.value;
@@ -401,6 +473,44 @@
       } else {
         yearFilter.value = 'all';
         selectedYear = 'all';
+      }
+    }
+    
+    function populateWeekFilter(data) {
+      const weeks = new Set();
+      data.forEach(r => {
+        if (r._dt && r._y) {
+          const weekNum = getWeekNumber(r._dt);
+          weeks.add(`${r._y}-W${String(weekNum).padStart(2, '0')}`);
+        }
+      });
+      
+      const prev = weekFilter.value;
+      weekFilter.innerHTML = '<option value="all">Tất cả</option>';
+      
+      // Sắp xếp theo năm giảm dần, rồi tuần giảm dần
+      [...weeks].sort((a, b) => {
+        const [yearA, weekA] = a.split('-W').map(v => parseInt(v, 10));
+        const [yearB, weekB] = b.split('-W').map(v => parseInt(v, 10));
+        
+        // So sánh năm trước (giảm dần)
+        if (yearA !== yearB) return yearB - yearA;
+        
+        // Nếu cùng năm, so sánh tuần (giảm dần)
+        return weekB - weekA;
+      }).forEach(w => {
+        const op = document.createElement('option');
+        op.value = w;
+        const [year, week] = w.split('-W');
+        op.textContent = `Tuần ${parseInt(week, 10)} (${year})`;
+        weekFilter.appendChild(op);
+      });
+      
+      if (prev && (prev === 'all' || weeks.has(prev))) {
+        weekFilter.value = prev;
+      } else {
+        weekFilter.value = 'all';
+        selectedWeek = 'all';
       }
     }
 
@@ -513,7 +623,22 @@
 
     /* ================== SUBTITLE ================== */
     function setSubtitle(){
-      if (selectedYear !== 'all' && selectedMonth !== 'all') {
+      if (customTimeRange) {
+        const { fromDate, fromTime, toDate, toTime } = customTimeRange;
+        subtitleDiv.textContent = `Từ ${fromDate} ${fromTime || '00:00:00'} đến ${toDate} ${toTime || '23:59:59'}`;
+      } else if (selectedWeek !== 'all') {
+        const [year, week] = selectedWeek.split('-W');
+        subtitleDiv.textContent = `Tuần ${week} năm ${year}`;
+      } else if (selectedDayNight !== 'all') {
+        const label = selectedDayNight === 'day' ? 'Ngày (7h-19h)' : 'Đêm (19h-7h)';
+        if (selectedYear !== 'all' && selectedMonth !== 'all') {
+          subtitleDiv.textContent = `${label} - Tháng ${selectedMonth} năm ${selectedYear}`;
+        } else if (selectedYear !== 'all') {
+          subtitleDiv.textContent = `${label} - Năm ${selectedYear}`;
+        } else {
+          subtitleDiv.textContent = label;
+        }
+      } else if (selectedYear !== 'all' && selectedMonth !== 'all') {
         subtitleDiv.textContent = `Tháng ${selectedMonth} năm ${selectedYear}`;
       } else if (selectedYear !== 'all' && selectedQuarter !== 'all') {
         subtitleDiv.textContent = `Quý ${selectedQuarter} năm ${selectedYear}`;
@@ -528,9 +653,37 @@
     /* ================== FILTER ================== */
     function clientFilter(data){
       return data.filter(r=>{
+        // Custom time range filter
+        if (customTimeRange) {
+          if (!r._dt) return false;
+          const { fromDate, fromTime, toDate, toTime } = customTimeRange;
+          
+          const fromDateTime = new Date(`${fromDate}T${fromTime || '00:00:00'}`);
+          const toDateTime = new Date(`${toDate}T${toTime || '23:59:59'}`);
+          
+          if (r._dt < fromDateTime || r._dt > toDateTime) return false;
+        }
+        
+        // Week filter
+        if (selectedWeek !== 'all') {
+          if (!r._dt) return false;
+          const weekNum = getWeekNumber(r._dt);
+          const rowWeek = `${r._y}-W${weekNum}`;
+          if (rowWeek !== selectedWeek) return false;
+        }
+        
+        // Day/Night filter
+        if (selectedDayNight !== 'all') {
+          if (!r._dt) return false;
+          if (selectedDayNight === 'day' && !isDayTime(r._dt)) return false;
+          if (selectedDayNight === 'night' && !isNightTime(r._dt)) return false;
+        }
+        
+        // Year/Quarter/Month filters
         if (selectedYear !== 'all' && String(r._y) !== selectedYear) return false;
         if (selectedMonth !== 'all' && r._m !== Number(selectedMonth)) return false;
         if (selectedQuarter !== 'all' && r._q !== Number(selectedQuarter)) return false;
+        
         return true;
       });
     }
@@ -660,15 +813,46 @@
       const y = yearFilter.value;
       let q = quarterFilter.value;
       let m = monthFilter.value;
+      const w = weekFilter.value;
+      const dn = dayNightFilter.value;
+      
       if (m !== 'all') q = 'all';
       if (q !== 'all') m = 'all';
-      selectedYear = y; selectedQuarter = q; selectedMonth = m;
+      if (w !== 'all') { q = 'all'; m = 'all'; }
+      
+      selectedYear = y; 
+      selectedQuarter = q; 
+      selectedMonth = m;
+      selectedWeek = w;
+      selectedDayNight = dn;
+      
       currentPage = 1; // reset trang khi đổi bộ lọc
       fetchAndRender();
     }
+    
     yearFilter.addEventListener('change', scheduleApply);
-    quarterFilter.addEventListener('change', () => { if (quarterFilter.value !== 'all') monthFilter.value = 'all'; scheduleApply(); });
-    monthFilter.addEventListener('change', () => { if (monthFilter.value !== 'all') quarterFilter.value = 'all'; scheduleApply(); });
+    quarterFilter.addEventListener('change', () => { 
+      if (quarterFilter.value !== 'all') {
+        monthFilter.value = 'all'; 
+        weekFilter.value = 'all';
+      }
+      scheduleApply(); 
+    });
+    monthFilter.addEventListener('change', () => { 
+      if (monthFilter.value !== 'all') {
+        quarterFilter.value = 'all';
+        weekFilter.value = 'all';
+      }
+      scheduleApply(); 
+    });
+    weekFilter.addEventListener('change', () => {
+      if (weekFilter.value !== 'all') {
+        quarterFilter.value = 'all';
+        monthFilter.value = 'all';
+      }
+      scheduleApply();
+    });
+    dayNightFilter.addEventListener('change', scheduleApply);
 
     /* ================== FETCH & RENDER ================== */
     async function fetchAndRender(){
@@ -681,11 +865,16 @@
         if (!allData.length && cacheByScope.has('all')) {
           allData = cacheByScope.get('all');
           populateYearFilter(allData);
+          populateWeekFilter(allData);
         } else if (selectedYear === 'all' && !allData.length) {
           allData = scopeData;
           populateYearFilter(allData);
+          populateWeekFilter(allData);
         } else if (selectedYear === 'all') {
           populateYearFilter(allData);
+          populateWeekFilter(allData);
+        } else {
+          populateWeekFilter(scopeData);
         }
 
         filteredData = clientFilter(scopeData);
@@ -758,14 +947,72 @@
       }
     });
 
+    /* ================== CUSTOM TIME RANGE ================== */
+    btnToggleCustomTime.addEventListener('click', () => {
+      const isVisible = customTimePanel.style.display !== 'none';
+      customTimePanel.style.display = isVisible ? 'none' : 'block';
+      btnToggleCustomTime.textContent = isVisible ? '⏱️ Thời gian tùy chỉnh' : '⏱️ Đóng bộ lọc';
+    });
+
+    btnApplyCustomTime.addEventListener('click', () => {
+      const fromDate = customFromDate.value;
+      const toDate = customToDate.value;
+      
+      if (!fromDate || !toDate) {
+        alert('Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc');
+        return;
+      }
+      
+      const fromTime = customFromTime.value || '00:00:00';
+      const toTime = customToTime.value || '23:59:59';
+      
+      customTimeRange = { fromDate, fromTime, toDate, toTime };
+      
+      // Reset other filters
+      yearFilter.value = 'all';
+      quarterFilter.value = 'all';
+      monthFilter.value = 'all';
+      weekFilter.value = 'all';
+      dayNightFilter.value = 'all';
+      
+      selectedYear = 'all';
+      selectedQuarter = 'all';
+      selectedMonth = 'all';
+      selectedWeek = 'all';
+      selectedDayNight = 'all';
+      
+      currentPage = 1;
+      fetchAndRender();
+    });
+
+    btnClearCustomTime.addEventListener('click', () => {
+      customFromDate.value = '';
+      customFromTime.value = '';
+      customToDate.value = '';
+      customToTime.value = '';
+      customTimeRange = null;
+      customTimePanel.style.display = 'none';
+      btnToggleCustomTime.textContent = '⏱️ Thời gian tùy chỉnh';
+      
+      currentPage = 1;
+      fetchAndRender();
+    });
+
     /* ================== INIT ================== */
     (function init(){
       yearFilter.value = 'all';
       quarterFilter.value = 'all';
       monthFilter.value = 'all';
+      weekFilter.value = 'all';
+      dayNightFilter.value = 'all';
       pageSizeSelect.value = '20';
       pageSize = 20;
       currentPage = 1;
+      
+      // Set default time values
+      customFromTime.value = '00:00:00';
+      customToTime.value = '23:59:59';
+      
       fetchAndRender();
     })();
   </script>
