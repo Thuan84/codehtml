@@ -38,9 +38,22 @@
       font-family:'Times New Roman',Times,serif; font-size:13pt; cursor:pointer;
     }
     .exports button{ font-weight:bold }
+    #btn-custom-time{ color:#fff; background:#6f42c1; border-color:#6f42c1 }
     #export-excel{ color:#fff; background:#22c55e; border-color:#22c55e }
     #btn-print-portrait{ color:#fff; background:#0b5ed7; border-color:#0b5ed7 }
     #btn-print-landscape{ color:#fff; background:#7c3aed; border-color:#7c3aed }
+
+    /* Custom Time Panel */
+    .custom-time-panel{ display:none; padding:16px; background:#f8f9fa; border:1px solid #e5e7eb; 
+      border-radius:10px; margin-bottom:10px; }
+    .custom-time-panel .time-inputs{ display:flex; gap:20px; align-items:end; flex-wrap:wrap; }
+    .custom-time-panel .input-group{ display:flex; flex-direction:column; gap:4px; }
+    .custom-time-panel label{ font-weight:bold; font-size:12pt; }
+    .custom-time-panel input{ padding:8px; border:1px solid #d1d5db; border-radius:8px; font-size:13pt; }
+    .custom-time-panel button{ padding:8px 16px; border:none; border-radius:8px; cursor:pointer; 
+      font-weight:bold; font-size:13pt; }
+    #btn-apply-custom{ background:#1EA48D; color:#fff; }
+    #btn-clear-custom{ background:#6c757d; color:#fff; }
 
     /* KPI */
     .kpi-grid{ display:grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap:14px; margin:14px 0 6px; }
@@ -66,8 +79,8 @@
 
     /* Bảng màn hình */
     table{ border-collapse:collapse; width:100%; font-size:13pt; margin-top:10px }
-    th,td{ border:1px solid var(--border-color); padding:8px 10px; text-align:center; vertical-align:middle }
-    th{ background:var(--header-bg); color:#fff; font-weight:bold; position:sticky; top:0; z-index:1 }
+    th,td{ border:1px solid #e5e7eb; padding:8px 10px; text-align:center; vertical-align:middle }
+    th{ background:var(--header-bg); color:#000; font-weight:bold; position:sticky; top:0; z-index:1; border:1px solid #fff; }
     tbody tr:nth-child(even){ background:#fff }
     tbody tr:hover{ background:var(--hover-bg) }
 
@@ -106,9 +119,9 @@
     /* ===================== PRINT (CSS chung) ===================== */
     @media print{
       body{ background:#fff; padding:0; font-size:12pt; }
-      @page{ margin: 12mm; } /* không dùng số trang tuỳ chỉnh */
+      @page{ margin: 12mm; }
 
-      .controls-container, .kpi-grid, .charts, .pagination-bar{ display:none !important }
+      .controls-container, .kpi-grid, .charts, .pagination-bar, .custom-time-panel{ display:none !important }
       .container{ box-shadow:none; padding:0 }
 
       #data-table{ display:none !important; }
@@ -162,6 +175,18 @@
           <script>for(let i=1;i<=12;i++)document.write(`<option value="${i}">Tháng ${i}</option>`);</script>
         </select>
 
+        <label for="week-filter">Tuần:</label>
+        <select id="week-filter">
+          <option value="all">Tất cả</option>
+        </select>
+
+        <label for="daynight-filter">Ngày/Đêm:</label>
+        <select id="daynight-filter">
+          <option value="all">Tất cả</option>
+          <option value="day">Ngày (7h-19h)</option>
+          <option value="night">Đêm (19h-7h)</option>
+        </select>
+
         <!-- BỘ LỌC Q TRÀN TỰ DO -->
         <label for="q-filter">Q tràn (m³/s):</label>
         <select id="q-filter" title="Bộ lọc Q tràn tự do">
@@ -172,13 +197,38 @@
       </div>
 
       <div class="exports">
+        <button id="btn-custom-time">⏱️ Thời gian tùy chỉnh</button>
         <button id="export-excel">Xuất Excel</button>
         <button id="btn-print-portrait">In dọc</button>
         <button id="btn-print-landscape">In ngang</button>
       </div>
     </div>
 
-    <!-- KPI (đã bỏ Q tràn nhỏ nhất) -->
+    <!-- Custom Time Panel -->
+    <div class="custom-time-panel" id="custom-time-panel">
+      <div class="time-inputs">
+        <div class="input-group">
+          <label>Từ ngày:</label>
+          <input type="date" id="custom-from-date">
+        </div>
+        <div class="input-group">
+          <label>Giờ:phút:giây</label>
+          <input type="time" id="custom-from-time" step="1" value="00:00:00">
+        </div>
+        <div class="input-group">
+          <label>Đến ngày:</label>
+          <input type="date" id="custom-to-date">
+        </div>
+        <div class="input-group">
+          <label>Giờ:phút:giây</label>
+          <input type="time" id="custom-to-time" step="1" value="23:59:59">
+        </div>
+        <button id="btn-apply-custom">Áp dụng</button>
+        <button id="btn-clear-custom">Xóa</button>
+      </div>
+    </div>
+
+    <!-- KPI -->
     <div class="kpi-grid">
       <div class="kpi k1"><div class="label">Tổng lượng mưa (kỳ lọc)</div><div id="kpi-total" class="value">0</div></div>
       <div class="kpi k2"><div class="label">Ngày có mưa / Tổng ngày</div><div id="kpi-days" class="value">0 / 0</div></div>
@@ -284,15 +334,29 @@
     // ====== State / DOM ======
     let allData = [];
     let filteredData = [];
+    let customTimeRange = null;
+    
     const yearFilter    = document.getElementById('year-filter');
     const quarterFilter = document.getElementById('quarter-filter');
     const monthFilter   = document.getElementById('month-filter');
+    const weekFilter    = document.getElementById('week-filter');
+    const dayNightFilter = document.getElementById('daynight-filter');
     const qFilter       = document.getElementById('q-filter');
     const tableBody     = document.getElementById('table-body');
     const printTbody    = document.getElementById('print-tbody');
     const errorDiv      = document.getElementById('error-message');
     const subtitleDiv   = document.getElementById('subtitle');
     const totalColumns  = 10;
+
+    // Custom time
+    const customTimePanel = document.getElementById('custom-time-panel');
+    const customFromDate = document.getElementById('custom-from-date');
+    const customFromTime = document.getElementById('custom-from-time');
+    const customToDate = document.getElementById('custom-to-date');
+    const customToTime = document.getElementById('custom-to-time');
+    const btnCustomTime = document.getElementById('btn-custom-time');
+    const btnApplyCustom = document.getElementById('btn-apply-custom');
+    const btnClearCustom = document.getElementById('btn-clear-custom');
 
     // Pagination
     const pageSizeEl = document.getElementById('page-size');
@@ -345,6 +409,26 @@
       const HH = String(date.getHours()).padStart(2,'0');
       const MM = String(date.getMinutes()).padStart(2,'0');
       return `${HH}:${MM}`;
+    }
+
+    // Utility functions
+    function getWeekNumber(date) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+      const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+      return weekNo;
+    }
+    
+    function isDayTime(date) {
+      const hour = date.getHours();
+      return hour >= 7 && hour < 19;
+    }
+    
+    function isNightTime(date) {
+      const hour = date.getHours();
+      return hour >= 19 || hour < 7;
     }
 
     // Render 1 hàng (đã tách Ngày/Giờ)
@@ -421,6 +505,32 @@
       });
     }
 
+    function populateWeekFilter(data) {
+      const weeks = new Set();
+      data.forEach(r => {
+        const d = parseVNDateTime(r.ngayGio);
+        if (d) {
+          const weekNum = getWeekNumber(d);
+          weeks.add(`${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`);
+        }
+      });
+      
+      weekFilter.innerHTML = '<option value="all">Tất cả</option>';
+      
+      [...weeks].sort((a, b) => {
+        const [yearA, weekA] = a.split('-W').map(v => parseInt(v, 10));
+        const [yearB, weekB] = b.split('-W').map(v => parseInt(v, 10));
+        if (yearA !== yearB) return yearB - yearA;
+        return weekB - weekA;
+      }).forEach(w => {
+        const op = document.createElement('option');
+        op.value = w;
+        const [year, week] = w.split('-W');
+        op.textContent = `Tuần ${parseInt(week, 10)} (${year})`;
+        weekFilter.appendChild(op);
+      });
+    }
+
     // Tổng hợp cho biểu đồ
     function aggregateDaily(data){
       const map = new Map();
@@ -480,7 +590,6 @@
 
     function buildRainChart(ctx, labels, dailyRain){
       if (rainChart) { rainChart.destroy(); }
-      // eslint-disable-next-line no-undef
       rainChart = new Chart(ctx, {
         type: 'bar',
         data: { labels, datasets: [{ label: 'Lượng mưa (mm)', data: dailyRain, borderWidth: 1 }] },
@@ -495,7 +604,6 @@
     function buildWaterChart(ctx, labels, dailyLevel){
       if (waterChart) { waterChart.destroy(); }
       const deadLine = labels.map(()=> 40);
-      // eslint-disable-next-line no-undef
       waterChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -520,17 +628,75 @@
       buildWaterChart(document.getElementById('waterChart'), labels, dailyLevel);
     }
 
+    function updateSubtitle() {
+      let subtitleText = '';
+      
+      if (customTimeRange) {
+        const { fromDate, fromTime, toDate, toTime } = customTimeRange;
+        subtitleText = `Từ ${fromDate} ${fromTime || '00:00:00'} đến ${toDate} ${toTime || '23:59:59'}`;
+      } else if (weekFilter.value !== 'all') {
+        const [year, week] = weekFilter.value.split('-W');
+        subtitleText = `Tuần ${parseInt(week, 10)} năm ${year}`;
+      } else if (dayNightFilter.value !== 'all') {
+        const label = dayNightFilter.value === 'day' ? 'Ngày (7h-19h)' : 'Đêm (19h-7h)';
+        if (yearFilter.value !== 'all' && monthFilter.value !== 'all') {
+          subtitleText = `${label} - Tháng ${monthFilter.value} năm ${yearFilter.value}`;
+        } else if (yearFilter.value !== 'all') {
+          subtitleText = `${label} - Năm ${yearFilter.value}`;
+        } else {
+          subtitleText = label;
+        }
+      } else if (monthFilter.value !== 'all' && yearFilter.value !== 'all') {
+        subtitleText = `Tháng ${monthFilter.value} năm ${yearFilter.value}`;
+      } else if (quarterFilter.value !== 'all' && yearFilter.value !== 'all') {
+        subtitleText = `Quý ${quarterFilter.value} năm ${yearFilter.value}`;
+      } else if (yearFilter.value !== 'all') {
+        subtitleText = `Năm ${yearFilter.value}`;
+      } else {
+        const c = new Date();
+        subtitleText = `Tháng ${c.getMonth()+1} năm ${c.getFullYear()}`;
+      }
+      
+      subtitleDiv.textContent = subtitleText;
+    }
+
     function applyFiltersAndRender(){
       const y = yearFilter.value;
       const q = quarterFilter.value;
       const m = monthFilter.value;
-      const qMode = qFilter.value; // all | zero | positive
+      const w = weekFilter.value;
+      const dn = dayNightFilter.value;
+      const qMode = qFilter.value;
 
       filteredData = allData.filter(r => {
         const d = parseVNDateTime(r.ngayGio);
         if (!d) return false;
+
+        // Custom time range
+        if (customTimeRange) {
+          const { fromDate, fromTime, toDate, toTime } = customTimeRange;
+          const fromDateTime = new Date(`${fromDate}T${fromTime || '00:00:00'}`);
+          const toDateTime = new Date(`${toDate}T${toTime || '23:59:59'}`);
+          if (d < fromDateTime || d > toDateTime) return false;
+        }
+
+        // Week filter
+        if (w !== 'all') {
+          const weekNum = getWeekNumber(d);
+          const rowWeek = `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+          if (rowWeek !== w) return false;
+        }
+
+        // Day/Night filter
+        if (dn !== 'all') {
+          if (dn === 'day' && !isDayTime(d)) return false;
+          if (dn === 'night' && !isNightTime(d)) return false;
+        }
+
+        // Year filter
         if (y !== 'all' && String(d.getFullYear()) !== String(y)) return false;
 
+        // Month/Quarter filter
         if (m !== 'all'){
           if ((d.getMonth()+1) !== Number(m)) return false;
         } else if (q !== 'all'){
@@ -546,26 +712,94 @@
         return true;
       });
 
-      // Subtitle
-      let subtitleText = '';
-      if (m !== 'all' && y !== 'all') subtitleText = `Tháng ${m} năm ${y}`;
-      else if (y !== 'all')          subtitleText = `Năm ${y}`;
-      else {
-        const c = new Date();
-        subtitleText = `Tháng ${c.getMonth()+1} năm ${c.getFullYear()}`;
-      }
-      subtitleDiv.textContent = subtitleText;
-
-      // reset trang
+      updateSubtitle();
       page = 1;
       renderTablePaged(filteredData);
       updateChartsAndKPIs();
     }
 
+    // ====== Custom Time Range Events ======
+    btnCustomTime.addEventListener('click', () => {
+      const isVisible = customTimePanel.style.display !== 'none';
+      customTimePanel.style.display = isVisible ? 'none' : 'block';
+      btnCustomTime.textContent = isVisible ? '⏱️ Thời gian tùy chỉnh' : '⏱️ Đóng bộ lọc';
+    });
+
+    btnApplyCustom.addEventListener('click', () => {
+      const fromDate = customFromDate.value;
+      const toDate = customToDate.value;
+      
+      if (!fromDate || !toDate) {
+        alert('Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc');
+        return;
+      }
+      
+      const fromTime = customFromTime.value || '00:00:00';
+      const toTime = customToTime.value || '23:59:59';
+      
+      customTimeRange = { fromDate, fromTime, toDate, toTime };
+      
+      // Reset other filters
+      yearFilter.value = 'all';
+      quarterFilter.value = 'all';
+      monthFilter.value = 'all';
+      weekFilter.value = 'all';
+      dayNightFilter.value = 'all';
+      
+      applyFiltersAndRender();
+    });
+
+    btnClearCustom.addEventListener('click', () => {
+      customFromDate.value = '';
+      customFromTime.value = '00:00:00';
+      customToDate.value = '';
+      customToTime.value = '23:59:59';
+      customTimeRange = null;
+      customTimePanel.style.display = 'none';
+      btnCustomTime.textContent = '⏱️ Thời gian tùy chỉnh';
+      
+      applyFiltersAndRender();
+    });
+
     // ====== Events ======
-    [yearFilter, quarterFilter, monthFilter, qFilter].forEach(el => el.addEventListener('change', applyFiltersAndRender));
-    monthFilter.addEventListener('change', () => { if (monthFilter.value !== 'all') quarterFilter.value = 'all'; });
-    quarterFilter.addEventListener('change', () => { if (quarterFilter.value !== 'all') monthFilter.value = 'all'; });
+    yearFilter.addEventListener('change', () => {
+      if(yearFilter.value !== 'all') {
+        populateWeekFilter(allData.filter(r => {
+          const d = parseVNDateTime(r.ngayGio);
+          return d && d.getFullYear() === parseInt(yearFilter.value);
+        }));
+      } else {
+        populateWeekFilter(allData);
+      }
+      applyFiltersAndRender();
+    });
+
+    quarterFilter.addEventListener('change', () => { 
+      if (quarterFilter.value !== 'all') {
+        monthFilter.value = 'all';
+        weekFilter.value = 'all';
+      }
+      applyFiltersAndRender();
+    });
+
+    monthFilter.addEventListener('change', () => { 
+      if (monthFilter.value !== 'all') {
+        quarterFilter.value = 'all';
+        weekFilter.value = 'all';
+      }
+      applyFiltersAndRender();
+    });
+
+    weekFilter.addEventListener('change', () => {
+      if(weekFilter.value !== 'all') {
+        quarterFilter.value = 'all';
+        monthFilter.value = 'all';
+      }
+      applyFiltersAndRender();
+    });
+
+    dayNightFilter.addEventListener('change', applyFiltersAndRender);
+    qFilter.addEventListener('change', applyFiltersAndRender);
 
     pageSizeEl.addEventListener('change', () => {
       pageSize = Number(pageSizeEl.value);
@@ -584,6 +818,7 @@
       }
       allData = data;
       populateYearFilter(allData);
+      populateWeekFilter(allData);
       applyFiltersAndRender();
     }
 
