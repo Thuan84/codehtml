@@ -79,9 +79,24 @@
     .m-avg-r{ --accent:var(--purple); --accent-fade: rgba(124,58,237,.12); }
     .m-max  { --accent:var(--orange); --accent-fade: rgba(234,88,12,.12); }
 
+    /* ===== Charts ===== */
     .charts{ display:grid; grid-template-columns: 1fr; gap:14px; margin-top:4px; }
     .chart-card{ border:1px solid #e5e7eb; border-radius:12px; padding:10px; background:#fafafa; }
-    .chart-title{ font-weight:bold; margin:0 0 8px 0; font-size:14pt; text-align:center; }
+    .chart-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+    }
+    .chart-title{ font-weight:bold; margin:0 0 2px 0; font-size:14pt; }
+    .chart-sub{ font-size:11pt; color:#6b7280; }
+    .chart-legend-hint{
+      font-size:11pt; color:#0f172a; text-align:right; white-space:nowrap;
+    }
+    .water-status{
+      font-size:11.5pt; font-weight:bold; color:#111827;
+      margin:2px 0 4px;
+    }
     .chart-card canvas{ display:block; width:100% !important; height:380px !important; max-height:380px !important; }
 
     table{ border-collapse:collapse; width:100%; font-size:13pt; margin-top:10px; table-layout:auto; }
@@ -118,6 +133,13 @@
     .error-message{ color:#b00020; padding:10px; background:#ffeeee; border:1px solid #ffcccc; margin-top:8px; border-radius:5px; }
 
     @media (max-width: 1500px){ .metrics{ grid-template-columns: 1fr 1fr; } }
+
+    @media (max-width:768px){
+      .chart-legend-hint{
+        white-space:normal;
+        text-align:left;
+      }
+    }
 
     /* ===== PRINT: giữ nguyên, không áp dụng phân trang màn hình ===== */
     @media print {
@@ -244,15 +266,20 @@
       <div class="metric m-max"><div class="label">Mưa lớn nhất (ngày)</div><div class="value"><span id="m-max">—</span> <span id="m-max-date" style="font-size:12pt;font-weight:600;"></span></div></div>
     </div>
 
-    <!-- Charts -->
+    <!-- Chart gộp mưa + mực nước -->
     <div class="charts">
       <div class="chart-card">
-        <p class="chart-title">Lượng mưa theo từng ngày (tổng mm/ngày)</p>
-        <canvas id="rainChart"></canvas>
-      </div>
-      <div class="chart-card">
-        <p class="chart-title">Mực nước theo từng ngày (TB m/ngày) & đường tham chiếu mực nước chết (27.5 m)</p>
-        <canvas id="waterLevelChart"></canvas>
+        <div class="chart-header">
+          <div>
+            <p class="chart-title">Biểu đồ mưa & mực nước hồ Thành Sơn</p>
+            <div class="chart-sub">Cột: lượng mưa (mm) · Đường: mực nước (m)</div>
+          </div>
+          <div class="chart-legend-hint">
+            🟢 an toàn · 🟡 theo dõi · 🟠 cảnh báo · 🔴 nguy hiểm
+          </div>
+        </div>
+        <div id="water-status" class="water-status"></div>
+        <canvas id="waterChart"></canvas>
       </div>
     </div>
 
@@ -313,14 +340,19 @@
     /* ================== CẤU HÌNH ================== */
     const EXEC_URL = "https://script.google.com/macros/s/AKfycbxphwCkUk01I8TZ4LI_1bzEW1XdRPLLrGnbYGRkKbt8gJ-rmliZRzp_zoy0GpHhdSEv/exec";
     const SHEET = "HoThanhSon";
-    const DEAD_LEVEL = 27.5;
+
+    // Ngưỡng mực nước hồ Thành Sơn
+    const DEAD_LEVEL = 27.5;   // MN chết
+    const LVL_BT     = 30.8;   // MN dâng bình thường
+    const LVL_GC     = 31.96;  // MN dâng gia cường thiết kế
+    const LVL_MID    = (LVL_BT + LVL_GC) / 2; // trung gian vàng/cam
 
     /* ================== STATE ================== */
     let selectedYear = 'all', selectedQuarter = 'all', selectedMonth = 'all', selectedWeek = 'all', selectedDayNight = 'all';
     let customTimeRange = null; // {fromDate, fromTime, toDate, toTime}
     let allData = [], filteredData = [], currentFetchCtrl = null;
     const cacheByScope = new Map(); // keys: 'all', 'year:YYYY'
-    let rainChart = null, waterLevelChart = null, ChartLibLoaded = false;
+    let comboChart = null, ChartLibLoaded = false;
 
     // Phân trang (view chính)
     let pageSize = 20;
@@ -342,6 +374,7 @@
     const elAvgRainy = document.getElementById('m-avg-rainy');
     const elMax = document.getElementById('m-max');
     const elMaxDate = document.getElementById('m-max-date');
+    const waterStatusEl = document.getElementById('water-status');
 
     // Custom time range
     const customTimePanel = document.getElementById('custom-time-panel');
@@ -402,6 +435,7 @@
       errorDiv.textContent = message;
       errorDiv.style.display = 'block';
       tableBody.innerHTML = `<tr><td colspan="16" class="status-message">${message}</td></tr>`;
+      waterStatusEl.textContent = 'Không thể xác định trạng thái mực nước do lỗi dữ liệu.';
     }
     
     // Lấy số tuần trong năm
@@ -488,15 +522,10 @@
       const prev = weekFilter.value;
       weekFilter.innerHTML = '<option value="all">Tất cả</option>';
       
-      // Sắp xếp theo năm giảm dần, rồi tuần giảm dần
       [...weeks].sort((a, b) => {
         const [yearA, weekA] = a.split('-W').map(v => parseInt(v, 10));
         const [yearB, weekB] = b.split('-W').map(v => parseInt(v, 10));
-        
-        // So sánh năm trước (giảm dần)
         if (yearA !== yearB) return yearB - yearA;
-        
-        // Nếu cùng năm, so sánh tuần (giảm dần)
         return weekB - weekA;
       }).forEach(w => {
         const op = document.createElement('option');
@@ -555,13 +584,42 @@
       elMaxDate.textContent = maxDate ? `(${maxDate})` : '';
     }
 
-    /* ================== CHARTS ================== */
+    /* ================== CHARTS (combo + plugin bands) ================== */
+    const levelBandsPlugin = {
+      id: 'levelBands',
+      beforeDraw(chart, args, opts) {
+        const bands = opts && opts.bands;
+        if (!bands || !bands.length) return;
+        const yScale = chart.scales['yLevel'];
+        if (!yScale) return;
+        const {ctx, chartArea} = chart;
+        ctx.save();
+        bands.forEach(b=>{
+          if (b.from == null || b.to == null) return;
+          const y1 = yScale.getPixelForValue(b.from);
+          const y2 = yScale.getPixelForValue(b.to);
+          const top = Math.min(y1, y2);
+          const bottom = Math.max(y1, y2);
+          const clippedTop = Math.max(chartArea.top, top);
+          const clippedBottom = Math.min(chartArea.bottom, bottom);
+          if (clippedBottom <= clippedTop) return;
+          ctx.fillStyle = b.color || 'rgba(0,0,0,0.05)';
+          ctx.fillRect(chartArea.left, clippedTop, chartArea.right - chartArea.left, clippedBottom - clippedTop);
+        });
+        ctx.restore();
+      }
+    };
+
     async function ensureChartJs(){
       if (!ChartLibLoaded){
         await loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js');
+        if (typeof Chart !== 'undefined') {
+          Chart.register(levelBandsPlugin);
+        }
         ChartLibLoaded = true;
       }
     }
+
     function niceMax(val){
       if (!isFinite(val) || val <= 0) return 10;
       const mags = [5,10,20,25,50,100,200,250,500,1000];
@@ -569,56 +627,182 @@
       for (const m of mags){ if (target <= m) return m; }
       return Math.ceil(target/100)*100;
     }
+
     async function updateCharts(){
       await ensureChartJs();
       const { labels, rainPerDay, wlAvgPerDay } = aggregateDaily(filteredData);
 
-      if (rainChart) { rainChart.destroy(); rainChart = null; }
-      if (waterLevelChart) { waterLevelChart.destroy(); waterLevelChart = null; }
+      if (comboChart) { comboChart.destroy(); comboChart = null; }
 
       const maxRain = rainPerDay.reduce((m,v)=>Math.max(m, v||0), 0);
       const yMaxRain = niceMax(maxRain);
+      const stepRain = (yMaxRain > 50 ? 10 : 5);
 
-      const wlVals = wlAvgPerDay.filter(v=>Number.isFinite(v));
-      const wlMin = wlVals.length ? Math.min(...wlVals) : 0;
-      const wlMax = wlVals.length ? Math.max(...wlVals) : 0;
-      const yMinWL = wlVals.length ? Math.floor((wlMin - 0.5)*10)/10 : undefined;
-      const yMaxWL = wlVals.length ? Math.ceil((wlMax + 0.5)*10)/10 : undefined;
+      const wlVals = wlAvgPerDay.filter(v=>v!=null && !Number.isNaN(v));
+      const lvlMin = wlVals.length ? Math.min(...wlVals) : DEAD_LEVEL;
+      const lvlMax = wlVals.length ? Math.max(...wlVals) : LVL_GC + 0.5;
+      const pad = 0.1;
+      const yMinLvl = Math.floor((Math.min(DEAD_LEVEL, lvlMin) - pad) * 10) / 10;
+      const yMaxLvl = Math.ceil((lvlMax + pad) * 10) / 10;
 
-      // eslint-disable-next-line no-undef
-      rainChart = new Chart(document.getElementById('rainChart').getContext('2d'), {
-        type: 'bar',
-        data: { labels, datasets: [{ label:'Lượng mưa (mm/ngày)', data: rainPerDay, borderWidth:1 }] },
-        options: {
-          responsive:true, maintainAspectRatio:false, animation:false,
-          plugins:{ legend:{ display:true } },
-          scales:{
-            x:{ title:{ display:true, text:'Ngày' }, ticks:{ autoSkip:true, maxRotation:0 } },
-            y:{ title:{ display:true, text:'mm' }, beginAtZero:true, suggestedMax:yMaxRain }
-          }
-        }
-      });
+      const canvas = document.getElementById('waterChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      const gradient = ctx.createLinearGradient(0,0,0,ctx.canvas.height);
+      gradient.addColorStop(0,'rgba(30,164,141,0.30)');
+      gradient.addColorStop(1,'rgba(30,164,141,0.00)');
 
       const deadLine = labels.map(()=>DEAD_LEVEL);
+
       // eslint-disable-next-line no-undef
-      waterLevelChart = new Chart(document.getElementById('waterLevelChart').getContext('2d'), {
-        type:'line',
+      comboChart = new Chart(ctx,{
+        type:'bar',
         data:{
           labels,
           datasets:[
-            { label:'Mực nước TB (m/ngày)', data: wlAvgPerDay, tension:0.3, fill:false, pointRadius:3 },
-            { label:`Mực nước chết (${DEAD_LEVEL} m)`, data: deadLine, borderDash:[6,6], tension:0, fill:false, pointRadius:0 }
+            {
+              type:'bar',
+              label:'Lượng mưa (mm)',
+              data:rainPerDay,
+              yAxisID:'yRain',
+              backgroundColor:'rgba(56,189,248,0.55)',
+              borderRadius:4,
+              maxBarThickness:32
+            },
+            {
+              type:'line',
+              label:'Mực nước (m)',
+              data:wlAvgPerDay,
+              yAxisID:'yLevel',
+              spanGaps:true,
+              borderColor:'#1EA48D',
+              backgroundColor:gradient,
+              tension:0.35,
+              borderWidth:2.4,
+              pointRadius:3,
+              pointHoverRadius:5,
+              pointBackgroundColor:(ctxPoint)=>{
+                const v = ctxPoint.raw;
+                if(v==null || Number.isNaN(v)) return '#1EA48D';
+                if(v>=LVL_GC)    return '#b91c1c'; // đỏ
+                if(v>=LVL_MID)   return '#ea580c'; // cam
+                if(v>=LVL_BT)    return '#eab308'; // vàng
+                return '#1EA48D';                  // an toàn
+              },
+              pointBorderColor:'#ffffff',
+              fill:true
+            },
+            {
+              type:'line',
+              label:`Mực nước chết (${DEAD_LEVEL.toFixed(2)} m)`,
+              data:deadLine,
+              yAxisID:'yLevel',
+              borderColor:'rgba(148,163,184,0.9)',
+              borderDash:[6,4],
+              borderWidth:1.4,
+              pointRadius:0,
+              fill:false
+            }
           ]
         },
         options:{
-          responsive:true, maintainAspectRatio:false, animation:false,
-          plugins:{ legend:{ display:true } },
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{
+            legend:{
+              display:true,
+              position:'bottom',
+              labels:{ usePointStyle:true, boxWidth:10, padding:16 }
+            },
+            tooltip:{
+              mode:'index',
+              intersect:false,
+              callbacks:{
+                label(ctx){
+                  const v = ctx.parsed.y;
+                  if(ctx.datasetIndex === 0){
+                    return `Lượng mưa: ${v.toFixed(1)} mm`;
+                  }else if(ctx.datasetIndex === 1){
+                    return `Mực nước: ${v.toFixed(2)} m`;
+                  }
+                  return `Mực nước chết: ${DEAD_LEVEL.toFixed(2)} m`;
+                }
+              }
+            },
+            levelBands:{
+              bands:[
+                { from: LVL_BT,  to: LVL_MID, color:'rgba(250,204,21,0.18)' }, // vàng
+                { from: LVL_MID, to: LVL_GC,  color:'rgba(249,115,22,0.18)' }, // cam
+                { from: LVL_GC,  to: yMaxLvl, color:'rgba(248,113,113,0.20)' } // đỏ
+              ]
+            }
+          },
+          interaction:{ mode:'nearest', intersect:false },
           scales:{
-            x:{ title:{ display:true, text:'Ngày' }, ticks:{ autoSkip:true, maxRotation:0 } },
-            y:{ title:{ display:true, text:'m' }, beginAtZero:false, suggestedMin:yMinWL, suggestedMax:yMaxWL }
+            x:{
+              grid:{ display:false },
+              ticks:{
+                autoSkip:true,
+                maxTicksLimit: Math.min(12, labels.length),
+                maxRotation:0
+              },
+              title:{ display:false }
+            },
+            yRain:{
+              position:'left',
+              beginAtZero:true,
+              suggestedMax:yMaxRain,
+              ticks:{ stepSize:stepRain },
+              grid:{ color:'rgba(148,163,184,0.20)' },
+              title:{ display:true, text:'Lượng mưa (mm)' }
+            },
+            yLevel:{
+              position:'right',
+              beginAtZero:false,
+              suggestedMin:yMinLvl,
+              suggestedMax:yMaxLvl,
+              grid:{ drawOnChartArea:false },
+              title:{ display:true, text:'Mực nước (m)' }
+            }
           }
         }
       });
+
+      // ===== Trạng thái mực nước gần nhất =====
+      let lastVal = null;
+      for (let i = wlAvgPerDay.length - 1; i >= 0; i--){
+        if (wlAvgPerDay[i] != null){
+          lastVal = wlAvgPerDay[i];
+          break;
+        }
+      }
+
+      if(lastVal == null || Number.isNaN(lastVal)){
+        waterStatusEl.textContent = 'Không có dữ liệu mực nước.';
+      }else{
+        let baseText;
+        if(lastVal >= DEAD_LEVEL){
+          baseText = `Mực nước gần nhất ${lastVal.toFixed(2)} m — CAO HƠN mực nước chết ${(lastVal - DEAD_LEVEL).toFixed(2)} m.`;
+        }else{
+          baseText = `Mực nước gần nhất ${lastVal.toFixed(2)} m — THẤP HƠN mực nước chết ${(DEAD_LEVEL - lastVal).toFixed(2)} m.`;
+        }
+
+        let zoneText;
+        if(lastVal < DEAD_LEVEL){
+          zoneText = 'Đang dưới mực nước chết, dưới vùng làm việc bình thường.';
+        }else if(lastVal < LVL_BT){
+          zoneText = `VÙNG AN TOÀN – dưới mực nước dâng bình thường (${LVL_BT.toFixed(2)} m).`;
+        }else if(lastVal < LVL_MID){
+          zoneText = `VÙNG VÀNG – quanh ngưỡng mực nước dâng bình thường (${LVL_BT.toFixed(2)} m), cần theo dõi.`;
+        }else if(lastVal < LVL_GC){
+          zoneText = `VÙNG CAM – giữa mực nước dâng bình thường và mực nước dâng gia cường (${LVL_GC.toFixed(2)} m), mức cảnh báo cao.`;
+        }else{
+          zoneText = `VÙNG ĐỎ – xấp xỉ hoặc vượt mực nước dâng gia cường thiết kế (${LVL_GC.toFixed(2)} m), rất nguy hiểm.`;
+        }
+
+        waterStatusEl.textContent = `${baseText} Trạng thái: ${zoneText}`;
+      }
     }
 
     /* ================== SUBTITLE ================== */
@@ -653,18 +837,14 @@
     /* ================== FILTER ================== */
     function clientFilter(data){
       return data.filter(r=>{
-        // Custom time range filter
         if (customTimeRange) {
           if (!r._dt) return false;
           const { fromDate, fromTime, toDate, toTime } = customTimeRange;
-          
           const fromDateTime = new Date(`${fromDate}T${fromTime || '00:00:00'}`);
           const toDateTime = new Date(`${toDate}T${toTime || '23:59:59'}`);
-          
           if (r._dt < fromDateTime || r._dt > toDateTime) return false;
         }
         
-        // Week filter
         if (selectedWeek !== 'all') {
           if (!r._dt) return false;
           const weekNum = getWeekNumber(r._dt);
@@ -672,14 +852,12 @@
           if (rowWeek !== selectedWeek) return false;
         }
         
-        // Day/Night filter
         if (selectedDayNight !== 'all') {
           if (!r._dt) return false;
           if (selectedDayNight === 'day' && !isDayTime(r._dt)) return false;
           if (selectedDayNight === 'night' && !isNightTime(r._dt)) return false;
         }
         
-        // Year/Quarter/Month filters
         if (selectedYear !== 'all' && String(r._y) !== selectedYear) return false;
         if (selectedMonth !== 'all' && r._m !== Number(selectedMonth)) return false;
         if (selectedQuarter !== 'all' && r._q !== Number(selectedQuarter)) return false;
@@ -768,15 +946,12 @@
     }
     function renderPaginationBar(){
       const { start, end, totalPages } = getPagedSlice();
-      // Info
       pagerInfo.textContent = `Trang ${currentPage}/${totalPages} — Hiển thị ${filteredData.length ? (start+1) : 0}–${end} / ${filteredData.length} dòng`;
       pagerBar.style.display = 'flex';
 
-      // Prev/Next
       btnPrev.disabled = currentPage <= 1;
       btnNext.disabled = currentPage >= totalPages;
 
-      // Page numbers: 1..N (đơn giản theo yêu cầu)
       pageNumbers.innerHTML = '';
       for (let p=1; p<=totalPages; p++){
         const b = document.createElement('button');
@@ -797,7 +972,6 @@
       renderPaginationBar();
     }
 
-    // Events for pagination controls
     btnPrev.addEventListener('click', () => { currentPage = clampPage(currentPage-1); drawTableWithPagination(); });
     btnNext.addEventListener('click', () => { currentPage = clampPage(currentPage+1); drawTableWithPagination(); });
     pageSizeSelect.addEventListener('change', () => {
@@ -826,7 +1000,7 @@
       selectedWeek = w;
       selectedDayNight = dn;
       
-      currentPage = 1; // reset trang khi đổi bộ lọc
+      currentPage = 1;
       fetchAndRender();
     }
     
@@ -879,7 +1053,6 @@
 
         filteredData = clientFilter(scopeData);
 
-        // Bảng: dùng phân trang; KPI + Biểu đồ vẫn dựa trên filteredData (toàn bộ kỳ)
         drawTableWithPagination();
         renderRainStats();
         requestAnimationFrame(()=> setTimeout(updateCharts, 0));
@@ -968,7 +1141,6 @@
       
       customTimeRange = { fromDate, fromTime, toDate, toTime };
       
-      // Reset other filters
       yearFilter.value = 'all';
       quarterFilter.value = 'all';
       monthFilter.value = 'all';
@@ -1009,7 +1181,6 @@
       pageSize = 20;
       currentPage = 1;
       
-      // Set default time values
       customFromTime.value = '00:00:00';
       customToTime.value = '23:59:59';
       
