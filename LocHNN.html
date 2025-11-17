@@ -12,23 +12,68 @@
   <style id="printStyle"></style>
 
   <style>
-    :root{ --ink:#0f172a; --muted:#64748b; --brand:#1EA48D; --line:#1EA48D; --bg:#ffffff; --radius:12px; }
+    :root{
+      --ink:#0f172a;
+      --muted:#64748b;
+      --brand:#1EA48D;
+      --line:#1EA48D;
+      --bg:#ffffff;
+      --radius:12px;
+    }
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
-    body{ margin:0; font-family: Inter,"Segoe UI",Roboto,Arial,sans-serif; color:var(--ink); background:#fff; }
+    body{
+      margin:0;
+      font-family: Inter,"Segoe UI",Roboto,Arial,sans-serif;
+      color:var(--ink);
+      background:#fff;
+    }
 
     /* Toolbar */
-    .toolbar{ position:sticky; top:0; z-index:20; display:flex; gap:10px; align-items:center;
-      padding:10px 16px; background:#fff; border-bottom:1px solid #e5e7eb; flex-wrap:wrap; }
-    .brand{ display:flex; align-items:center; gap:10px; font-weight:800; }
-    .dot{ width:10px; height:10px; border-radius:50%; background:var(--brand); box-shadow:0 0 0 3px rgba(30,164,141,.15); }
+    .toolbar{
+      position:sticky;
+      top:0;
+      z-index:20;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      padding:10px 16px;
+      background:#fff;
+      border-bottom:1px solid #e5e7eb;
+      flex-wrap:wrap;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:800;
+    }
+    .dot{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:var(--brand);
+      box-shadow:0 0 0 3px rgba(30,164,141,.15);
+    }
     .spacer{ flex:1; }
-    .btn{ appearance:none; border-radius:10px; padding:8px 14px; font-weight:700; cursor:pointer;
-      border:1px solid #e5e7eb; background:#fff; transition:.15s; }
-    .btn:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.06); }
+    .btn{
+      appearance:none;
+      border-radius:10px;
+      padding:8px 14px;
+      font-weight:700;
+      cursor:pointer;
+      border:1px solid #e5e7eb;
+      background:#fff;
+      transition:.15s;
+      font-size:13px;
+    }
+    .btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 6px 16px rgba(0,0,0,.06);
+    }
     .btn.primary{ background:var(--brand); color:#fff; border-color:var(--brand); }
 
-    /* === NÚT: tô nền màu === */
+    /* Nút tô màu */
     #btnCustomTime{ background:#6f42c1; color:#fff; border-color:#6f42c1; }
     #btnCustomTime:hover{ filter:brightness(.95); }
     #btnExcel{ background:#22c55e; color:#fff; border-color:#22c55e; }
@@ -38,100 +83,344 @@
     #btnLandscape{ background:#8b5cf6; color:#fff; border-color:#8b5cf6; }
     #btnLandscape:hover{ filter:brightness(.95); }
 
-    .sheet{ width:100%; min-height:calc(100vh - 56px); padding:24px 20px; background:#fff; }
+    .sheet{
+      width:100%;
+      min-height:calc(100vh - 56px);
+      padding:20px 16px 24px;
+      background:#fff;
+    }
 
-    h1{ margin:0 0 6px; text-align:center; font-size:22pt; line-height:1.25; font-weight:900; color:#0b1b23; }
-    .subhead{ text-align:center; font-size:12pt; color:var(--muted); margin-bottom:12px; }
+    h1{
+      margin:0 0 6px;
+      text-align:center;
+      font-size:22pt;
+      line-height:1.25;
+      font-weight:900;
+      color:#0b1b23;
+    }
+    .subhead{
+      text-align:center;
+      font-size:12pt;
+      color:var(--muted);
+      margin-bottom:12px;
+    }
 
     /* Filters */
-    .filters{ display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center;
-      border:1px solid var(--brand); border-radius:12px; padding:10px 12px; background:#f5fffb; margin-bottom:12px; }
+    .filters{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px 14px;
+      align-items:center;
+      border:1px solid var(--brand);
+      border-radius:12px;
+      padding:10px 12px;
+      background:#f5fffb;
+      margin-bottom:12px;
+      font-size:13px;
+    }
     .filters .label{ font-weight:700; color:#0b1b23; }
-    .filters select{ appearance:none; padding:8px 10px; border:1px solid var(--brand); border-radius:10px; background:#fff;
-      min-width:140px; font-weight:600; color:#0b1b23; }
+    .filters select{
+      appearance:none;
+      padding:6px 10px;
+      border:1px solid var(--brand);
+      border-radius:10px;
+      background:#fff;
+      min-width:120px;
+      font-weight:600;
+      color:#0b1b23;
+      font-size:13px;
+    }
 
     /* Custom Time Panel */
-    .custom-time-panel{ display:none; padding:16px; background:#f8f9fa; border:1px solid #e5e7eb; 
-      border-radius:10px; margin-bottom:10px; }
-    .custom-time-panel .time-inputs{ display:flex; gap:20px; align-items:end; flex-wrap:wrap; }
-    .custom-time-panel .input-group{ display:flex; flex-direction:column; gap:4px; }
-    .custom-time-panel label{ font-weight:bold; font-size:12pt; }
-    .custom-time-panel input{ padding:8px; border:1px solid #d1d5db; border-radius:8px; font-size:13pt; }
-    .custom-time-panel button{ padding:8px 16px; border:none; border-radius:8px; cursor:pointer; 
-      font-weight:bold; font-size:13pt; }
+    .custom-time-panel{
+      display:none;
+      padding:16px;
+      background:#f8f9fa;
+      border:1px solid #e5e7eb;
+      border-radius:10px;
+      margin-bottom:10px;
+      font-size:13px;
+    }
+    .custom-time-panel .time-inputs{
+      display:flex;
+      gap:20px;
+      align-items:flex-end;
+      flex-wrap:wrap;
+    }
+    .custom-time-panel .input-group{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .custom-time-panel label{
+      font-weight:bold;
+      font-size:12px;
+    }
+    .custom-time-panel input{
+      padding:6px 8px;
+      border:1px solid #d1d5db;
+      border-radius:8px;
+      font-size:13px;
+    }
+    .custom-time-panel button{
+      padding:8px 16px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:bold;
+      font-size:13px;
+    }
     #btnApplyCustom{ background:#1EA48D; color:#fff; }
     #btnClearCustom{ background:#6c757d; color:#fff; }
 
     /* KPI */
-    .kpis{ display:grid; gap:12px; grid-template-columns: repeat(6, minmax(140px,1fr)); margin:12px 0 14px; }
-    .kpi{ border:1px solid #e5e7eb; border-radius:14px; padding:12px 12px 10px; background:#fff; position:relative; overflow:hidden; }
-    .kpi::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:6px;
-      background:linear-gradient(90deg, var(--brand), #3b82f6, #a855f7); }
-    .kpi .t{ font-size:12px; color:#475569; margin-bottom:6px; font-weight:600; }
-    .kpi .v{ font-size:18px; font-weight:800; color:#0b1b23; }
-    .kpi .s{ font-size:12px; color:#64748b; }
+    .kpis{
+      display:grid;
+      gap:12px;
+      grid-template-columns: repeat(6, minmax(140px,1fr));
+      margin:12px 0 14px;
+    }
+    .kpi{
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      padding:12px 12px 10px;
+      background:#fff;
+      position:relative;
+      overflow:hidden;
+    }
+    .kpi .t{
+      font-size:12px;
+      color:#475569;
+      margin-bottom:6px;
+      font-weight:600;
+    }
+    .kpi .v{
+      font-size:18px;
+      font-weight:800;
+      color:#0b1b23;
+    }
+    .kpi .s{
+      font-size:12px;
+      color:#64748b;
+    }
 
-    /* === KPI: tô nền pastel từng thẻ + gạch chân đồng bộ === */
+    /* KPI pastel */
     .kpis .kpi{ border:1px solid transparent; }
-    .kpis .kpi::after{ background:transparent; }
+    .kpis .kpi::after{
+      content:"";
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height:6px;
+    }
     .kpis .kpi:nth-child(1){ background:#EAFBF2; border-color:#BFEED7; }
-    .kpis .kpi:nth-child(1)::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:6px; background:#22c55e; }
+    .kpis .kpi:nth-child(1)::after{ background:#22c55e; }
     .kpis .kpi:nth-child(2){ background:#ECF3FF; border-color:#D4E2FF; }
-    .kpis .kpi:nth-child(2)::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:6px; background:#3b82f6; }
+    .kpis .kpi:nth-child(2)::after{ background:#3b82f6; }
     .kpis .kpi:nth-child(3){ background:#FFF6E9; border-color:#FFE3BD; }
-    .kpis .kpi:nth-child(3)::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:6px; background:#f59e0b; }
+    .kpis .kpi:nth-child(3)::after{ background:#f59e0b; }
     .kpis .kpi:nth-child(4){ background:#FFEAF4; border-color:#FFD1E6; }
-    .kpis .kpi:nth-child(4)::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:6px; background:#ec4899; }
+    .kpis .kpi:nth-child(4)::after{ background:#ec4899; }
     .kpis .kpi:nth-child(5){ background:#EEF2FF; border-color:#D9DDFC; }
-    .kpis .kpi:nth-child(5)::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:6px; background:#6366f1; }
+    .kpis .kpi:nth-child(5)::after{ background:#6366f1; }
     .kpis .kpi:nth-child(6){ background:#EAFDFF; border-color:#CFF6FA; }
-    .kpis .kpi:nth-child(6)::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:6px; background:#06b6d4; }
+    .kpis .kpi:nth-child(6)::after{ background:#06b6d4; }
 
-    /* Charts – chia đều 1–1, cao bằng nhau */
-    .charts{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:14px; align-items:stretch; }
-    .card{ border:1px solid var(--brand); border-radius:14px; background:#fff; padding:12px; display:flex; flex-direction:column; }
-    .card h3{ margin:0 0 10px; font-size:14pt; color:#0b1b23; }
-    .chart-box{ position:relative; height: clamp(260px, 32vh, 360px); }
-    .chart-box canvas{ position:absolute; inset:0; width:100% !important; height:100% !important; }
+    /* Charts – 1 chart full width */
+    .charts{
+      display:grid;
+      grid-template-columns:minmax(0,1fr);
+      gap:16px;
+      margin-bottom:14px;
+      align-items:stretch;
+    }
+    .card{
+      border:1px solid var(--brand);
+      border-radius:14px;
+      background:#fff;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+    }
+    .card h3{
+      margin:0 0 2px;
+      font-size:14pt;
+      color:#0b1b23;
+    }
+    .chart-sub{
+      font-size:11px;
+      color:#6b7280;
+    }
+    .chart-legend-hint{
+      font-size:11px;
+      color:#0f172a;
+      text-align:right;
+      white-space:nowrap;
+    }
+    #waterStatus{
+      margin:0 0 4px;
+      font-weight:600;
+      font-size:12px;
+      color:#0f172a;
+    }
+    .chart-box{
+      position:relative;
+      height: clamp(260px, 34vh, 380px);
+    }
+    .chart-box canvas{
+      position:absolute;
+      inset:0;
+      width:100% !important;
+      height:100% !important;
+    }
 
-    /* Bảng – kẻ khung rõ ràng (màn hình) */
-    .table-wrap{ border-radius:14px; overflow:hidden; }
-    table{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:11pt; background:#fff; border:2px solid #1EA48D; }
-    thead th{ background:#1EA48D; color:#000; font-weight:800; padding:10px 8px; border:1px solid #fff; }
-    tbody td{ padding:8px 8px; text-align:center; vertical-align:middle; border:1px solid #e5e7eb; }
+    /* Bảng */
+    .table-wrap{
+      border-radius:14px;
+      overflow:hidden;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      table-layout:fixed;
+      font-size:11pt;
+      background:#fff;
+      border:2px solid #1EA48D;
+    }
+    thead th{
+      background:#1EA48D;
+      color:#000;
+      font-weight:800;
+      padding:10px 8px;
+      border:1px solid #fff;
+    }
+    tbody td{
+      padding:8px 8px;
+      text-align:center;
+      vertical-align:middle;
+      border:1px solid #e5e7eb;
+    }
     tbody tr:nth-child(even){ background:#fcfffe; }
     tbody tr:hover{ background:#f2fbf8; }
-    .state{ text-align:center; padding:24px; color:#64748b; font-style:italic; }
+    .state{
+      text-align:center;
+      padding:24px;
+      color:#64748b;
+      font-style:italic;
+    }
 
     th.col-ngay, td.col-ngay{ white-space:nowrap; }
     th.col-gio,  td.col-gio { white-space:nowrap; }
 
-    /* Phân trang */
-    .pager{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin:14px 0 4px; }
-    .page-btn{
-      min-width:40px; padding:6px 10px; border:1px solid #cbd5e1; background:#fff; border-radius:10px;
-      font-weight:700; color:#0b1b23; cursor:pointer;
+    /* Phân trang thu gọn */
+    .pager{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      justify-content:center;
+      margin:14px 0 4px;
+      align-items:center;
+      font-size:12px;
     }
-    .page-btn:hover{ border-color:var(--brand); box-shadow:0 2px 8px rgba(0,0,0,.06); }
-    .page-btn.active{ background:var(--brand); color:#fff; border-color:var(--brand); }
+    .page-btn{
+      min-width:34px;
+      padding:4px 8px;
+      border:1px solid #cbd5e1;
+      background:#fff;
+      border-radius:10px;
+      font-weight:700;
+      color:#0b1b23;
+      cursor:pointer;
+      font-size:12px;
+    }
+    .page-btn:hover{
+      border-color:var(--brand);
+      box-shadow:0 2px 8px rgba(0,0,0,.06);
+    }
+    .page-btn.active{
+      background:var(--brand);
+      color:#fff;
+      border-color:var(--brand);
+    }
+    .page-btn[disabled]{
+      opacity:0.4;
+      cursor:not-allowed;
+      box-shadow:none;
+    }
+    .page-ellipsis{
+      padding:0 4px;
+      color:#94a3b8;
+    }
+    .pager-info{
+      margin-left:4px;
+      color:#64748b;
+    }
 
     /* ===== PRINT ===== */
     @media print{
-      .toolbar, .filters, .charts, .kpis, .pager, .custom-time-panel { display:none !important; }
-      /* lưới rõ ràng khi in */
+      .toolbar,
+      .filters,
+      .charts,
+      .kpis,
+      .pager,
+      .custom-time-panel {
+        display:none !important;
+      }
       table{ border:1.2px solid #000; }
-      thead th, tbody td{ border:1px solid #000 !important; padding:4px 6px; word-wrap:break-word; white-space:normal; }
-      thead th{ background:#fff !important; color:#000 !important; font-weight:800 !important; }
-      th.col-ngay, td.col-ngay, th.col-gio, td.col-gio{ white-space:nowrap !important; }
-      tr{ page-break-inside:avoid; page-break-after:auto; }
-      col.cw-day  { width:28mm; }  col.cw-time { width:18mm; }
+      thead th, tbody td{
+        border:1px solid #000 !important;
+        padding:4px 6px;
+        word-wrap:break-word;
+        white-space:normal;
+      }
+      thead th{
+        background:#fff !important;
+        color:#000 !important;
+        font-weight:800 !important;
+      }
+      th.col-ngay, td.col-ngay,
+      th.col-gio,  td.col-gio{
+        white-space:nowrap !important;
+      }
+      tr{
+        page-break-inside:avoid;
+        page-break-after:auto;
+      }
+      col.cw-day  { width:28mm; }
+      col.cw-time { width:18mm; }
     }
 
     /* width cột trên màn hình */
     col.cw-day  { width:120px; }
     col.cw-time { width:80px; }
 
-    @media (min-width:1400px){ .sheet{ padding-left:40px; padding-right:40px; } }
+    @media (min-width:1400px){
+      .sheet{ padding-left:40px; padding-right:40px; }
+    }
+
+    @media (max-width:1024px){
+      .kpis{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+      }
+    }
+    @media (max-width:768px){
+      .kpis{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+      .toolbar{
+        justify-content:flex-start;
+      }
+      .chart-legend-hint{
+        white-space:normal;
+        text-align:left;
+      }
+    }
   </style>
 </head>
 <body>
@@ -208,24 +497,49 @@
 
     <!-- KPI -->
     <div class="kpis">
-      <div class="kpi"><div class="t">Tổng lượng mưa (kỳ lọc) (mm)</div><div class="v" id="kpiTotalRain">0</div></div>
-      <div class="kpi"><div class="t">Ngày có mưa / Tổng ngày</div><div class="v"><span id="kpiRainDays">0</span> / <span id="kpiDays">0</span></div></div>
-      <div class="kpi"><div class="t">TB theo ngày trong kỳ (mm/ngày)</div><div class="v" id="kpiAvgPerDay">0</div></div>
-      <div class="kpi"><div class="t">TB theo ngày có mưa</div><div class="v" id="kpiAvgPerRainy">0</div></div>
-      <div class="kpi"><div class="t">Mưa lớn nhất (mm)</div><div class="v"><span id="kpiMaxRain">0</span> <span class="s" id="kpiMaxRainDay"></span></div></div>
-      <div class="kpi"><div class="t">Q lớn nhất (m³/s)</div><div class="v"><span id="kpiMaxQ">0</span></div></div>
+      <div class="kpi">
+        <div class="t">Tổng lượng mưa (kỳ lọc) (mm)</div>
+        <div class="v" id="kpiTotalRain">0</div>
+      </div>
+      <div class="kpi">
+        <div class="t">Ngày có mưa / Tổng ngày</div>
+        <div class="v"><span id="kpiRainDays">0</span> / <span id="kpiDays">0</span></div>
+      </div>
+      <div class="kpi">
+        <div class="t">TB theo ngày trong kỳ (mm/ngày)</div>
+        <div class="v" id="kpiAvgPerDay">0</div>
+      </div>
+      <div class="kpi">
+        <div class="t">TB theo ngày có mưa</div>
+        <div class="v" id="kpiAvgPerRainy">0</div>
+      </div>
+      <div class="kpi">
+        <div class="t">Mưa lớn nhất (mm)</div>
+        <div class="v">
+          <span id="kpiMaxRain">0</span>
+          <span class="s" id="kpiMaxRainDay"></span>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="t">Q lớn nhất (m³/s)</div>
+        <div class="v"><span id="kpiMaxQ">0</span></div>
+      </div>
     </div>
 
-    <!-- Charts -->
+    <!-- Chart gộp mưa + mực nước -->
     <div class="charts">
       <div class="card">
-        <h3>Lượng mưa theo ngày</h3>
-        <div class="chart-box"><canvas id="rainChart"></canvas></div>
-      </div>
-      <div class="card">
-        <h3>Biểu đồ mực nước</h3>
-        <div id="waterStatus" style="margin:4px 0 6px; font-weight:700;"></div>
-        <div class="chart-box"><canvas id="levelChart"></canvas></div>
+        <div class="card-header">
+          <div>
+            <h3>Biểu đồ mưa & mực nước</h3>
+            <div class="chart-sub">Cột: lượng mưa (mm) · Đường: mực nước (m)</div>
+          </div>
+          <div class="chart-legend-hint">
+            🟢 an toàn · 🟡 theo dõi · 🟠 cảnh báo · 🔴 nguy hiểm
+          </div>
+        </div>
+        <div id="waterStatus"></div>
+        <div class="chart-box"><canvas id="comboChart"></canvas></div>
       </div>
     </div>
 
@@ -273,7 +587,9 @@
     const API_URL  = `${EXEC_URL}?sheet=HoNuocNgot`;
 
     const printStyleEl = document.getElementById('printStyle');
-    function setPage(size){ printStyleEl.textContent = `@media print{ @page{ size:${size}; margin:8mm; } }`; }
+    function setPage(size){
+      printStyleEl.textContent = `@media print{ @page{ size:${size}; margin:8mm; } }`;
+    }
     document.getElementById('btnPortrait').onclick  = () => { setPage('A4 portrait');  window.print(); };
     document.getElementById('btnLandscape').onclick = () => { setPage('A4 landscape'); window.print(); };
     setPage('A4 landscape'); // mặc định
@@ -281,23 +597,34 @@
     const params   = new URLSearchParams(location.search);
     const subTitle = document.getElementById('subTitle');
     
-    const yearSel=document.getElementById('yearSel');
-    const quarterSel=document.getElementById('quarterSel');
-    const monthSel=document.getElementById('monthSel');
-    const weekSel=document.getElementById('weekSel');
-    const dayNightSel=document.getElementById('dayNightSel');
-    const tbody=document.getElementById('tbody');
-    const pager=document.getElementById('pager');
+    const yearSel    = document.getElementById('yearSel');
+    const quarterSel = document.getElementById('quarterSel');
+    const monthSel   = document.getElementById('monthSel');
+    const weekSel    = document.getElementById('weekSel');
+    const dayNightSel= document.getElementById('dayNightSel');
+    const tbody      = document.getElementById('tbody');
+    const pager      = document.getElementById('pager');
+
+    // KPI DOM
+    const kpiTotalRain   = document.getElementById('kpiTotalRain');
+    const kpiRainDays    = document.getElementById('kpiRainDays');
+    const kpiDays        = document.getElementById('kpiDays');
+    const kpiAvgPerDay   = document.getElementById('kpiAvgPerDay');
+    const kpiAvgPerRainy = document.getElementById('kpiAvgPerRainy');
+    const kpiMaxRain     = document.getElementById('kpiMaxRain');
+    const kpiMaxRainDay  = document.getElementById('kpiMaxRainDay');
+    const kpiMaxQ        = document.getElementById('kpiMaxQ');
+    const waterStatus    = document.getElementById('waterStatus');
 
     // Custom time
-    const customTimePanel=document.getElementById('customTimePanel');
-    const customFromDate=document.getElementById('customFromDate');
-    const customFromTime=document.getElementById('customFromTime');
-    const customToDate=document.getElementById('customToDate');
-    const customToTime=document.getElementById('customToTime');
-    const btnCustomTime=document.getElementById('btnCustomTime');
-    const btnApplyCustom=document.getElementById('btnApplyCustom');
-    const btnClearCustom=document.getElementById('btnClearCustom');
+    const customTimePanel = document.getElementById('customTimePanel');
+    const customFromDate  = document.getElementById('customFromDate');
+    const customFromTime  = document.getElementById('customFromTime');
+    const customToDate    = document.getElementById('customToDate');
+    const customToTime    = document.getElementById('customToTime');
+    const btnCustomTime   = document.getElementById('btnCustomTime');
+    const btnApplyCustom  = document.getElementById('btnApplyCustom');
+    const btnClearCustom  = document.getElementById('btnClearCustom');
 
     let customTimeRange = null;
 
@@ -307,7 +634,7 @@
     const nf3=new Intl.NumberFormat('vi-VN',{maximumFractionDigits:3});
 
     let allData=[], filtered=[];
-    let rainChart, levelChart;
+    let comboChart;
 
     /* cấu hình phân trang */
     const ROWS_PER_PAGE = 30;
@@ -329,7 +656,6 @@
     const fmtDateVN=d=>`${fmt2(d.getDate())}/${fmt2(d.getMonth()+1)}/${d.getFullYear()}`;
     const fmtTimeVN=d=>`${fmt2(d.getHours())}:${fmt2(d.getMinutes())}`;
 
-    // Utility functions
     function getWeekNumber(date) {
       const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
       const dayNum = d.getUTCDay() || 7;
@@ -376,7 +702,12 @@
     function populateYears(list){
       const years=[...new Set(list.map(r=>r.__y).filter(Boolean))].sort((a,b)=>b-a);
       yearSel.innerHTML='<option value="all">Tất cả</option>';
-      years.forEach(y=>{ const op=document.createElement('option'); op.value=String(y); op.textContent=`Năm ${y}`; yearSel.appendChild(op); });
+      years.forEach(y=>{
+        const op=document.createElement('option');
+        op.value=String(y);
+        op.textContent=`Năm ${y}`;
+        yearSel.appendChild(op);
+      });
     }
 
     function populateWeeks(list) {
@@ -404,17 +735,61 @@
       });
     }
 
+    /* Phân trang thu gọn */
     function renderPager(){
       totalPages = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
       if(currentPage > totalPages) currentPage = totalPages;
-      const btn = (p) => `<button class="page-btn ${p===currentPage?'active':''}" data-p="${p}">${p}</button>`;
+
+      const createBtn = (label, page, disabled = false) =>
+        `<button class="page-btn ${page===currentPage && !disabled ? 'active' : ''}" data-p="${page}" ${disabled?'disabled':''}>${label}</button>`;
+
+      const createNum = (p) => createBtn(p, p, false);
+
       let html = '';
-      for(let p=1;p<=totalPages;p++) html += btn(p);
+
+      // prev
+      html += createBtn('«', Math.max(1, currentPage - 1), currentPage === 1);
+
+      const maxNumbers = 7;
+      if (totalPages <= maxNumbers){
+        for(let p=1;p<=totalPages;p++){
+          html += createNum(p);
+        }
+      } else {
+        html += createNum(1);
+
+        let start = Math.max(2, currentPage - 1);
+        let end   = Math.min(totalPages - 1, currentPage + 1);
+
+        if (start > 2){
+          html += `<span class="page-ellipsis">…</span>`;
+        }
+
+        for(let p=start; p<=end; p++){
+          html += createNum(p);
+        }
+
+        if (end < totalPages - 1){
+          html += `<span class="page-ellipsis">…</span>`;
+        }
+
+        html += createNum(totalPages);
+      }
+
+      // next
+      html += createBtn('»', Math.min(totalPages, currentPage + 1), currentPage === totalPages);
+
+      html += `<span class="pager-info">Trang ${currentPage}/${totalPages}</span>`;
+
       pager.innerHTML = html;
+
       pager.querySelectorAll('.page-btn').forEach(b=>{
         b.addEventListener('click', e => {
-          currentPage = Number(e.currentTarget.dataset.p);
-          renderTablePage();
+          const p = Number(e.currentTarget.dataset.p);
+          if (!Number.isNaN(p) && p >= 1 && p <= totalPages && p !== currentPage){
+            currentPage = p;
+            renderTablePage();
+          }
         });
       });
     }
@@ -423,13 +798,13 @@
       if(!filtered.length){
         tbody.innerHTML = `<tr><td class="state" colspan="16">Không có dữ liệu.</td></tr>`;
         renderPager();
-        return;
+      } else {
+        const start = (currentPage-1)*ROWS_PER_PAGE;
+        const end   = start + ROWS_PER_PAGE;
+        const rowsHTML = filtered.slice(start, end).map(r=>r.__rowHTML).join('');
+        tbody.innerHTML = rowsHTML || `<tr><td class="state" colspan="16">Không có dữ liệu.</td></tr>`;
+        renderPager();
       }
-      const start = (currentPage-1)*ROWS_PER_PAGE;
-      const end   = start + ROWS_PER_PAGE;
-      const rowsHTML = filtered.slice(start, end).map(r=>r.__rowHTML).join('');
-      tbody.innerHTML = rowsHTML || `<tr><td class="state" colspan="16">Không có dữ liệu.</td></tr>`;
-      renderPager();
     }
 
     function updateSubtitle() {
@@ -454,7 +829,10 @@
         if(m!=='all'&&y!=='all') sub=`Tháng ${m} năm ${y}`;
         else if(q!=='all'&&y!=='all') sub=`Quý ${q} năm ${y}`;
         else if(y!=='all') sub=`Năm ${y}`;
-        else{ const c=new Date(); sub=`Tháng ${c.getMonth()+1} năm ${c.getFullYear()}`; }
+        else{
+          const c=new Date();
+          sub=`Tháng ${c.getMonth()+1} năm ${c.getFullYear()}`;
+        }
         subTitle.textContent=sub;
       }
     }
@@ -466,28 +844,21 @@
       filtered=allData
         .filter(r=>r.__d)
         .filter(r=>{
-          // Custom time range
           if (customTimeRange) {
             const { fromDate, fromTime, toDate, toTime } = customTimeRange;
             const fromDateTime = new Date(`${fromDate}T${fromTime || '00:00:00'}`);
             const toDateTime = new Date(`${toDate}T${toTime || '23:59:59'}`);
             if (r.__d < fromDateTime || r.__d > toDateTime) return false;
           }
-          
-          // Week filter
           if (w !== 'all') {
             const weekNum = getWeekNumber(r.__d);
             const rowWeek = `${r.__y}-W${String(weekNum).padStart(2, '0')}`;
             if (rowWeek !== w) return false;
           }
-          
-          // Day/Night filter
           if (dn !== 'all') {
             if (dn === 'day' && !isDayTime(r.__d)) return false;
             if (dn === 'night' && !isNightTime(r.__d)) return false;
           }
-          
-          // Year/Quarter/Month filters
           if (y!=='all' && String(r.__y)!==String(y)) return false;
           if (m!=='all') return r.__m===Number(m);
           if (q!=='all') return r.__q===Number(q);
@@ -509,6 +880,33 @@
     const niceCeil  = (v, step) => (v<=0?0:Math.ceil(v/step)*step);
     const niceFloor = (v, step) => Math.floor(v/step)*step;
 
+    /* Plugin tô nhiều vùng cảnh báo trên trục mực nước */
+    const levelBandsPlugin = {
+      id: 'levelBands',
+      beforeDraw(chart, args, opts) {
+        const bands = opts && opts.bands;
+        if (!bands || !bands.length) return;
+        const yScale = chart.scales['yLevel'];
+        if (!yScale) return;
+        const {ctx, chartArea} = chart;
+        ctx.save();
+        bands.forEach(b=>{
+          if (b.from == null || b.to == null) return;
+          const y1 = yScale.getPixelForValue(b.from);
+          const y2 = yScale.getPixelForValue(b.to);
+          const top = Math.min(y1, y2);
+          const bottom = Math.max(y1, y2);
+          const clippedTop = Math.max(chartArea.top, top);
+          const clippedBottom = Math.min(chartArea.bottom, bottom);
+          if (clippedBottom <= clippedTop) return;
+          ctx.fillStyle = b.color || 'rgba(0,0,0,0.05)';
+          ctx.fillRect(chartArea.left, clippedTop, chartArea.right - chartArea.left, clippedBottom - clippedTop);
+        });
+        ctx.restore();
+      }
+    };
+    Chart.register(levelBandsPlugin);
+
     function updateKPIAndCharts(){
       const rainByDay=new Map();
       const levelByDay=new Map();
@@ -518,7 +916,8 @@
         const d=r.__d;
         const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         rainByDay.set(key,(rainByDay.get(key)||0)+(Number(r.luongMua)||0));
-        const lvl=Number(r.mucNuoc); if(!Number.isNaN(lvl)) levelByDay.set(key,lvl);
+        const lvl=Number(r.mucNuoc); 
+        if(!Number.isNaN(lvl)) levelByDay.set(key,lvl);
         const qtd=(Number(r.qTranTuDo)||0)+(Number(r.qTranSuCo)||0);
         if(qtd>maxQTotal) maxQTotal=qtd;
       });
@@ -532,10 +931,14 @@
       const total=rainDaily.reduce((a,b)=>a+(Number(b)||0),0);
       const days=rainDaily.length;
       const rainyDays=rainDaily.filter(v=>Number(v)>0).length;
-      const avgPerDay = days ? total/days : 0;
-      const avgPerRainyDay = rainyDays ? total/rainyDays : 0;
+      const avgPerDay       = days       ? total/days       : 0;
+      const avgPerRainyDay  = rainyDays  ? total/rainyDays  : 0;
+
       let maxVal=0, maxIdx=-1;
-      for(let i=0;i<rainDaily.length;i++){ const v=Number(rainDaily[i])||0; if(v>maxVal){maxVal=v; maxIdx=i;} }
+      for(let i=0;i<rainDaily.length;i++){
+        const v=Number(rainDaily[i])||0;
+        if(v>maxVal){maxVal=v; maxIdx=i;}
+      }
       const maxDayLabel=maxIdx>=0?labelsDM[maxIdx]:'';
 
       kpiTotalRain.textContent   = nf1.format(total);
@@ -547,35 +950,23 @@
       kpiMaxRainDay.textContent  = maxDayLabel?`(${maxDayLabel})`:'';
       kpiMaxQ.textContent        = nf2.format(maxQTotal);
 
-      /* ===== Charts ===== */
-      const DEAD=50.6, deadLine=dayKeys.map(()=>DEAD);
+      /* Các ngưỡng mực nước:
+         - DEAD       = 50,60 m (MN chết)
+         - LVL_YELLOW = 58,78 m (MN dâng bình thường)
+         - LVL_ORANGE = 59,77 m (gần MN dâng gia cường – cảnh báo cao)
+         - LVL_RED    = 60,76 m (MN dâng gia cường thiết kế – rất nguy hiểm)
+      */
+      const DEAD        = 50.6;
+      const LVL_YELLOW  = 58.78;
+      const LVL_ORANGE  = 59.77;
+      const LVL_RED     = 60.76;
 
-      // a) Lượng mưa
+      const deadLine = dayKeys.map(()=>DEAD);
+
       const maxRain = Math.max(0, ...rainDaily);
       const stepRain = maxRain > 50 ? 10 : 5;
       const yMaxRain = niceCeil(maxRain, stepRain);
 
-      if(rainChart) rainChart.destroy();
-      const ctx1=document.getElementById('rainChart').getContext('2d');
-      rainChart=new Chart(ctx1,{
-        type:'bar',
-        data:{ labels:labelsDM, datasets:[{
-          label:'Lượng mưa theo ngày (mm)',
-          data:rainDaily,
-          categoryPercentage:0.9, barPercentage:0.9
-        }] },
-        options:{
-          responsive:true, maintainAspectRatio:false,
-          plugins:{ legend:{display:true}, tooltip:{mode:'index', intersect:false}},
-          interaction:{mode:'nearest', intersect:false},
-          scales:{
-            x:{ ticks:{ maxTicksLimit: Math.min(12, labelsDM.length), autoSkip:true, maxRotation:0 } },
-            y:{ beginAtZero:true, suggestedMax:yMaxRain, ticks:{ stepSize:stepRain } }
-          }
-        }
-      });
-
-      // b) Mực nước
       const lvlVals = levelDaily.filter(v=>v!=null && !Number.isNaN(v));
       const lvlMin = lvlVals.length ? Math.min(...lvlVals) : 0;
       const lvlMax = lvlVals.length ? Math.max(...lvlVals) : 1;
@@ -583,32 +974,158 @@
       const yMinLvl = niceFloor(Math.max(0, lvlMin - pad), 0.2);
       const yMaxLvl = niceCeil(lvlMax + pad, 0.2);
 
-      if(levelChart) levelChart.destroy();
-      const ctx2=document.getElementById('levelChart').getContext('2d');
-      levelChart=new Chart(ctx2,{
-        type:'line',
-        data:{ labels:labelsDM, datasets:[
-          { label:'Mực nước (m)', data:levelDaily, spanGaps:true, tension:.25, fill:false, pointRadius:3 },
-          { label:'Mực nước chết (50,6 m)', data:deadLine, tension:0, borderDash:[6,4], pointRadius:0 }
-        ]},
+      if(comboChart) comboChart.destroy();
+      const ctx = document.getElementById('comboChart').getContext('2d');
+
+      const gradient = ctx.createLinearGradient(0,0,0,ctx.canvas.height);
+      gradient.addColorStop(0,'rgba(30,164,141,0.30)');
+      gradient.addColorStop(1,'rgba(30,164,141,0.00)');
+
+      comboChart = new Chart(ctx,{
+        type:'bar',
+        data:{
+          labels:labelsDM,
+          datasets:[
+            {
+              type:'bar',
+              label:'Lượng mưa (mm)',
+              data:rainDaily,
+              yAxisID:'yRain',
+              backgroundColor:'rgba(56,189,248,0.55)',
+              borderRadius:4,
+              maxBarThickness:32
+            },
+            {
+              type:'line',
+              label:'Mực nước (m)',
+              data:levelDaily,
+              yAxisID:'yLevel',
+              spanGaps:true,
+              borderColor:'#1EA48D',
+              backgroundColor:gradient,
+              tension:0.35,
+              borderWidth:2.4,
+              pointRadius:3,
+              pointHoverRadius:5,
+              pointBackgroundColor:(ctxPoint)=>{
+                const v = ctxPoint.raw;
+                if(v==null || Number.isNaN(v)) return '#1EA48D';
+                if(v>=LVL_RED)    return '#b91c1c'; // đỏ
+                if(v>=LVL_ORANGE) return '#ea580c'; // cam
+                if(v>=LVL_YELLOW) return '#eab308'; // vàng
+                return '#1EA48D';                  // an toàn
+              },
+              pointBorderColor:'#ffffff',
+              fill:true
+            },
+            {
+              type:'line',
+              label:'Mực nước chết (50,6 m)',
+              data:deadLine,
+              yAxisID:'yLevel',
+              borderColor:'rgba(148,163,184,0.9)',
+              borderDash:[6,4],
+              borderWidth:1.4,
+              pointRadius:0,
+              fill:false
+            }
+          ]
+        },
         options:{
-          responsive:true, maintainAspectRatio:false,
-          plugins:{ legend:{display:true}, tooltip:{mode:'index', intersect:false}},
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{
+            legend:{
+              display:true,
+              position:'bottom',
+              labels:{ usePointStyle:true, boxWidth:10, padding:16 }
+            },
+            tooltip:{
+              mode:'index',
+              intersect:false,
+              callbacks:{
+                label(ctx){
+                  const v = ctx.parsed.y;
+                  if(ctx.datasetIndex === 0){
+                    return `Lượng mưa: ${v.toFixed(1)} mm`;
+                  }else if(ctx.datasetIndex === 1){
+                    return `Mực nước: ${v.toFixed(2)} m`;
+                  }
+                  return `Mực nước chết: ${DEAD.toFixed(2)} m`;
+                }
+              }
+            },
+            levelBands:{
+              bands:[
+                { from: LVL_YELLOW, to: LVL_ORANGE, color:'rgba(250,204,21,0.18)' }, // vàng
+                { from: LVL_ORANGE, to: LVL_RED,   color:'rgba(249,115,22,0.18)' }, // cam
+                { from: LVL_RED,    to: yMaxLvl,   color:'rgba(248,113,113,0.20)' } // đỏ
+              ]
+            }
+          },
           interaction:{ mode:'nearest', intersect:false },
           scales:{
-            x:{ ticks:{ maxTicksLimit: Math.min(12, labelsDM.length), autoSkip:true, maxRotation:0 } },
-            y:{ beginAtZero:false, suggestedMin:yMinLvl, suggestedMax:yMaxLvl }
+            x:{
+              grid:{ display:false },
+              ticks:{
+                maxTicksLimit: Math.min(12, labelsDM.length),
+                autoSkip:true,
+                maxRotation:0
+              }
+            },
+            yRain:{
+              position:'left',
+              beginAtZero:true,
+              suggestedMax:yMaxRain,
+              ticks:{ stepSize:stepRain },
+              grid:{ color:'rgba(148,163,184,0.20)' },
+              title:{ display:true, text:'Lượng mưa (mm)' }
+            },
+            yLevel:{
+              position:'right',
+              beginAtZero:false,
+              suggestedMin:yMinLvl,
+              suggestedMax:yMaxLvl,
+              grid:{ drawOnChartArea:false },
+              title:{ display:true, text:'Mực nước (m)' }
+            }
           }
         }
       });
 
-      // mô tả mực nước
-      let lastVal=null; for(let i=levelDaily.length-1;i>=0;i--){ if(levelDaily[i]!=null){ lastVal=levelDaily[i]; break; } }
-      waterStatus.textContent=(lastVal==null||Number.isNaN(lastVal))
-        ? 'Không có dữ liệu mực nước.'
-        : (lastVal>=DEAD
-          ? `Mực nước gần nhất ${lastVal.toFixed(2)} m — CAO HƠN mực nước chết ${(lastVal-DEAD).toFixed(2)} m`
-          : `Mực nước gần nhất ${lastVal.toFixed(2)} m — THẤP HƠN mực nước chết ${(DEAD-lastVal).toFixed(2)} m`);
+      // mô tả mực nước gần nhất so với MN chết + vùng màu so với MN dâng BT / gia cường
+      let lastVal=null; 
+      for(let i=levelDaily.length-1;i>=0;i--){
+        if(levelDaily[i]!=null){
+          lastVal=levelDaily[i];
+          break;
+        }
+      }
+      if(lastVal==null || Number.isNaN(lastVal)){
+        waterStatus.textContent='Không có dữ liệu mực nước.';
+      }else{
+        let baseText;
+        if(lastVal>=DEAD){
+          baseText = `Mực nước gần nhất ${lastVal.toFixed(2)} m — CAO HƠN mực nước chết ${(lastVal-DEAD).toFixed(2)} m`;
+        }else{
+          baseText = `Mực nước gần nhất ${lastVal.toFixed(2)} m — THẤP HƠN mực nước chết ${(DEAD-lastVal).toFixed(2)} m`;
+        }
+
+        let zoneText;
+        if(lastVal < DEAD){
+          zoneText = 'dưới MN chết, dưới vùng làm việc bình thường';
+        }else if(lastVal < LVL_YELLOW){
+          zoneText = 'VÙNG AN TOÀN – dưới MN dâng bình thường (58,78 m)';
+        }else if(lastVal < LVL_ORANGE){
+          zoneText = 'VÙNG VÀNG – quanh MN dâng bình thường (58,78 m), cần theo dõi';
+        }else if(lastVal < LVL_RED){
+          zoneText = 'VÙNG CAM – giữa MN dâng bình thường và MN dâng gia cường (60,76 m), cảnh báo cao';
+        }else{
+          zoneText = 'VÙNG ĐỎ – xấp xỉ hoặc vượt MN dâng gia cường thiết kế (60,76 m), rất nguy hiểm';
+        }
+
+        waterStatus.textContent = `${baseText} · Trạng thái: ${zoneText}.`;
+      }
     }
 
     /* Custom Time Range Events */
@@ -621,24 +1138,18 @@
     btnApplyCustom.addEventListener('click', () => {
       const fromDate = customFromDate.value;
       const toDate = customToDate.value;
-      
       if (!fromDate || !toDate) {
         alert('Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc');
         return;
       }
-      
       const fromTime = customFromTime.value || '00:00:00';
       const toTime = customToTime.value || '23:59:59';
-      
       customTimeRange = { fromDate, fromTime, toDate, toTime };
-      
-      // Reset other filters
       yearSel.value = 'all';
       quarterSel.value = 'all';
       monthSel.value = 'all';
       weekSel.value = 'all';
       dayNightSel.value = 'all';
-      
       applyFiltersCore();
     });
 
@@ -650,7 +1161,6 @@
       customTimeRange = null;
       customTimePanel.style.display = 'none';
       btnCustomTime.textContent = '⏱️ Thời gian tùy chỉnh';
-      
       applyFiltersCore();
     });
 
@@ -707,7 +1217,6 @@
         populateYears(allData);
         populateWeeks(allData);
         
-        // Set initial values from URL params if provided
         if (params.get('thang') && params.get('nam')) {
           subTitle.textContent = `Tháng ${params.get('thang')} năm ${params.get('nam')}`;
         } else if (params.get('thang')) {
@@ -721,7 +1230,7 @@
         tbody.innerHTML=`<tr><td class="state" colspan="16">Lỗi tải dữ liệu: ${err.message||err}</td></tr>`;
       });
 
-    /* Xuất Excel (toàn bộ dữ liệu sau lọc, không theo trang) */
+    /* Xuất Excel (toàn bộ dữ liệu sau lọc) */
     document.getElementById('btnExcel').addEventListener('click',()=>{
       if(!filtered.length){ alert('Không có dữ liệu để xuất.'); return; }
       const H1=["Ngày","Giờ","Mực nước (m)","Dung tích (Triệu m³)","Lượng mưa (mm)",
