@@ -177,7 +177,7 @@
     .kpis{
       display:grid;
       gap:12px;
-      grid-template-columns: repeat(6, minmax(140px,1fr));
+      grid-template-columns: repeat(4, minmax(160px,1fr));
       margin:12px 0 14px;
     }
     .kpi{
@@ -187,6 +187,11 @@
       background:#fff;
       position:relative;
       overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
     }
     .kpi .t{
       font-size:12px;
@@ -195,7 +200,7 @@
       font-weight:600;
     }
     .kpi .v{
-      font-size:18px;
+      font-size:22px;
       font-weight:800;
       color:#0b1b23;
     }
@@ -216,14 +221,10 @@
     .kpis .kpi:nth-child(1)::after{ background:#22c55e; }
     .kpis .kpi:nth-child(2){ background:#ECF3FF; border-color:#D4E2FF; }
     .kpis .kpi:nth-child(2)::after{ background:#3b82f6; }
-    .kpis .kpi:nth-child(3){ background:#FFF6E9; border-color:#FFE3BD; }
-    .kpis .kpi:nth-child(3)::after{ background:#f59e0b; }
-    .kpis .kpi:nth-child(4){ background:#FFEAF4; border-color:#FFD1E6; }
-    .kpis .kpi:nth-child(4)::after{ background:#ec4899; }
-    .kpis .kpi:nth-child(5){ background:#EEF2FF; border-color:#D9DDFC; }
-    .kpis .kpi:nth-child(5)::after{ background:#6366f1; }
-    .kpis .kpi:nth-child(6){ background:#EAFDFF; border-color:#CFF6FA; }
-    .kpis .kpi:nth-child(6)::after{ background:#06b6d4; }
+    .kpis .kpi:nth-child(3){ background:#FFEAF4; border-color:#FFD1E6; }
+    .kpis .kpi:nth-child(3)::after{ background:#6366f1; }
+    .kpis .kpi:nth-child(4){ background:#EAFDFF; border-color:#CFF6FA; }
+    .kpis .kpi:nth-child(4)::after{ background:#06b6d4; }
 
     /* Charts – 1 chart full width */
     .charts{
@@ -244,9 +245,11 @@
     }
     .card-header{
       display:flex;
-      justify-content:space-between;
-      align-items:flex-end;
-      gap:12px;
+      flex-direction:column;
+      justify-content:flex-start;
+      align-items:center;
+      gap:4px;
+      text-align:center;
     }
     .card h3{
       margin:0 0 2px;
@@ -260,8 +263,9 @@
     .chart-legend-hint{
       font-size:11px;
       color:#0f172a;
-      text-align:right;
       white-space:nowrap;
+      align-self:flex-end;
+      margin-top:4px;
     }
     #waterStatus{
       margin:0 0 4px;
@@ -406,7 +410,7 @@
 
     @media (max-width:1024px){
       .kpis{
-        grid-template-columns:repeat(3,minmax(0,1fr));
+        grid-template-columns:repeat(2,minmax(0,1fr));
       }
     }
     @media (max-width:768px){
@@ -419,6 +423,7 @@
       .chart-legend-hint{
         white-space:normal;
         text-align:left;
+        align-self:flex-start;
       }
     }
   </style>
@@ -495,7 +500,7 @@
       </div>
     </div>
 
-    <!-- KPI -->
+    <!-- KPI: 4 ô -->
     <div class="kpis">
       <div class="kpi">
         <div class="t">Tổng lượng mưa (kỳ lọc) (mm)</div>
@@ -504,14 +509,6 @@
       <div class="kpi">
         <div class="t">Ngày có mưa / Tổng ngày</div>
         <div class="v"><span id="kpiRainDays">0</span> / <span id="kpiDays">0</span></div>
-      </div>
-      <div class="kpi">
-        <div class="t">TB theo ngày trong kỳ (mm/ngày)</div>
-        <div class="v" id="kpiAvgPerDay">0</div>
-      </div>
-      <div class="kpi">
-        <div class="t">TB theo ngày có mưa</div>
-        <div class="v" id="kpiAvgPerRainy">0</div>
       </div>
       <div class="kpi">
         <div class="t">Mưa lớn nhất (mm)</div>
@@ -531,8 +528,8 @@
       <div class="card">
         <div class="card-header">
           <div>
-            <h3>Biểu đồ mưa & mực nước</h3>
-            <div class="chart-sub">Cột: lượng mưa (mm) · Đường: mực nước (m)</div>
+            <h3>Lượng mưa &amp; mực nước theo ngày – vùng cảnh báo mực nước</h3>
+            <div class="chart-sub">Cột: Lượng mưa (mm/ngày) · Đường: Mực nước trung bình ngày (m)</div>
           </div>
           <div class="chart-legend-hint">
             🟢 an toàn · 🟡 theo dõi · 🟠 cảnh báo · 🔴 nguy hiểm
@@ -609,8 +606,6 @@
     const kpiTotalRain   = document.getElementById('kpiTotalRain');
     const kpiRainDays    = document.getElementById('kpiRainDays');
     const kpiDays        = document.getElementById('kpiDays');
-    const kpiAvgPerDay   = document.getElementById('kpiAvgPerDay');
-    const kpiAvgPerRainy = document.getElementById('kpiAvgPerRainy');
     const kpiMaxRain     = document.getElementById('kpiMaxRain');
     const kpiMaxRainDay  = document.getElementById('kpiMaxRainDay');
     const kpiMaxQ        = document.getElementById('kpiMaxQ');
@@ -931,8 +926,6 @@
       const total=rainDaily.reduce((a,b)=>a+(Number(b)||0),0);
       const days=rainDaily.length;
       const rainyDays=rainDaily.filter(v=>Number(v)>0).length;
-      const avgPerDay       = days       ? total/days       : 0;
-      const avgPerRainyDay  = rainyDays  ? total/rainyDays  : 0;
 
       let maxVal=0, maxIdx=-1;
       for(let i=0;i<rainDaily.length;i++){
@@ -944,18 +937,11 @@
       kpiTotalRain.textContent   = nf1.format(total);
       kpiDays.textContent        = nf0.format(days);
       kpiRainDays.textContent    = nf0.format(rainyDays);
-      kpiAvgPerDay.textContent   = nf2.format(avgPerDay);
-      kpiAvgPerRainy.textContent = nf2.format(avgPerRainyDay);
       kpiMaxRain.textContent     = nf1.format(maxVal);
       kpiMaxRainDay.textContent  = maxDayLabel?`(${maxDayLabel})`:'';
       kpiMaxQ.textContent        = nf2.format(maxQTotal);
 
-      /* Các ngưỡng mực nước:
-         - DEAD       = 50,60 m (MN chết)
-         - LVL_YELLOW = 58,78 m (MN dâng bình thường)
-         - LVL_ORANGE = 59,77 m (gần MN dâng gia cường – cảnh báo cao)
-         - LVL_RED    = 60,76 m (MN dâng gia cường thiết kế – rất nguy hiểm)
-      */
+      /* Các ngưỡng mực nước */
       const DEAD        = 50.6;
       const LVL_YELLOW  = 58.78;
       const LVL_ORANGE  = 59.77;
@@ -988,7 +974,7 @@
           datasets:[
             {
               type:'bar',
-              label:'Lượng mưa (mm)',
+              label:'Lượng mưa (mm/ngày)',
               data:rainDaily,
               yAxisID:'yRain',
               backgroundColor:'rgba(56,189,248,0.55)',
@@ -997,7 +983,7 @@
             },
             {
               type:'line',
-              label:'Mực nước (m)',
+              label:'Mực nước TB (m/ngày)',
               data:levelDaily,
               yAxisID:'yLevel',
               spanGaps:true,
@@ -1010,10 +996,10 @@
               pointBackgroundColor:(ctxPoint)=>{
                 const v = ctxPoint.raw;
                 if(v==null || Number.isNaN(v)) return '#1EA48D';
-                if(v>=LVL_RED)    return '#b91c1c'; // đỏ
-                if(v>=LVL_ORANGE) return '#ea580c'; // cam
-                if(v>=LVL_YELLOW) return '#eab308'; // vàng
-                return '#1EA48D';                  // an toàn
+                if(v>=LVL_RED)    return '#b91c1c';
+                if(v>=LVL_ORANGE) return '#ea580c';
+                if(v>=LVL_YELLOW) return '#eab308';
+                return '#1EA48D';
               },
               pointBorderColor:'#ffffff',
               fill:true
@@ -1047,9 +1033,9 @@
                 label(ctx){
                   const v = ctx.parsed.y;
                   if(ctx.datasetIndex === 0){
-                    return `Lượng mưa: ${v.toFixed(1)} mm`;
+                    return `Lượng mưa: ${v.toFixed(1)} mm/ngày`;
                   }else if(ctx.datasetIndex === 1){
-                    return `Mực nước: ${v.toFixed(2)} m`;
+                    return `Mực nước TB: ${v.toFixed(2)} m/ngày`;
                   }
                   return `Mực nước chết: ${DEAD.toFixed(2)} m`;
                 }
@@ -1057,9 +1043,9 @@
             },
             levelBands:{
               bands:[
-                { from: LVL_YELLOW, to: LVL_ORANGE, color:'rgba(250,204,21,0.18)' }, // vàng
-                { from: LVL_ORANGE, to: LVL_RED,   color:'rgba(249,115,22,0.18)' }, // cam
-                { from: LVL_RED,    to: yMaxLvl,   color:'rgba(248,113,113,0.20)' } // đỏ
+                { from: LVL_YELLOW, to: LVL_ORANGE, color:'rgba(250,204,21,0.18)' },
+                { from: LVL_ORANGE, to: LVL_RED,   color:'rgba(249,115,22,0.18)' },
+                { from: LVL_RED,    to: yMaxLvl,   color:'rgba(248,113,113,0.20)' }
               ]
             }
           },
@@ -1079,7 +1065,7 @@
               suggestedMax:yMaxRain,
               ticks:{ stepSize:stepRain },
               grid:{ color:'rgba(148,163,184,0.20)' },
-              title:{ display:true, text:'Lượng mưa (mm)' }
+              title:{ display:true, text:'Lượng mưa (mm/ngày)' }
             },
             yLevel:{
               position:'right',
@@ -1087,13 +1073,13 @@
               suggestedMin:yMinLvl,
               suggestedMax:yMaxLvl,
               grid:{ drawOnChartArea:false },
-              title:{ display:true, text:'Mực nước (m)' }
+              title:{ display:true, text:'Mực nước TB (m/ngày)' }
             }
           }
         }
       });
 
-      // mô tả mực nước gần nhất so với MN chết + vùng màu so với MN dâng BT / gia cường
+      // mô tả mực nước gần nhất so với MN chết + vùng màu
       let lastVal=null; 
       for(let i=levelDaily.length-1;i>=0;i--){
         if(levelDaily[i]!=null){
@@ -1104,21 +1090,26 @@
       if(lastVal==null || Number.isNaN(lastVal)){
         waterStatus.textContent='Không có dữ liệu mực nước.';
       }else{
+        const DEAD = 50.6;
+        const diff = Math.abs(lastVal - DEAD);
+        const lastStr = nf2.format(lastVal);
+        const diffStr = nf2.format(diff);
+
         let baseText;
         if(lastVal>=DEAD){
-          baseText = `Mực nước gần nhất ${lastVal.toFixed(2)} m — CAO HƠN mực nước chết ${(lastVal-DEAD).toFixed(2)} m`;
+          baseText = `Mực nước gần nhất ${lastStr} m — CAO HƠN mực nước chết ${diffStr} m`;
         }else{
-          baseText = `Mực nước gần nhất ${lastVal.toFixed(2)} m — THẤP HƠN mực nước chết ${(DEAD-lastVal).toFixed(2)} m`;
+          baseText = `Mực nước gần nhất ${lastStr} m — THẤP HƠN mực nước chết ${diffStr} m`;
         }
 
         let zoneText;
         if(lastVal < DEAD){
           zoneText = 'dưới MN chết, dưới vùng làm việc bình thường';
-        }else if(lastVal < LVL_YELLOW){
+        }else if(lastVal < 58.78){
           zoneText = 'VÙNG AN TOÀN – dưới MN dâng bình thường (58,78 m)';
-        }else if(lastVal < LVL_ORANGE){
+        }else if(lastVal < 59.77){
           zoneText = 'VÙNG VÀNG – quanh MN dâng bình thường (58,78 m), cần theo dõi';
-        }else if(lastVal < LVL_RED){
+        }else if(lastVal < 60.76){
           zoneText = 'VÙNG CAM – giữa MN dâng bình thường và MN dâng gia cường (60,76 m), cảnh báo cao';
         }else{
           zoneText = 'VÙNG ĐỎ – xấp xỉ hoặc vượt MN dâng gia cường thiết kế (60,76 m), rất nguy hiểm';
