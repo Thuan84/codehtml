@@ -256,19 +256,14 @@
       font-size:14pt;
       color:#0b1b23;
     }
-    .chart-sub{
-      font-size:11px;
-      color:#6b7280;
-    }
     .chart-legend-hint{
       font-size:11px;
       color:#0f172a;
       white-space:nowrap;
-      align-self:flex-end;
       margin-top:4px;
     }
     #waterStatus{
-      margin:0 0 4px;
+      margin:0;
       font-weight:600;
       font-size:12px;
       color:#0f172a;
@@ -422,8 +417,7 @@
       }
       .chart-legend-hint{
         white-space:normal;
-        text-align:left;
-        align-self:flex-start;
+        text-align:center;
       }
     }
   </style>
@@ -527,15 +521,12 @@
     <div class="charts">
       <div class="card">
         <div class="card-header">
-          <div>
-            <h3>Lượng mưa &amp; mực nước theo ngày – vùng cảnh báo mực nước</h3>
-            <div class="chart-sub">Cột: Lượng mưa (mm/ngày) · Đường: Mực nước trung bình ngày (m)</div>
-          </div>
+          <h3>Lượng mưa &amp; mực nước theo ngày – vùng cảnh báo mực nước</h3>
+          <div id="waterStatus"></div>
           <div class="chart-legend-hint">
             🟢 an toàn · 🟡 theo dõi · 🟠 cảnh báo · 🔴 nguy hiểm
           </div>
         </div>
-        <div id="waterStatus"></div>
         <div class="chart-box"><canvas id="comboChart"></canvas></div>
       </div>
     </div>
@@ -1006,7 +997,7 @@
             },
             {
               type:'line',
-              label:'Mực nước chết (50,6 m)',
+              label:'MN chết (50,6 m)',
               data:deadLine,
               yAxisID:'yLevel',
               borderColor:'rgba(148,163,184,0.9)',
@@ -1024,7 +1015,10 @@
             legend:{
               display:true,
               position:'bottom',
-              labels:{ usePointStyle:true, boxWidth:10, padding:16 }
+              labels:{
+                boxWidth:26,
+                padding:16
+              }
             },
             tooltip:{
               mode:'index',
