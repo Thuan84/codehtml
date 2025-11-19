@@ -256,6 +256,13 @@
       font-size:14pt;
       color:#0b1b23;
     }
+    .chart-legend-hint{
+      font-size:11px;
+      color:#0f172a;
+      white-space:normal;
+      margin-top:4px;
+      text-align:center;
+    }
     #waterStatus{
       margin:0;
       font-weight:600;
@@ -271,48 +278,6 @@
       inset:0;
       width:100% !important;
       height:100% !important;
-    }
-
-    /* Legend vùng màu như ảnh */
-    .zone-legend{
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:center;
-      gap:8px;
-      margin-top:2px;
-      font-size:11px;
-      color:#0f172a;
-    }
-    .zone-legend-item{
-      display:flex;
-      align-items:center;
-      gap:4px;
-      white-space:nowrap;
-    }
-    .zone-color{
-      width:14px;
-      height:8px;
-      border-radius:4px;
-      border:1px solid rgba(148,163,184,0.9);
-    }
-    .zone-dead{
-      background:rgba(148,163,184,0.25);
-    }
-    .zone-safe{
-      background:rgba(34,197,94,0.25);
-      border-color:rgba(34,197,94,0.9);
-    }
-    .zone-watch{
-      background:rgba(250,204,21,0.25);
-      border-color:rgba(234,179,8,0.9);
-    }
-    .zone-warning{
-      background:rgba(249,115,22,0.25);
-      border-color:rgba(249,115,22,0.9);
-    }
-    .zone-danger{
-      background:rgba(248,113,113,0.25);
-      border-color:rgba(248,113,113,0.9);
     }
 
     /* Bảng */
@@ -451,6 +416,10 @@
       .toolbar{
         justify-content:flex-start;
       }
+      .chart-legend-hint{
+        white-space:normal;
+        text-align:center;
+      }
     }
   </style>
 </head>
@@ -533,8 +502,8 @@
         <div class="v" id="kpiTotalRain">0</div>
       </div>
       <div class="kpi">
-        <div class="t">Ngày có mưa / Tổng ngày</div>
-        <div class="v"><span id="kpiRainDays">0</span> / <span id="kpiDays">0</span></div>
+        <div class="t">Mực nước lớn nhất (m)</div>
+        <div class="v" id="kpiMaxLevel">0</div>
       </div>
       <div class="kpi">
         <div class="t">Mưa lớn nhất (mm)</div>
@@ -555,22 +524,9 @@
         <div class="card-header">
           <h3>Lượng mưa &amp; mực nước theo ngày – vùng cảnh báo mực nước</h3>
           <div id="waterStatus"></div>
-          <div class="zone-legend">
-            <div class="zone-legend-item">
-              <span class="zone-color zone-dead"></span>Dưới MN chết
-            </div>
-            <div class="zone-legend-item">
-              <span class="zone-color zone-safe"></span>Vùng an toàn
-            </div>
-            <div class="zone-legend-item">
-              <span class="zone-color zone-watch"></span>Vùng theo dõi
-            </div>
-            <div class="zone-legend-item">
-              <span class="zone-color zone-warning"></span>Vùng cảnh báo
-            </div>
-            <div class="zone-legend-item">
-              <span class="zone-color zone-danger"></span>Vùng nguy hiểm
-            </div>
+          <div class="chart-legend-hint">
+            🟢 an toàn · 🟡 theo dõi · 🟠 cảnh báo · 🔴 nguy hiểm<br>
+            ╌ MN chết 50,60 m · ╌ MN dâng BT 58,78 m · ╌ MN dâng GC 60,76 m
           </div>
         </div>
         <div class="chart-box"><canvas id="comboChart"></canvas></div>
@@ -641,8 +597,7 @@
 
     // KPI DOM
     const kpiTotalRain   = document.getElementById('kpiTotalRain');
-    const kpiRainDays    = document.getElementById('kpiRainDays');
-    const kpiDays        = document.getElementById('kpiDays');
+    const kpiMaxLevel    = document.getElementById('kpiMaxLevel');
     const kpiMaxRain     = document.getElementById('kpiMaxRain');
     const kpiMaxRainDay  = document.getElementById('kpiMaxRainDay');
     const kpiMaxQ        = document.getElementById('kpiMaxQ');
@@ -943,13 +898,28 @@
       const rainByDay=new Map();
       const levelByDay=new Map();
       let maxQTotal=0;
+      let maxLevelVal = null; // mực nước lớn nhất theo từng bản ghi
 
       filtered.forEach(r=>{
         const d=r.__d;
         const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+        // Tổng mưa theo ngày
         rainByDay.set(key,(rainByDay.get(key)||0)+(Number(r.luongMua)||0));
+
+        // Mực nước theo ngày + mực nước lớn nhất theo từng bản ghi
         const lvl=Number(r.mucNuoc); 
-        if(!Number.isNaN(lvl)) levelByDay.set(key,lvl);
+        if(!Number.isNaN(lvl)){
+          // ở đây anh đang lưu 1 giá trị cho mỗi ngày (có thể coi là lần đo cuối)
+          levelByDay.set(key,lvl);
+
+          // mực nước lớn nhất trong toàn bộ kỳ lọc (theo từng dòng raw)
+          if(maxLevelVal === null || lvl > maxLevelVal){
+            maxLevelVal = lvl;
+          }
+        }
+
+        // Q lớn nhất (tổng Q tràn tự do + sự cố)
         const qtd=(Number(r.qTranTuDo)||0)+(Number(r.qTranSuCo)||0);
         if(qtd>maxQTotal) maxQTotal=qtd;
       });
@@ -961,8 +931,6 @@
 
       /* KPI */
       const total=rainDaily.reduce((a,b)=>a+(Number(b)||0),0);
-      const days=rainDaily.length;
-      const rainyDays=rainDaily.filter(v=>Number(v)>0).length;
 
       let maxVal=0, maxIdx=-1;
       for(let i=0;i<rainDaily.length;i++){
@@ -972,17 +940,18 @@
       const maxDayLabel=maxIdx>=0?labelsDM[maxIdx]:'';
 
       kpiTotalRain.textContent   = nf1.format(total);
-      kpiDays.textContent        = nf0.format(days);
-      kpiRainDays.textContent    = nf0.format(rainyDays);
       kpiMaxRain.textContent     = nf1.format(maxVal);
       kpiMaxRainDay.textContent  = maxDayLabel?`(${maxDayLabel})`:'';
       kpiMaxQ.textContent        = nf2.format(maxQTotal);
 
-      /* Các ngưỡng mực nước (Hồ Nước Ngọt) */
-      const DEAD        = 50.6;   // MN chết
-      const LVL_YELLOW  = 58.78;  // MN dâng BT
-      const LVL_ORANGE  = 59.77;  // trên BT
-      const LVL_RED     = 60.76;  // MN dâng GC thiết kế
+      // ===== Mực nước lớn nhất (theo bản ghi) =====
+      kpiMaxLevel.textContent = (maxLevelVal === null) ? '0' : nf2.format(maxLevelVal);
+
+      /* Các ngưỡng mực nước */
+      const DEAD        = 50.6;
+      const LVL_YELLOW  = 58.78; // MN dâng BT
+      const LVL_ORANGE  = 59.77; // trung gian
+      const LVL_RED     = 60.76; // MN dâng GC
 
       const deadLine = dayKeys.map(()=>DEAD);
       const btLine   = dayKeys.map(()=>LVL_YELLOW);
@@ -996,15 +965,15 @@
       const lvlMin = lvlVals.length ? Math.min(...lvlVals) : DEAD;
       const lvlMax = lvlVals.length ? Math.max(...lvlVals) : DEAD;
       const pad = 0.1;
-      const yMinLvl = niceFloor(Math.max(0, lvlMin - pad), 0.2);
+      const yMinLvl = niceFloor(lvlMin - pad, 0.2);
       const yMaxLvl = niceCeil(lvlMax + pad, 0.2);
 
       if(comboChart) comboChart.destroy();
       const ctx = document.getElementById('comboChart').getContext('2d');
 
       const gradient = ctx.createLinearGradient(0,0,0,ctx.canvas.height);
-      gradient.addColorStop(0,'rgba(30,164,141,0.30)');
-      gradient.addColorStop(1,'rgba(30,164,141,0.00)');
+      gradient.addColorStop(0,'rgba(248,113,113,0.35)');
+      gradient.addColorStop(1,'rgba(248,113,113,0.00)');
 
       comboChart = new Chart(ctx,{
         type:'bar',
@@ -1026,21 +995,21 @@
               data:levelDaily,
               yAxisID:'yLevel',
               spanGaps:true,
-              borderColor:'#ffffff',
+              borderColor:'#ef4444',
               backgroundColor:gradient,
               tension:0.35,
-              borderWidth:3,
+              borderWidth:2.6,
               pointRadius:3,
               pointHoverRadius:5,
               pointBackgroundColor:(ctxPoint)=>{
                 const v = ctxPoint.raw;
-                if(v==null || Number.isNaN(v)) return '#ffffff';
+                if(v==null || Number.isNaN(v)) return '#ef4444';
                 if(v>=LVL_RED)    return '#b91c1c';
                 if(v>=LVL_ORANGE) return '#ea580c';
                 if(v>=LVL_YELLOW) return '#eab308';
-                return '#22c55e';
+                return '#ef4444';
               },
-              pointBorderColor:'#1e293b',
+              pointBorderColor:'#ffffff',
               fill:true
             },
             {
@@ -1059,8 +1028,8 @@
               label:`MN dâng BT (${nf2.format(LVL_YELLOW)} m)`,
               data:btLine,
               yAxisID:'yLevel',
-              borderColor:'#22c55e',
-              borderDash:[4,4],
+              borderColor:'rgba(234,179,8,0.95)',
+              borderDash:[6,4],
               borderWidth:1.4,
               pointRadius:0,
               fill:false
@@ -1070,8 +1039,8 @@
               label:`MN dâng GC (${nf2.format(LVL_RED)} m)`,
               data:gcLine,
               yAxisID:'yLevel',
-              borderColor:'#0ea5e9',
-              borderDash:[4,4],
+              borderColor:'rgba(34,197,94,0.95)',
+              borderDash:[6,4],
               borderWidth:1.4,
               pointRadius:0,
               fill:false
@@ -1097,32 +1066,25 @@
                 label(ctx){
                   const v = ctx.parsed.y;
                   if(ctx.datasetIndex === 0){
-                    return `Lượng mưa: ${v.toFixed(1)} mm/ngày`;
+                    return `Lượng mưa: ${v.toFixed(1)} mm`;
                   }else if(ctx.datasetIndex === 1){
-                    return `Mực nước TB: ${v.toFixed(2)} m/ngày`;
+                    return `Mực nước: ${v.toFixed(2)} m`;
                   }else if(ctx.datasetIndex === 2){
                     return `MN chết: ${DEAD.toFixed(2)} m`;
                   }else if(ctx.datasetIndex === 3){
                     return `MN dâng BT: ${LVL_YELLOW.toFixed(2)} m`;
-                  }else if(ctx.datasetIndex === 4){
-                    return `MN dâng GC: ${LVL_RED.toFixed(2)} m`;
                   }
-                  return v;
+                  return `MN dâng GC: ${LVL_RED.toFixed(2)} m`;
                 }
               }
             },
             levelBands:{
               bands:[
-                // Dưới MN chết
-                { from: yMinLvl,   to: DEAD,        color:'rgba(148,163,184,0.16)' },
-                // Vùng an toàn
-                { from: DEAD,      to: LVL_YELLOW,  color:'rgba(34,197,94,0.16)' },
-                // Vùng theo dõi
-                { from: LVL_YELLOW,to: LVL_ORANGE,  color:'rgba(250,204,21,0.18)' },
-                // Vùng cảnh báo
-                { from: LVL_ORANGE,to: LVL_RED,     color:'rgba(249,115,22,0.18)' },
-                // Vùng nguy hiểm
-                { from: LVL_RED,   to: yMaxLvl,     color:'rgba(248,113,113,0.20)' }
+                { from: yMinLvl,    to: DEAD,       color:'rgba(148,163,184,0.14)' },  // dưới MN chết
+                { from: DEAD,       to: LVL_YELLOW, color:'rgba(134,239,172,0.26)' },  // an toàn
+                { from: LVL_YELLOW, to: LVL_ORANGE, color:'rgba(252,211,77,0.26)' },   // vàng
+                { from: LVL_ORANGE, to: LVL_RED,    color:'rgba(253,186,116,0.28)' },  // cam
+                { from: LVL_RED,    to: yMaxLvl,    color:'rgba(248,113,113,0.30)' }   // đỏ
               ]
             }
           },
@@ -1170,20 +1132,20 @@
         const diff = Math.abs(lastVal - DEAD);
         const lastStr = nf2.format(lastVal);
         const diffStr = nf2.format(diff);
+        const deadStr = nf2.format(DEAD);
+        const btStr   = nf2.format(LVL_YELLOW);
+        const gcStr   = nf2.format(LVL_RED);
 
         let baseText;
         if(lastVal>=DEAD){
-          baseText = `Mực nước gần nhất ${lastStr} m — CAO HƠN mực nước chết ${diffStr} m.`;
+          baseText = `Mực nước gần nhất ${lastStr} m — CAO HƠN mực nước chết (${deadStr} m) ${diffStr} m.`;
         }else{
-          baseText = `Mực nước gần nhất ${lastStr} m — THẤP HƠN mực nước chết ${diffStr} m.`;
+          baseText = `Mực nước gần nhất ${lastStr} m — THẤP HƠN mực nước chết (${deadStr} m) ${diffStr} m.`;
         }
-
-        const btStr  = nf2.format(LVL_YELLOW);
-        const gcStr  = nf2.format(LVL_RED);
 
         let zoneText;
         if(lastVal < DEAD){
-          zoneText = 'DƯỚI MN chết, dưới vùng làm việc bình thường.';
+          zoneText = 'Dưới MN chết, dưới vùng làm việc bình thường.';
         }else if(lastVal < LVL_YELLOW){
           zoneText = `VÙNG AN TOÀN – dưới MN dâng bình thường (${btStr} m).`;
         }else if(lastVal < LVL_ORANGE){
