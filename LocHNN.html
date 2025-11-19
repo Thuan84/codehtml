@@ -256,12 +256,6 @@
       font-size:14pt;
       color:#0b1b23;
     }
-    .chart-legend-hint{
-      font-size:11px;
-      color:#0f172a;
-      white-space:nowrap;
-      margin-top:4px;
-    }
     #waterStatus{
       margin:0;
       font-weight:600;
@@ -277,6 +271,48 @@
       inset:0;
       width:100% !important;
       height:100% !important;
+    }
+
+    /* Legend vùng màu như ảnh */
+    .zone-legend{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:8px;
+      margin-top:2px;
+      font-size:11px;
+      color:#0f172a;
+    }
+    .zone-legend-item{
+      display:flex;
+      align-items:center;
+      gap:4px;
+      white-space:nowrap;
+    }
+    .zone-color{
+      width:14px;
+      height:8px;
+      border-radius:4px;
+      border:1px solid rgba(148,163,184,0.9);
+    }
+    .zone-dead{
+      background:rgba(148,163,184,0.25);
+    }
+    .zone-safe{
+      background:rgba(34,197,94,0.25);
+      border-color:rgba(34,197,94,0.9);
+    }
+    .zone-watch{
+      background:rgba(250,204,21,0.25);
+      border-color:rgba(234,179,8,0.9);
+    }
+    .zone-warning{
+      background:rgba(249,115,22,0.25);
+      border-color:rgba(249,115,22,0.9);
+    }
+    .zone-danger{
+      background:rgba(248,113,113,0.25);
+      border-color:rgba(248,113,113,0.9);
     }
 
     /* Bảng */
@@ -415,10 +451,6 @@
       .toolbar{
         justify-content:flex-start;
       }
-      .chart-legend-hint{
-        white-space:normal;
-        text-align:center;
-      }
     }
   </style>
 </head>
@@ -523,8 +555,22 @@
         <div class="card-header">
           <h3>Lượng mưa &amp; mực nước theo ngày – vùng cảnh báo mực nước</h3>
           <div id="waterStatus"></div>
-          <div class="chart-legend-hint">
-            🟢 an toàn · 🟡 theo dõi · 🟠 cảnh báo · 🔴 nguy hiểm
+          <div class="zone-legend">
+            <div class="zone-legend-item">
+              <span class="zone-color zone-dead"></span>Dưới MN chết
+            </div>
+            <div class="zone-legend-item">
+              <span class="zone-color zone-safe"></span>Vùng an toàn
+            </div>
+            <div class="zone-legend-item">
+              <span class="zone-color zone-watch"></span>Vùng theo dõi
+            </div>
+            <div class="zone-legend-item">
+              <span class="zone-color zone-warning"></span>Vùng cảnh báo
+            </div>
+            <div class="zone-legend-item">
+              <span class="zone-color zone-danger"></span>Vùng nguy hiểm
+            </div>
           </div>
         </div>
         <div class="chart-box"><canvas id="comboChart"></canvas></div>
@@ -932,21 +978,23 @@
       kpiMaxRainDay.textContent  = maxDayLabel?`(${maxDayLabel})`:'';
       kpiMaxQ.textContent        = nf2.format(maxQTotal);
 
-      /* Các ngưỡng mực nước */
-      const DEAD        = 50.6;
-      const LVL_YELLOW  = 58.78;
-      const LVL_ORANGE  = 59.77;
-      const LVL_RED     = 60.76;
+      /* Các ngưỡng mực nước (Hồ Nước Ngọt) */
+      const DEAD        = 50.6;   // MN chết
+      const LVL_YELLOW  = 58.78;  // MN dâng BT
+      const LVL_ORANGE  = 59.77;  // trên BT
+      const LVL_RED     = 60.76;  // MN dâng GC thiết kế
 
       const deadLine = dayKeys.map(()=>DEAD);
+      const btLine   = dayKeys.map(()=>LVL_YELLOW);
+      const gcLine   = dayKeys.map(()=>LVL_RED);
 
       const maxRain = Math.max(0, ...rainDaily);
       const stepRain = maxRain > 50 ? 10 : 5;
       const yMaxRain = niceCeil(maxRain, stepRain);
 
       const lvlVals = levelDaily.filter(v=>v!=null && !Number.isNaN(v));
-      const lvlMin = lvlVals.length ? Math.min(...lvlVals) : 0;
-      const lvlMax = lvlVals.length ? Math.max(...lvlVals) : 1;
+      const lvlMin = lvlVals.length ? Math.min(...lvlVals) : DEAD;
+      const lvlMax = lvlVals.length ? Math.max(...lvlVals) : DEAD;
       const pad = 0.1;
       const yMinLvl = niceFloor(Math.max(0, lvlMin - pad), 0.2);
       const yMaxLvl = niceCeil(lvlMax + pad, 0.2);
@@ -974,34 +1022,56 @@
             },
             {
               type:'line',
-              label:'Mực nước TB (m/ngày)',
+              label:'Mực nước (m/ngày)',
               data:levelDaily,
               yAxisID:'yLevel',
               spanGaps:true,
-              borderColor:'#1EA48D',
+              borderColor:'#ffffff',
               backgroundColor:gradient,
               tension:0.35,
-              borderWidth:2.4,
+              borderWidth:3,
               pointRadius:3,
               pointHoverRadius:5,
               pointBackgroundColor:(ctxPoint)=>{
                 const v = ctxPoint.raw;
-                if(v==null || Number.isNaN(v)) return '#1EA48D';
+                if(v==null || Number.isNaN(v)) return '#ffffff';
                 if(v>=LVL_RED)    return '#b91c1c';
                 if(v>=LVL_ORANGE) return '#ea580c';
                 if(v>=LVL_YELLOW) return '#eab308';
-                return '#1EA48D';
+                return '#22c55e';
               },
-              pointBorderColor:'#ffffff',
+              pointBorderColor:'#1e293b',
               fill:true
             },
             {
               type:'line',
-              label:'MN chết (50,6 m)',
+              label:`MN chết (${nf2.format(DEAD)} m)`,
               data:deadLine,
               yAxisID:'yLevel',
               borderColor:'rgba(148,163,184,0.9)',
               borderDash:[6,4],
+              borderWidth:1.4,
+              pointRadius:0,
+              fill:false
+            },
+            {
+              type:'line',
+              label:`MN dâng BT (${nf2.format(LVL_YELLOW)} m)`,
+              data:btLine,
+              yAxisID:'yLevel',
+              borderColor:'#22c55e',
+              borderDash:[4,4],
+              borderWidth:1.4,
+              pointRadius:0,
+              fill:false
+            },
+            {
+              type:'line',
+              label:`MN dâng GC (${nf2.format(LVL_RED)} m)`,
+              data:gcLine,
+              yAxisID:'yLevel',
+              borderColor:'#0ea5e9',
+              borderDash:[4,4],
               borderWidth:1.4,
               pointRadius:0,
               fill:false
@@ -1030,16 +1100,29 @@
                     return `Lượng mưa: ${v.toFixed(1)} mm/ngày`;
                   }else if(ctx.datasetIndex === 1){
                     return `Mực nước TB: ${v.toFixed(2)} m/ngày`;
+                  }else if(ctx.datasetIndex === 2){
+                    return `MN chết: ${DEAD.toFixed(2)} m`;
+                  }else if(ctx.datasetIndex === 3){
+                    return `MN dâng BT: ${LVL_YELLOW.toFixed(2)} m`;
+                  }else if(ctx.datasetIndex === 4){
+                    return `MN dâng GC: ${LVL_RED.toFixed(2)} m`;
                   }
-                  return `Mực nước chết: ${DEAD.toFixed(2)} m`;
+                  return v;
                 }
               }
             },
             levelBands:{
               bands:[
-                { from: LVL_YELLOW, to: LVL_ORANGE, color:'rgba(250,204,21,0.18)' },
-                { from: LVL_ORANGE, to: LVL_RED,   color:'rgba(249,115,22,0.18)' },
-                { from: LVL_RED,    to: yMaxLvl,   color:'rgba(248,113,113,0.20)' }
+                // Dưới MN chết
+                { from: yMinLvl,   to: DEAD,        color:'rgba(148,163,184,0.16)' },
+                // Vùng an toàn
+                { from: DEAD,      to: LVL_YELLOW,  color:'rgba(34,197,94,0.16)' },
+                // Vùng theo dõi
+                { from: LVL_YELLOW,to: LVL_ORANGE,  color:'rgba(250,204,21,0.18)' },
+                // Vùng cảnh báo
+                { from: LVL_ORANGE,to: LVL_RED,     color:'rgba(249,115,22,0.18)' },
+                // Vùng nguy hiểm
+                { from: LVL_RED,   to: yMaxLvl,     color:'rgba(248,113,113,0.20)' }
               ]
             }
           },
@@ -1084,32 +1167,34 @@
       if(lastVal==null || Number.isNaN(lastVal)){
         waterStatus.textContent='Không có dữ liệu mực nước.';
       }else{
-        const DEAD = 50.6;
         const diff = Math.abs(lastVal - DEAD);
         const lastStr = nf2.format(lastVal);
         const diffStr = nf2.format(diff);
 
         let baseText;
         if(lastVal>=DEAD){
-          baseText = `Mực nước gần nhất ${lastStr} m — CAO HƠN mực nước chết ${diffStr} m`;
+          baseText = `Mực nước gần nhất ${lastStr} m — CAO HƠN mực nước chết ${diffStr} m.`;
         }else{
-          baseText = `Mực nước gần nhất ${lastStr} m — THẤP HƠN mực nước chết ${diffStr} m`;
+          baseText = `Mực nước gần nhất ${lastStr} m — THẤP HƠN mực nước chết ${diffStr} m.`;
         }
+
+        const btStr  = nf2.format(LVL_YELLOW);
+        const gcStr  = nf2.format(LVL_RED);
 
         let zoneText;
         if(lastVal < DEAD){
-          zoneText = 'dưới MN chết, dưới vùng làm việc bình thường';
-        }else if(lastVal < 58.78){
-          zoneText = 'VÙNG AN TOÀN – dưới MN dâng bình thường (58,78 m)';
-        }else if(lastVal < 59.77){
-          zoneText = 'VÙNG VÀNG – quanh MN dâng bình thường (58,78 m), cần theo dõi';
-        }else if(lastVal < 60.76){
-          zoneText = 'VÙNG CAM – giữa MN dâng bình thường và MN dâng gia cường (60,76 m), cảnh báo cao';
+          zoneText = 'DƯỚI MN chết, dưới vùng làm việc bình thường.';
+        }else if(lastVal < LVL_YELLOW){
+          zoneText = `VÙNG AN TOÀN – dưới MN dâng bình thường (${btStr} m).`;
+        }else if(lastVal < LVL_ORANGE){
+          zoneText = `VÙNG VÀNG – quanh MN dâng bình thường (${btStr} m), cần theo dõi.`;
+        }else if(lastVal < LVL_RED){
+          zoneText = `VÙNG CAM – giữa MN dâng bình thường và MN dâng gia cường (${gcStr} m), cảnh báo cao.`;
         }else{
-          zoneText = 'VÙNG ĐỎ – xấp xỉ hoặc vượt MN dâng gia cường thiết kế (60,76 m), rất nguy hiểm';
+          zoneText = `VÙNG ĐỎ – xấp xỉ hoặc vượt MN dâng gia cường thiết kế (${gcStr} m), rất nguy hiểm.`;
         }
 
-        waterStatus.textContent = `${baseText} · Trạng thái: ${zoneText}.`;
+        waterStatus.textContent = `${baseText} Trạng thái: ${zoneText}`;
       }
     }
 
