@@ -17,42 +17,87 @@
       --kpi3-accent:#f59e0b; --kpi4-accent:#ec4899;
     }
     body{
-      font-family:'Times New Roman',Times,serif; background:#f4f6f8; color:var(--ink);
-      margin:0; padding:20px; font-size:14pt;
+      font-family:'Times New Roman',Times,serif;
+      background:#f4f6f8; color:var(--ink);
+      margin:0; padding:20px;
+      font-size:14pt;
     }
     .container{
-      max-width:1600px; margin:0 auto; background:#fff; padding:30px;
-      border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,.06);
+      max-width:1600px;
+      margin:0 auto;
+      background:#fff;
+      padding:30px;
+      border-radius:12px;
+      box-shadow:0 2px 12px rgba(0,0,0,.06);
+      position:relative;
+      padding-bottom:80px; /* chừa chỗ cho thanh phân trang cố định */
     }
-    h1{ font-size:16pt; font-weight:bold; text-align:center; text-transform:uppercase; margin:0 0 6px }
-    .subtitle{ text-align:center; font-weight:bold; font-size:14pt; margin-bottom:18px }
+    h1{
+      font-size:16pt; font-weight:bold;
+      text-align:center; text-transform:uppercase;
+      margin:0 0 6px;
+    }
+    .subtitle{
+      text-align:center; font-weight:bold;
+      font-size:14pt; margin-bottom:10px;
+    }
 
-    .controls-container{
-      display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
-      gap:12px; margin-bottom:18px; padding:14px; background:#f9fafb;
-      border:1px solid #e5e7eb; border-radius:12px;
+    /* 4 nút góc phải trên, nằm trong container, sticky */
+    .top-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:12px;
+      position:sticky;
+      top:0;
+      z-index:20;
+      padding-top:6px;
+      padding-bottom:6px;
+      background:linear-gradient(to bottom,#ffffff 85%,rgba(255,255,255,0));
     }
-    .filters,.exports{ display:flex; align-items:center; gap:10px; flex-wrap:wrap }
-    .filters label{ font-weight:bold }
-    .filters select, .exports button{
-      padding:8px 12px; border-radius:8px; border:1px solid #d1d5db; background:#fff;
-      font-family:'Times New Roman',Times,serif; font-size:13pt; cursor:pointer;
+    .top-actions button{
+      padding:8px 12px;
+      border-radius:8px;
+      border:1px solid #d1d5db;
+      font-family:'Times New Roman',Times,serif;
+      font-size:13pt;
+      cursor:pointer;
+      font-weight:bold;
     }
-    .exports button{ font-weight:bold }
     #btn-custom-time{ color:#fff; background:#6f42c1; border-color:#6f42c1 }
     #export-excel{ color:#fff; background:#22c55e; border-color:#22c55e }
     #btn-print-portrait{ color:#fff; background:#0b5ed7; border-color:#0b5ed7 }
     #btn-print-landscape{ color:#fff; background:#7c3aed; border-color:#7c3aed }
 
+    /* Thanh bộ lọc */
+    .controls-container{
+      display:flex; justify-content:flex-start; align-items:center; flex-wrap:wrap;
+      gap:12px; margin-bottom:18px; padding:14px; background:#f9fafb;
+      border:1px solid #e5e7eb; border-radius:12px;
+    }
+    .filters{ display:flex; align-items:center; gap:10px; flex-wrap:wrap }
+    .filters label{ font-weight:bold }
+    .filters select{
+      padding:8px 12px; border-radius:8px; border:1px solid #d1d5db; background:#fff;
+      font-family:'Times New Roman',Times,serif; font-size:13pt; cursor:pointer;
+    }
+
     /* Custom Time Panel */
-    .custom-time-panel{ display:none; padding:16px; background:#f8f9fa; border:1px solid #e5e7eb;
-      border-radius:10px; margin-bottom:10px; }
+    .custom-time-panel{
+      display:none; padding:16px; background:#f8f9fa;
+      border:1px solid #e5e7eb; border-radius:10px; margin-bottom:10px;
+    }
     .custom-time-panel .time-inputs{ display:flex; gap:20px; align-items:end; flex-wrap:wrap; }
     .custom-time-panel .input-group{ display:flex; flex-direction:column; gap:4px; }
     .custom-time-panel label{ font-weight:bold; font-size:12pt; }
-    .custom-time-panel input{ padding:8px; border:1px solid #d1d5db; border-radius:8px; font-size:13pt; }
-    .custom-time-panel button{ padding:8px 16px; border:none; border-radius:8px; cursor:pointer;
-      font-weight:bold; font-size:13pt; }
+    .custom-time-panel input{
+      padding:8px; border:1px solid #d1d5db; border-radius:8px; font-size:13pt;
+    }
+    .custom-time-panel button{
+      padding:8px 16px; border:none; border-radius:8px; cursor:pointer;
+      font-weight:bold; font-size:13pt;
+    }
     #btn-apply-custom{ background:#1EA48D; color:#fff; }
     #btn-clear-custom{ background:#6c757d; color:#fff; }
 
@@ -62,9 +107,12 @@
       gap:14px; margin:14px 0 6px;
     }
     .kpi{
-      position:relative; background:var(--card-bg); border:1px solid #e5e7eb; border-radius:14px;
-      padding:14px 12px; display:flex; flex-direction:column; align-items:center;
-      justify-content:center; text-align:center; box-shadow:0 1px 6px rgba(0,0,0,.04);
+      position:relative; background:var(--card-bg);
+      border:1px solid #e5e7eb; border-radius:14px;
+      padding:14px 12px;
+      display:flex; flex-direction:column; align-items:center;
+      justify-content:center; text-align:center;
+      box-shadow:0 1px 6px rgba(0,0,0,.04);
     }
     .kpi::before{
       content:""; position:absolute; inset:auto 0 0 0; height:6px;
@@ -87,20 +135,54 @@
       display:flex; flex-direction:column; gap:6px;
     }
     .chart-header{
-      display:flex; justify-content:space-between; align-items:flex-end; gap:12px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:4px;
+      margin-bottom:4px;
     }
-    .chart-title{ font-weight:bold; margin:0 0 2px; font-size:13.5pt; text-align:left; }
+    .chart-title{
+      font-weight:bold; margin:0;
+      font-size:14pt; text-align:center;
+    }
+
+    /* Legend màu vùng mực nước */
     .chart-legend-hint{
-      font-size:11pt; color:#0f172a; text-align:right; white-space:nowrap;
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:12px;
+      font-size:11pt;
+      color:#111827;
     }
+    .chart-legend-hint .legend-item{
+      display:flex;
+      align-items:center;
+      gap:4px;
+    }
+    .chart-legend-hint .legend-box{
+      width:14px;
+      height:10px;
+      border-radius:2px;
+      border:1px solid rgba(148,163,184,0.7);
+    }
+    .legend-below{ background:#fef9c3; }  /* dưới MN chết */
+    .legend-safe{  background:#bbf7d0; }  /* vùng an toàn */
+    .legend-watch{ background:#fef3c7; } /* vùng theo dõi */
+    .legend-danger{background:#fecaca;}  /* vùng cảnh báo cao */
+
     .water-status{
-      font-size:11.5pt; font-weight:bold; color:#111827; text-align:left; margin-top:2px;
+      font-size:11.5pt; font-weight:bold; color:#111827;
+      text-align:center; margin-top:2px;
     }
     .chart-wrap{ position:relative; width:100%; height:360px }
 
     /* Bảng màn hình */
     table{ border-collapse:collapse; width:100%; font-size:13pt; margin-top:10px }
-    th,td{ border:1px solid #e5e7eb; padding:8px 10px; text-align:center; vertical-align:middle }
+    th,td{
+      border:1px solid #e5e7eb; padding:8px 10px;
+      text-align:center; vertical-align:middle;
+    }
     th{
       background:var(--header-bg); color:#000; font-weight:bold;
       position:sticky; top:0; z-index:1; border:1px solid #fff;
@@ -108,21 +190,39 @@
     tbody tr:nth-child(even){ background:#fff }
     tbody tr:hover{ background:var(--hover-bg) }
 
-    /* Phân trang UI */
+    /* Phân trang: cố định góc dưới phải trong container */
     .pagination-bar{
-      display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; flex-wrap:wrap;
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      position:absolute;
+      right:20px;
+      bottom:10px;
+      background:#ffffff;
+      padding:6px 14px;
+      border-radius:999px;
+      box-shadow:0 2px 10px rgba(0,0,0,0.15);
+      z-index:10;
     }
-    .pager-left, .pager-right{ display:flex; align-items:center; gap:10px; flex-wrap:wrap }
+    .pager-left, .pager-right{
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    }
     .pagination-bar button{
-      padding:6px 10px; border-radius:8px; border:1px solid #d1d5db; background:#fff; cursor:pointer; font-size:12pt;
+      padding:6px 10px; border-radius:8px; border:1px solid #d1d5db;
+      background:#fff; cursor:pointer; font-size:12pt;
     }
     .pagination-bar button:disabled{ opacity:.5; cursor:not-allowed }
-    .pagination-bar select{ padding:6px 10px; border-radius:8px; border:1px solid #d1d5db; background:#fff; font-size:12pt }
+    .pagination-bar select{
+      padding:6px 10px; border-radius:8px;
+      border:1px solid #d1d5db; background:#fff; font-size:12pt;
+    }
 
     .status-message{ color:#555; padding:40px; text-align:center; font-style:italic; font-size:14pt }
     .error-message{ color:#b91c1c; padding:15px; background:#fee2e2; border:1px solid #fecaca; margin-top:15px; border-radius:10px }
     .loader-container{ padding:50px; text-align:center }
-    .spinner{ border:5px solid #f3f3f3; border-top:5px solid #3498db; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; display:inline-block; margin-bottom:10px }
+    .spinner{
+      border:5px solid #f3f3f3; border-top:5px solid #3498db;
+      border-radius:50%; width:40px; height:40px;
+      animation:spin 1s linear infinite; display:inline-block; margin-bottom:10px
+    }
     @keyframes spin{ 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
 
     /* colgroup màn hình */
@@ -145,7 +245,12 @@
       body{ background:#fff; padding:0; font-size:12pt; }
       @page{ margin: 12mm; }
 
-      .controls-container, .kpi-grid, .charts, .pagination-bar, .custom-time-panel{ display:none !important }
+      .top-actions,
+      .controls-container,
+      .kpi-grid,
+      .charts,
+      .pagination-bar,
+      .custom-time-panel{ display:none !important }
       .container{ box-shadow:none; padding:0 }
 
       #data-table{ display:none !important; }
@@ -154,8 +259,13 @@
         font-size:12pt; margin-top:8px;
       }
       #print-table thead{ display: table-row-group; }
-      #print-table th, #print-table td{ border:1px solid #000 !important; padding:6px 8px; }
-      #print-table th{ color:#000 !important; background:#fff !important; font-weight:900 !important; position: static !important; }
+      #print-table th, #print-table td{
+        border:1px solid #000 !important; padding:6px 8px;
+      }
+      #print-table th{
+        color:#000 !important; background:#fff !important;
+        font-weight:900 !important; position: static !important;
+      }
       #print-table tr{ page-break-inside:avoid; page-break-after:auto }
 
       #print-table col.col-stt{ width: 14mm }
@@ -173,7 +283,7 @@
     @media (max-width:1400px){ .kpi-grid{ grid-template-columns:repeat(2,minmax(0,1fr)) } }
     @media (max-width:900px){ .kpi-grid{ grid-template-columns:repeat(2,minmax(0,1fr)) } }
     @media (max-width:768px){
-      .chart-legend-hint{ white-space:normal; text-align:left; }
+      .top-actions{ justify-content:flex-start; }
     }
   </style>
 </head>
@@ -182,6 +292,15 @@
     <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC ÔNG KINH</h1>
     <div id="subtitle" class="subtitle"></div>
 
+    <!-- 4 nút góc phải trên -->
+    <div class="top-actions">
+      <button id="btn-custom-time">⏱️ Thời gian tùy chỉnh</button>
+      <button id="export-excel">Xuất Excel</button>
+      <button id="btn-print-portrait">In dọc</button>
+      <button id="btn-print-landscape">In ngang</button>
+    </div>
+
+    <!-- Bộ lọc -->
     <div class="controls-container">
       <div class="filters">
         <label for="year-filter">Năm:</label>
@@ -218,13 +337,6 @@
           <option value="zero">= 0</option>
           <option value="positive">&gt; 0</option>
         </select>
-      </div>
-
-      <div class="exports">
-        <button id="btn-custom-time">⏱️ Thời gian tùy chỉnh</button>
-        <button id="export-excel">Xuất Excel</button>
-        <button id="btn-print-portrait">In dọc</button>
-        <button id="btn-print-landscape">In ngang</button>
       </div>
     </div>
 
@@ -276,15 +388,34 @@
     <section class="charts">
       <div class="chart-card">
         <div class="chart-header">
-          <div>
-            <p class="chart-title">Lượng mưa & mực nước theo ngày – vùng cảnh báo mực nước</p>
-          </div>
+          <p class="chart-title">Lượng mưa &amp; mực nước theo ngày – vùng cảnh báo mực nước</p>
+
+          <!-- Ghi chú màu vùng mực nước -->
           <div class="chart-legend-hint">
-            🟢 an toàn · 🟡 theo dõi · 🟠 cảnh báo · 🔴 nguy hiểm
+            <span class="legend-item">
+              <span class="legend-box legend-below"></span>
+              <span>Dưới MN chết</span>
+            </span>
+            <span class="legend-item">
+              <span class="legend-box legend-safe"></span>
+              <span>Vùng an toàn</span>
+            </span>
+            <span class="legend-item">
+              <span class="legend-box legend-watch"></span>
+              <span>Vùng theo dõi</span>
+            </span>
+            <span class="legend-item">
+              <span class="legend-box legend-danger"></span>
+              <span>Vùng cảnh báo cao</span>
+            </span>
           </div>
+
+          <div id="water-status" class="water-status"></div>
         </div>
-        <div id="water-status" class="water-status"></div>
-        <div class="chart-wrap"><canvas id="waterChart"></canvas></div>
+
+        <div class="chart-wrap">
+          <canvas id="waterChart"></canvas>
+        </div>
       </div>
     </section>
 
@@ -339,7 +470,7 @@
       </tbody>
     </table>
 
-    <!-- Bảng dành cho IN (chỉ build khi bấm In) -->
+    <!-- Bảng in -->
     <table id="print-table">
       <colgroup>
         <col class="col-stt"><col class="col-ngay"><col class="col-gio">
@@ -380,6 +511,12 @@
     const LVL_BT   = 47.70;
     const LVL_GC   = 49.35;
     const LVL_MID  = (LVL_BT + LVL_GC) / 2;
+
+    function formatMeter(value, digits=2){
+      const num = Number(value);
+      if (Number.isNaN(num)) return '';
+      return num.toLocaleString('vi-VN', { minimumFractionDigits:digits, maximumFractionDigits:digits });
+    }
 
     const LVL_DEAD_TXT = formatMeter(LVL_DEAD,2);
     const LVL_BT_TXT   = formatMeter(LVL_BT,2);
@@ -445,12 +582,6 @@
       const num = Number(value);
       if (Number.isNaN(num)) return value;
       return num.toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 3 });
-    }
-
-    function formatMeter(value, digits=2){
-      const num = Number(value);
-      if (Number.isNaN(num)) return '';
-      return num.toLocaleString('vi-VN', { minimumFractionDigits:digits, maximumFractionDigits:digits });
     }
 
     function parseVNDateTime(s){
@@ -527,7 +658,6 @@
         tableBody.innerHTML = html;
       }
 
-      // KHÔNG render bảng in tại đây nữa để giảm DOM
       pageInfoEl.textContent = `Trang ${page}/${totalPages} — ${total} dòng`;
       prevBtn.disabled = (page <= 1);
       nextBtn.disabled = (page >= totalPages);
@@ -656,6 +786,8 @@
 
     function buildComboChartAndStatus(labels, dailyRain, dailyLevel){
       const deadLine = labels.map(()=> LVL_DEAD);
+      const btLine   = labels.map(()=> LVL_BT);
+      const gcLine   = labels.map(()=> LVL_GC);
 
       const maxRain = Math.max(0, ...dailyRain);
       const stepRain = maxRain > 50 ? 10 : 5;
@@ -674,8 +806,8 @@
       const ctx = document.getElementById('waterChart').getContext('2d');
 
       const gradient = ctx.createLinearGradient(0,0,0,ctx.canvas.height);
-      gradient.addColorStop(0,'rgba(30,164,141,0.30)');
-      gradient.addColorStop(1,'rgba(30,164,141,0.00)');
+      gradient.addColorStop(0,'rgba(248,113,113,0.35)');
+      gradient.addColorStop(1,'rgba(248,113,113,0.00)');
 
       comboChart = new Chart(ctx,{
         type:'bar',
@@ -687,9 +819,11 @@
               label:'Lượng mưa (mm/ngày)',
               data:dailyRain,
               yAxisID:'yRain',
-              backgroundColor:'rgba(56,189,248,0.55)',
-              borderRadius:4,
-              maxBarThickness:32
+              backgroundColor:'rgba(59,130,246,0.65)',
+              borderColor:'rgba(37,99,235,0.9)',
+              borderWidth:1,
+              borderRadius:3,
+              maxBarThickness:26
             },
             {
               type:'line',
@@ -697,20 +831,13 @@
               data:dailyLevel,
               yAxisID:'yLevel',
               spanGaps:true,
-              borderColor:'#1EA48D',
+              borderColor:'#fb7185',
               backgroundColor:gradient,
               tension:0.35,
-              borderWidth:2.4,
-              pointRadius:3,
-              pointHoverRadius:5,
-              pointBackgroundColor:(ctxPoint)=>{
-                const v = ctxPoint.raw;
-                if(v==null || Number.isNaN(v)) return '#1EA48D';
-                if(v>=LVL_GC)    return '#b91c1c';
-                if(v>=LVL_MID)   return '#ea580c';
-                if(v>=LVL_BT)    return '#eab308';
-                return '#1EA48D';
-              },
+              borderWidth:2.2,
+              pointRadius:2.5,
+              pointHoverRadius:4,
+              pointBackgroundColor:'#f97373',
               pointBorderColor:'#ffffff',
               fill:true
             },
@@ -719,9 +846,31 @@
               label:`MN chết (${LVL_DEAD_TXT} m)`,
               data:deadLine,
               yAxisID:'yLevel',
-              borderColor:'rgba(148,163,184,0.9)',
+              borderColor:'#f97316',
               borderDash:[6,4],
-              borderWidth:1.4,
+              borderWidth:1.7,
+              pointRadius:0,
+              fill:false
+            },
+            {
+              type:'line',
+              label:`MN dâng BT (${LVL_BT_TXT} m)`,
+              data:btLine,
+              yAxisID:'yLevel',
+              borderColor:'#eab308',
+              borderDash:[6,4],
+              borderWidth:1.7,
+              pointRadius:0,
+              fill:false
+            },
+            {
+              type:'line',
+              label:`MN dâng GC (${LVL_GC_TXT} m)`,
+              data:gcLine,
+              yAxisID:'yLevel',
+              borderColor:'#0f766e',
+              borderDash:[6,4],
+              borderWidth:1.7,
               pointRadius:0,
               fill:false
             }
@@ -730,11 +879,12 @@
         options:{
           responsive:true,
           maintainAspectRatio:false,
-          animation:false,                  // TẮT animation cho nhanh
+          animation:false,
           plugins:{
             legend:{
               display:true,
-              position:'bottom',
+              position:'top',
+              align:'center',
               labels:{
                 usePointStyle:false,
                 boxWidth:22,
@@ -753,15 +903,16 @@
                   }else if(ctx.datasetIndex === 1){
                     return `Mực nước: ${Number(v||0).toLocaleString('vi-VN',{maximumFractionDigits:2})} m`;
                   }
-                  return `Mực nước chết: ${LVL_DEAD_TXT} m`;
+                  return `${ctx.dataset.label}: ${Number(v||0).toLocaleString('vi-VN',{maximumFractionDigits:2})} m`;
                 }
               }
             },
             levelBands:{
               bands:[
-                { from: LVL_BT,  to: LVL_MID, color:'rgba(250,204,21,0.18)' },
-                { from: LVL_MID, to: LVL_GC,  color:'rgba(249,115,22,0.18)' },
-                { from: LVL_GC,  to: yMaxLvl, color:'rgba(248,113,113,0.20)' }
+                { from: yMinLvl,   to: LVL_DEAD, color:'rgba(254,249,195,0.5)' },
+                { from: LVL_DEAD, to: LVL_BT,   color:'rgba(187,247,208,0.65)' },
+                { from: LVL_BT,   to: LVL_GC,   color:'rgba(254,240,138,0.6)' },
+                { from: LVL_GC,   to: yMaxLvl,  color:'rgba(254,202,202,0.7)' }
               ]
             }
           },
@@ -795,6 +946,7 @@
         }
       });
 
+      // Dòng trạng thái ở giữa
       let lastVal=null;
       for(let i=dailyLevel.length-1;i>=0;i--){
         if(dailyLevel[i]!=null){
@@ -819,16 +971,14 @@
         if(lastVal < LVL_DEAD){
           zoneText = 'dưới mực nước chết, dưới vùng làm việc bình thường.';
         }else if(lastVal < LVL_BT){
-          zoneText = `VÙNG AN TOÀN – dưới MN dâng bình thường (${LVL_BT_TXT} m).`;
-        }else if(lastVal < LVL_MID){
-          zoneText = `VÙNG VÀNG – quanh MN dâng bình thường (${LVL_BT_TXT} m), cần theo dõi.`;
+          zoneText = `VÙNG AN TOÀN – dưới mực nước dâng bình thường (${LVL_BT_TXT} m).`;
         }else if(lastVal < LVL_GC){
-          zoneText = `VÙNG CAM – giữa MN dâng bình thường và MN dâng gia cường (${LVL_GC_TXT} m), cảnh báo cao.`;
+          zoneText = `VÙNG THEO DÕI – từ mực nước dâng bình thường đến mực nước dâng gia cường (${LVL_GC_TXT} m).`;
         }else{
-          zoneText = `VÙNG ĐỎ – xấp xỉ hoặc vượt MN dâng gia cường thiết kế (${LVL_GC_TXT} m), rất nguy hiểm.`;
+          zoneText = `VÙNG CẢNH BÁO CAO – xấp xỉ hoặc vượt mực nước dâng gia cường thiết kế (${LVL_GC_TXT} m).`;
         }
 
-        waterStatusEl.textContent = `${baseText} · Trạng thái: ${zoneText}`;
+        waterStatusEl.textContent = `${baseText}. Trạng thái: ${zoneText}`;
       }
     }
 
@@ -1076,7 +1226,7 @@
       printTbody.innerHTML = phtml;
     }
 
-    // ====== Xuất Excel ======
+    // ====== Xuất Excel ====== 
     document.getElementById('export-excel').addEventListener('click', () => {
       if (!filteredData.length) return alert('Không có dữ liệu để xuất.');
 
@@ -1112,7 +1262,7 @@
 
     // ====== In: chọn hướng ======
     function printWithOrientation(orientation){
-      rebuildPrintTable();      // chỉ build bảng in ngay trước khi in
+      rebuildPrintTable();
       let el = document.getElementById('print-orientation-style');
       if (!el){
         el = document.createElement('style');
