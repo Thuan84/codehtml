@@ -44,7 +44,7 @@
 
     /* ===== Metrics ===== */
     .metrics{
-      display:grid; grid-template-columns: repeat(5, minmax(220px,1fr));
+      display:grid; grid-template-columns: repeat(4, minmax(220px,1fr));
       gap:12px; margin:0 0 8px 0;
     }
     .metric{
@@ -77,7 +77,6 @@
     .m-total{ --accent:var(--teal);   --accent-fade: rgba(30,164,141,.12); }
     .m-ratio{ --accent:var(--blue);   --accent-fade: rgba(37,99,235,.12); }
     .m-avg-d{ --accent:var(--indigo); --accent-fade: rgba(79,70,229,.12); }
-    .m-avg-r{ --accent:var(--purple); --accent-fade: rgba(124,58,237,.12); }
     .m-max  { --accent:var(--orange); --accent-fade: rgba(234,88,12,.12); }
 
     .charts{ display:grid; grid-template-columns: 1fr; gap:14px; margin-top:4px; }
@@ -234,11 +233,33 @@
 
     <!-- Metrics -->
     <div class="metrics">
-      <div class="metric m-total"><div class="label">Tổng lượng mưa (kỳ lọc)</div><div class="value" id="m-total">—</div></div>
-      <div class="metric m-ratio"><div class="label">Ngày có mưa / Tổng ngày</div><div class="value"><span id="m-rainy-days">—</span>/<span id="m-days">—</span></div></div>
-      <div class="metric m-avg-d"><div class="label">TB theo ngày trong kỳ</div><div class="value" id="m-avg-day">—</div></div>
-      <div class="metric m-avg-r"><div class="label">TB theo ngày có mưa</div><div class="value" id="m-avg-rainy">—</div></div>
-      <div class="metric m-max"><div class="label">Mưa lớn nhất (ngày)</div><div class="value"><span id="m-max">—</span> <span id="m-max-date" style="font-size:12pt;font-weight:600;"></span></div></div>
+      <div class="metric m-total">
+        <div class="label">Tổng lượng mưa (kỳ lọc)</div>
+        <div class="value" id="m-total">—</div>
+      </div>
+
+      <div class="metric m-ratio">
+        <div class="label">Ngày có mưa / Tổng ngày</div>
+        <div class="value">
+          <span id="m-rainy-days">—</span>/<span id="m-days">—</span>
+        </div>
+      </div>
+
+      <div class="metric m-avg-d">
+        <div class="label">Mực nước lớn nhất (m)</div>
+        <div class="value">
+          <span id="m-max-level">—</span>
+          <span id="m-max-level-date" style="font-size:12pt;font-weight:600;"></span>
+        </div>
+      </div>
+
+      <div class="metric m-max">
+        <div class="label">Mưa lớn nhất (ngày)</div>
+        <div class="value">
+          <span id="m-max">—</span>
+          <span id="m-max-date" style="font-size:12pt;font-weight:600;"></span>
+        </div>
+      </div>
     </div>
 
     <!-- Single combo chart -->
@@ -350,14 +371,15 @@
     const tableBody = document.getElementById('table-body');
     const errorDiv = document.getElementById('error-message');
     const subtitleDiv = document.getElementById('subtitle');
-    const elTotal = document.getElementById('m-total');
-    const elRainyDays = document.getElementById('m-rainy-days');
-    const elDays = document.getElementById('m-days');
-    const elAvgDay = document.getElementById('m-avg-day');
-    const elAvgRainy = document.getElementById('m-avg-rainy');
-    const elMax = document.getElementById('m-max');
-    const elMaxDate = document.getElementById('m-max-date');
-    const waterStatusEl = document.getElementById('water-status');
+
+    const elTotal      = document.getElementById('m-total');
+    const elRainyDays  = document.getElementById('m-rainy-days');
+    const elDays       = document.getElementById('m-days');
+    const elMaxLevel   = document.getElementById('m-max-level');
+    const elMaxLevelDate = document.getElementById('m-max-level-date');
+    const elMax        = document.getElementById('m-max');
+    const elMaxDate    = document.getElementById('m-max-date');
+    const waterStatusEl= document.getElementById('water-status');
 
     // Custom time range
     const customTimePanel = document.getElementById('custom-time-panel');
@@ -402,6 +424,13 @@
         minimumFractionDigits: digits,
         maximumFractionDigits: digits
       });
+    }
+    function formatLabelToVNDate(label){
+      if (!label) return '';
+      const parts = String(label).split('-');
+      if (parts.length !== 3) return label;
+      const [y,m,d] = parts;
+      return `${d}/${m}/${y}`;
     }
     function buildApiUrl(year='all', month='all', quarter='all') {
       const p = new URLSearchParams({ sheet: SHEET });
@@ -550,24 +579,58 @@
       });
       return { labels, rainPerDay, wlAvgPerDay };
     }
+
     function renderRainStats(){
       const { labels, rainPerDay } = aggregateDaily(filteredData);
+
       const total = rainPerDay.reduce((s,v)=>s+(Number(v)||0),0);
       const days = labels.length;
       const rainyDays = rainPerDay.filter(v => (Number(v)||0) > 0).length;
-      const avgPerDay = days ? total/days : 0;
-      const avgPerRainy = rainyDays ? total/rainyDays : 0;
 
-      let maxVal = 0, maxDate = '';
-      rainPerDay.forEach((v,i)=>{ if ((Number(v)||0) > maxVal){ maxVal = Number(v)||0; maxDate = labels[i]; } });
+      let maxVal = 0, maxDateRaw = '';
+      rainPerDay.forEach((v,i)=>{
+        const num = Number(v) || 0;
+        if (num > maxVal){
+          maxVal = num;
+          maxDateRaw = labels[i]; // dạng YYYY-MM-DD
+        }
+      });
 
+      // Tính mực nước lớn nhất (theo từng bản ghi) + ngày lớn nhất
+      let maxLevel = null;
+      let maxLevelDate = '';
+      filteredData.forEach(r => {
+        const lvl = Number(r.mucNuoc);
+        if (!Number.isNaN(lvl)){
+          if (maxLevel === null || lvl > maxLevel){
+            maxLevel = lvl;
+            if (r._dt){
+              maxLevelDate = formatVNDate(r._dt);
+            } else if (r._ngay){
+              maxLevelDate = r._ngay;
+            } else {
+              maxLevelDate = '';
+            }
+          }
+        }
+      });
+
+      // Gán KPI
       elTotal.textContent = total.toLocaleString('vi-VN', {maximumFractionDigits:1});
       elDays.textContent = String(days);
       elRainyDays.textContent = String(rainyDays);
-      elAvgDay.textContent = avgPerDay.toLocaleString('vi-VN', {maximumFractionDigits:2});
-      elAvgRainy.textContent = avgPerRainy.toLocaleString('vi-VN', {maximumFractionDigits:2});
+
+      if (maxLevel === null){
+        elMaxLevel.textContent = '—';
+        elMaxLevelDate.textContent = '';
+      } else {
+        elMaxLevel.textContent = maxLevel.toLocaleString('vi-VN', {maximumFractionDigits:2});
+        elMaxLevelDate.textContent = maxLevelDate ? `(${maxLevelDate})` : '';
+      }
+
       elMax.textContent = maxVal.toLocaleString('vi-VN', {maximumFractionDigits:1});
-      elMaxDate.textContent = maxDate ? `(${maxDate})` : '';
+      const maxDateVN = maxDateRaw ? formatLabelToVNDate(maxDateRaw) : '';
+      elMaxDate.textContent = maxDateVN ? `(${maxDateVN})` : '';
     }
 
     /* ================== CHARTS ================== */
@@ -641,11 +704,8 @@
         }
       };
 
-      // eslint-disable-next-line no-undef
       if (typeof Chart !== 'undefined') {
-        // eslint-disable-next-line no-undef
         if (!Chart.registry.plugins.get('levelZones')) {
-          // eslint-disable-next-line no-undef
           Chart.register(levelZonesPlugin);
         }
       }
@@ -654,7 +714,6 @@
       const btLine   = labels.map(()=>LVL_BT);
       const gcLine   = labels.map(()=>LVL_GC);
 
-      // eslint-disable-next-line no-undef
       comboChart = new Chart(document.getElementById('waterComboChart').getContext('2d'), {
         type:'bar',
         data:{
@@ -662,14 +721,14 @@
           datasets:[
             {
               type:'bar',
-              label:'Lượng mưa (mm/ngày)',
+              label:'Lượng mưa (mm)',
               data: rainPerDay,
               yAxisID:'yRain',
               borderWidth:1
             },
             {
               type:'line',
-              label:'Mực nước (m/ngày)',
+              label:'Mực nước (m)',
               data: wlAvgPerDay,
               yAxisID:'yLevel',
               spanGaps:true,
@@ -732,7 +791,7 @@
         plugins:['levelZones']
       });
 
-      // ===== Trạng thái mực nước gần nhất (dùng dấu phẩy) =====
+      // ===== Trạng thái mực nước gần nhất =====
       let lastVal = null;
       for (let i = wlAvgPerDay.length - 1; i >= 0; i--){
         if (wlAvgPerDay[i] != null && Number.isFinite(wlAvgPerDay[i])){
@@ -816,7 +875,7 @@
         if (selectedWeek !== 'all') {
           if (!r._dt) return false;
           const weekNum = getWeekNumber(r._dt);
-          const rowWeek = `${r._y}-W${String(weekNum)}`;
+          const rowWeek = `${r._y}-W${String(weekNum).padStart(2, '0')}`;
           if (rowWeek !== selectedWeek) return false;
         }
         if (selectedDayNight !== 'all') {
@@ -1071,17 +1130,13 @@
         r.hTran1??'', r.qtran1??'', r.hTran2??'', r.qtran2??'',
         r.a??'', r.cotNuocDauKenh??'', r.qCong??'', r.nguoiVanHanh||''
       ]);
-      // eslint-disable-next-line no-undef
       const wb = XLSX.utils.book_new();
-      // eslint-disable-next-line no-undef
       const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
       ws['!cols'] = headers.map((_, ci) => {
         const maxLen = [headers, ...rows].reduce((m, row) => Math.max(m, String(row[ci] ?? '').length), 0);
         return { wch: Math.min(Math.max(10, maxLen + 2), 40) };
       });
-      // eslint-disable-next-line no-undef
       XLSX.utils.book_append_sheet(wb, ws, "NhatKyHoThanhSon");
-      // eslint-disable-next-line no-undef
       XLSX.writeFile(wb, "NhatKyVanHanh_HoThanhSon.xlsx");
     });
 
