@@ -574,13 +574,210 @@
                 margin: 12mm;
             }
 
+            padding: 8px 10px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        th {
+            background: var(--header-bg);
+            color: #000;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            border: 1px solid #fff;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #fff
+        }
+
+        tbody tr:hover {
+            background: var(--hover-bg)
+        }
+
+        /* Phân trang: cố định góc dưới phải trong container */
+        .pagination-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: absolute;
+            right: 20px;
+            bottom: 10px;
+            background: #ffffff;
+            padding: 6px 14px;
+            border-radius: 999px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+        }
+
+        .pager-left,
+        .pager-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pagination-bar button {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            cursor: pointer;
+            font-size: 12pt;
+        }
+
+        .pagination-bar button:disabled {
+            opacity: .5;
+            cursor: not-allowed
+        }
+
+        .pagination-bar select {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            font-size: 12pt;
+        }
+
+        .status-message {
+            color: #555;
+            padding: 40px;
+            text-align: center;
+            font-style: italic;
+            font-size: 14pt
+        }
+
+        .error-message {
+            color: #b91c1c;
+            padding: 15px;
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            margin-top: 15px;
+            border-radius: 10px
+        }
+
+        .loader-container {
+            padding: 50px;
+            text-align: center
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-bottom: 10px
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0)
+            }
+
+            100% {
+                transform: rotate(360deg)
+            }
+        }
+
+        /* Toast Notification */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .toast {
+            background: #333;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 13pt;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* colgroup màn hình */
+        #data-table col.col-stt {
+            width: 60px
+        }
+
+        #data-table col.col-ngay {
+            width: 140px
+        }
+
+        #data-table col.col-gio {
+            width: 120px
+        }
+
+        #data-table col.col-mucnuoc {
+            width: 140px
+        }
+
+        #data-table col.col-dungtich {
+            width: 160px
+        }
+
+        #data-table col.col-luongmua {
+            width: 150px
+        }
+
+        #data-table col.col-htran {
+            width: 140px
+        }
+
+        #data-table col.col-qtran {
+            width: 170px
+        }
+
+        #data-table col.col-vanhanh {
+            width: 220px
+        }
+
+        #data-table col.col-sign {
+            width: 220px
+        }
+
+        /* Bảng in (ẩn trên màn hình) */
+        #print-table {
+            display: none;
+        }
+
+        /* PRINT */
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+                font-size: 12pt;
+            }
+
+            @page {
+                margin: 12mm;
+            }
+
             .top-actions,
             .controls-container,
             .kpi-grid,
             .charts,
             .pagination-bar,
             .custom-time-panel,
-            #toast-container {
+            #toast-container,
+            .chat-widget-btn,
+            .chat-window {
                 display: none !important
             }
 
@@ -680,6 +877,135 @@
             .top-actions {
                 justify-content: flex-start;
             }
+
+            .chat-window {
+                width: 90%;
+                right: 5%;
+                bottom: 90px;
+                height: 60vh;
+            }
+        }
+
+        /* Chatbot Widget */
+        .chat-widget-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #1EA48D;
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .chat-widget-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .chat-window {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 380px;
+            height: 500px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 11pt;
+        }
+
+        .chat-header {
+            background: #1EA48D;
+            color: #fff;
+            padding: 12px 16px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-close {
+            cursor: pointer;
+            font-size: 18px;
+            opacity: 0.8;
+        }
+
+        .chat-close:hover {
+            opacity: 1;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            background: #f9fafb;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .msg {
+            max-width: 85%;
+            padding: 8px 12px;
+            border-radius: 12px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .msg.bot {
+            background: #e5e7eb;
+            color: #1f2937;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .msg.user {
+            background: #1EA48D;
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .chat-input-area {
+            padding: 10px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 8px;
+            background: #fff;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 20px;
+            outline: none;
+            font-size: 11pt;
+        }
+
+        .chat-input-area button {
+            background: #1EA48D;
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -916,6 +1242,23 @@
 
         <div id="error-message" class="error-message" style="display:none;"></div>
         <div id="toast-container"></div>
+
+        <!-- Chat Widget HTML -->
+        <button class="chat-widget-btn" id="chat-toggle" title="Chat với dữ liệu">💬</button>
+        <div class="chat-window" id="chat-window">
+            <div class="chat-header">
+                <span>Trợ lý AI Hồ Ông Kinh 🤖</span>
+                <span class="chat-close" id="chat-close">✕</span>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="msg bot">Xin chào! Tôi có thể giúp gì về số liệu hồ chứa? <br><br>Ví dụ:<br>- "Mực nước hôm
+                    nay?"<br>- "Mưa lớn nhất năm 2024?"<br>- "Tổng lượng mưa tháng 10?"</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Nhập câu hỏi..." />
+                <button id="chat-send">Gửi</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1240,7 +1583,7 @@
             const lvlMax = lvlVals.length ? Math.max(...lvlVals) : LVL_GC + 1;
             const pad = 0.1;
             const niceFloor = (v, step) => Math.floor(v / step) * step;
-            const niceCeil = (v, step) => Math.ceil(v / step) * step;
+            const niceCeil = (v, step) => Math.ceil(lvlMax + pad, 0.2);
             const yMinLvl = niceFloor(Math.min(LVL_DEAD, lvlMin) - pad, 0.2);
             const yMaxLvl = niceCeil(lvlMax + pad, 0.2);
 
@@ -1699,6 +2042,9 @@
                 };
             });
 
+            // Sort allData by date descending (newest first) for easier lookup
+            allData.sort((a, b) => (b.__d || 0) - (a.__d || 0));
+
             populateYearFilter(allData);
             populateWeekFilter(allData);
             applyFiltersAndRender();
@@ -1806,6 +2152,152 @@
         }
         document.getElementById('btn-print-portrait').addEventListener('click', () => printWithOrientation('portrait'));
         document.getElementById('btn-print-landscape').addEventListener('click', () => printWithOrientation('landscape'));
+
+        // ====== CHATBOT LOGIC ======
+        const chatToggle = document.getElementById('chat-toggle');
+        const chatWindow = document.getElementById('chat-window');
+        const chatClose = document.getElementById('chat-close');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+        const chatMsgs = document.getElementById('chat-messages');
+
+        chatToggle.addEventListener('click', () => {
+            chatWindow.style.display = 'flex';
+            chatInput.focus();
+        });
+        chatClose.addEventListener('click', () => chatWindow.style.display = 'none');
+
+        function addMsg(text, sender) {
+            const div = document.createElement('div');
+            div.className = `msg ${sender}`;
+            div.innerHTML = text.replace(/\n/g, '<br>');
+            chatMsgs.appendChild(div);
+            chatMsgs.scrollTop = chatMsgs.scrollHeight;
+        }
+
+        chatSend.addEventListener('click', handleChat);
+        chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleChat(); });
+
+        function handleChat() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+            addMsg(text, 'user');
+            chatInput.value = '';
+
+            // Simulate thinking
+            setTimeout(() => {
+                const response = processQuery(text);
+                addMsg(response, 'bot');
+            }, 400);
+        }
+
+        function processQuery(q) {
+            q = q.toLowerCase();
+
+            // 1. Xác định trường dữ liệu (Topic)
+            let field = null;
+            let fieldName = '';
+            let unit = '';
+
+            if (q.includes('mưa')) { field = '_luongMua'; fieldName = 'Lượng mưa'; unit = 'mm'; }
+            else if (q.includes('mực nước') || q.includes('cao trình')) { field = '_mucNuoc'; fieldName = 'Mực nước'; unit = 'm'; }
+            else if (q.includes('dung tích')) { field = '_dungTich'; fieldName = 'Dung tích'; unit = 'triệu m³'; }
+            else if (q.includes('xả') || q.includes('tràn')) { field = '_qTranTuDo'; fieldName = 'Lưu lượng xả'; unit = 'm³/s'; }
+
+            // 2. Xác định thời gian (Time)
+            let targetDate = null;
+            let targetMonth = null;
+            let targetYear = null;
+
+            // Regex ngày dd/mm/yyyy
+            const dateMatch = q.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+            const dateMatchShort = q.match(/(\d{1,2})[\/\-](\d{1,2})/); // dd/mm (lấy năm hiện tại hoặc trong data)
+
+            if (q.includes('hôm nay')) {
+                targetDate = new Date();
+            } else if (q.includes('hôm qua')) {
+                const d = new Date(); d.setDate(d.getDate() - 1);
+                targetDate = d;
+            } else if (dateMatch) {
+                targetDate = new Date(dateMatch[3], dateMatch[2] - 1, dateMatch[1]);
+            } else {
+                // Tìm tháng/năm
+                const mMatch = q.match(/tháng (\d{1,2})/);
+                const yMatch = q.match(/năm (\d{4})/);
+                if (mMatch) targetMonth = parseInt(mMatch[1]);
+                if (yMatch) targetYear = parseInt(yMatch[1]);
+            }
+
+            // Lọc dữ liệu theo thời gian
+            let subset = allData;
+            let timeDesc = 'toàn thời gian';
+
+            if (targetDate) {
+                const dStr = toDayStr(targetDate);
+                subset = allData.filter(r => r.__dayStr === dStr);
+                timeDesc = `ngày ${dStr}`;
+            } else {
+                if (targetYear) {
+                    subset = subset.filter(r => r.__y === targetYear);
+                    timeDesc = `năm ${targetYear}`;
+                }
+                if (targetMonth) {
+                    subset = subset.filter(r => r.__m === targetMonth);
+                    timeDesc = (targetYear ? '' : 'tháng ' + targetMonth) + (targetYear ? ` tháng ${targetMonth}` : '');
+                }
+            }
+
+            if (subset.length === 0) return `Không tìm thấy dữ liệu cho ${timeDesc}.`;
+
+            // 3. Xác định phép toán (Operation)
+            // Nếu đã xác định ngày cụ thể -> Trả về giá trị ngày đó
+            if (targetDate) {
+                if (!field) return `Ngày ${toDayStr(targetDate)}: Mực nước ${subset[0].mucNuoc}m, Mưa ${subset[0].luongMua}mm.`;
+                const val = subset[0][field];
+                return `${fieldName} ${timeDesc} là ${formatNumber(val)} ${unit}.`;
+            }
+
+            // Nếu là khoảng thời gian (tháng/năm/all)
+            if (!field) return `Bạn muốn hỏi về thông số gì? (Mưa, Mực nước, hay Xả tràn?)`;
+
+            if (q.includes('lớn nhất') || q.includes('cao nhất') || q.includes('max')) {
+                const maxVal = Math.max(...subset.map(r => r[field] || 0));
+                const maxRow = subset.find(r => r[field] === maxVal);
+                return `${fieldName} lớn nhất ${timeDesc} là ${formatNumber(maxVal)} ${unit} (ngày ${maxRow.__dayStr}).`;
+            }
+
+            if (q.includes('nhỏ nhất') || q.includes('thấp nhất') || q.includes('min')) {
+                // Với mưa/xả thì min thường là 0, nên có thể lọc > 0
+                let minSet = subset;
+                if (field === '_luongMua' || field === '_qTranTuDo') minSet = subset.filter(r => r[field] > 0);
+                if (minSet.length === 0) return `${fieldName} ${timeDesc} toàn là 0.`;
+
+                const minVal = Math.min(...minSet.map(r => r[field]));
+                const minRow = minSet.find(r => r[field] === minVal);
+                return `${fieldName} nhỏ nhất (khác 0) ${timeDesc} là ${formatNumber(minVal)} ${unit} (ngày ${minRow.__dayStr}).`;
+            }
+
+            if (q.includes('tổng') || q.includes('bao nhiêu mưa')) {
+                if (field === '_mucNuoc') return 'Không tính tổng mực nước được, chỉ tính trung bình.';
+                const sum = subset.reduce((a, b) => a + (b[field] || 0), 0);
+                return `Tổng ${fieldName.toLowerCase()} ${timeDesc} là ${formatNumber(sum)} ${unit}.`;
+            }
+
+            if (q.includes('trung bình')) {
+                const sum = subset.reduce((a, b) => a + (b[field] || 0), 0);
+                const avg = sum / subset.length;
+                return `${fieldName} trung bình ${timeDesc} là ${formatNumber(avg)} ${unit}.`;
+            }
+
+            // Mặc định: trả về tổng mưa hoặc trung bình mực nước
+            if (field === '_luongMua') {
+                const sum = subset.reduce((a, b) => a + (b[field] || 0), 0);
+                return `Tổng lượng mưa ${timeDesc} là ${formatNumber(sum)} ${unit}.`;
+            } else {
+                const maxVal = Math.max(...subset.map(r => r[field] || 0));
+                return `${fieldName} lớn nhất ${timeDesc} là ${formatNumber(maxVal)} ${unit}.`;
+            }
+        }
     </script>
 </body>
 
