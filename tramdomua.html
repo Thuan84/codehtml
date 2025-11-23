@@ -71,6 +71,29 @@
       z-index: 1000;
     }
 
+    /* Nút full màn hình */
+    .fullscreen-btn {
+      position: absolute;
+      top: 50px;
+      right: 10px;
+      z-index: 1001;
+      padding: 5px 10px;
+      font-size: 11px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(15,23,42,0.9);
+      color: #e5e7eb;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(4px);
+    }
+    .fullscreen-btn:hover {
+      background: rgba(30,64,175,0.95);
+    }
+
     /* PANEL HUYỆN/HỒ + XÃ – góc dưới bên trái */
     .station-panel {
       position: absolute;
@@ -127,44 +150,37 @@
     }
     table.station-table {
       width: 100%;
-      border-collapse: separate;   /* để dùng border-spacing tạo khoảng cách giữa các row */
-      border-spacing: 0 4px;       /* khoảng cách dọc giữa các huyện */
+      border-collapse: separate;
+      border-spacing: 0 4px;
       font-size: 11px;
     }
-
-    /* Ẩn header, chỉ giữ nội dung như list Windy */
     .station-table thead {
       display: none;
     }
-
     .station-table th,
     .station-table td {
       padding: 2px 6px;
       border: none;
       font-size: 11px;
     }
-
     .station-table tbody tr {
       background: rgba(15,23,42,0.95);
       color: #e5e7eb;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-      border-left: 3px solid transparent; /* màu sẽ set bằng JS theo cấp mưa */
+      border-left: 3px solid transparent;
       cursor: pointer;
       transition: transform 0.07s ease, box-shadow 0.07s ease, background 0.07s ease;
     }
-
     .station-table tbody tr:hover {
-      background: rgba(30,64,175,0.85); /* xanh dương đậm khi hover */
+      background: rgba(30,64,175,0.85);
       transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(0,0,0,0.5);
     }
-
     .station-table tr.selected {
-      outline: 1px solid #facc15; /* vàng như windy chọn điểm */
+      outline: 1px solid #facc15;
       outline-offset: 0;
     }
-
     .station-table td.value-loading {
       color: #9ca3af;
       font-style: italic;
@@ -173,8 +189,6 @@
       color: #fecaca;
       font-style: italic;
     }
-
-    /* Cột tên điểm + cột mưa/gió */
     .station-table td:first-child {
       width: 48%;
       font-weight: 600;
@@ -262,7 +276,7 @@
       font-style: italic;
     }
 
-    /* badge trạng thái mưa – sửa cho hợp nền tối */
+    /* badge trạng thái mưa – hợp nền tối */
     .rain-badge {
       display: inline-flex;
       align-items: center;
@@ -300,7 +314,6 @@
     .marker-reservoir {
       background: linear-gradient(135deg,#0369a1,#22d3ee);
     }
-
     .leaflet-marker-icon,
     .leaflet-marker-shadow {
       background: transparent !important;
@@ -364,6 +377,12 @@
 <body>
   
   <div id="map"></div>
+
+  <!-- Nút full màn hình -->
+  <button id="fullscreen-btn" class="fullscreen-btn">
+    <span id="fullscreen-icon">⛶</span>
+    <span id="fullscreen-text">Toàn màn hình</span>
+  </button>
 
   <!-- MENU LAYER THỜI TIẾT BÊN PHẢI -->
   <div class="weather-layer-menu" id="weather-layer-menu">
@@ -430,8 +449,7 @@
 
   <script>
     // ====== CONFIG OPENWEATHERMAP CHO CÁC LỚP BẢN ĐỒ ======
-    // Thay API key của anh vào đây
-    const OWM_KEY = 'd26587d88a62abe31ad7941479dfb53e';
+    const OWM_KEY = 'd26587d88a62abe31ad7941479dfb53e'; // đổi thành API key của anh
 
     // ===== 1. Map + lớp nền =====
     const map = L.map('map').setView([11.7, 108.9], 9);
@@ -919,7 +937,6 @@
         `;
         updateStationRow(index, cellHtml);
 
-        // Gán màu viền trái theo cấp mưa cho từng huyện (hiệu ứng Windy)
         const row = stationTbody.querySelector(`tr[data-index="${index}"]`);
         if (row) {
           row.style.borderLeftColor = cls.color;
@@ -1051,7 +1068,7 @@
       });
     }
 
-    // ===== 8. Cập nhật giờ "Dữ liệu được cập nhật lúc..." =====
+    // ===== 8. Cập nhật giờ =====
     function updateTimeNow() {
       const el = document.getElementById("updated-time");
       if (!el) return;
@@ -1065,7 +1082,6 @@
 
       el.innerHTML = `Dữ liệu được cập nhật lúc ${hh}:${mi} ngày ${dd}/${mm}/${yyyy}`;
     }
-
     updateTimeNow();
 
     // ===== 9. Legend =====
@@ -1098,8 +1114,34 @@
       `;
       return div;
     };
-
     legend.addTo(map);
+
+    // ===== 10. Nút FULLSCREEN =====
+    const fsBtn = document.getElementById('fullscreen-btn');
+    const fsIcon = document.getElementById('fullscreen-icon');
+    const fsText = document.getElementById('fullscreen-text');
+
+    function updateFsButton() {
+      const isFull = !!document.fullscreenElement;
+      if (isFull) {
+        fsIcon.textContent = '⤢';
+        fsText.textContent = 'Thoát full màn';
+      } else {
+        fsIcon.textContent = '⛶';
+        fsText.textContent = 'Toàn màn hình';
+      }
+    }
+
+    fsBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        // cho toàn bộ trang vào fullscreen
+        document.documentElement.requestFullscreen?.();
+      } else {
+        document.exitFullscreen?.();
+      }
+    });
+
+    document.addEventListener('fullscreenchange', updateFsButton);
   </script>
 </body>
 </html>
