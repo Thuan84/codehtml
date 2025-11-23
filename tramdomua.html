@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Bản đồ mưa Ninh Thuận - Open-Meteo</title>
+  <title>Bản đồ mưa Ninh Thuận - Open-Meteo + Layer thời tiết</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Leaflet CSS -->
@@ -11,6 +11,12 @@
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""
+  />
+
+  <!-- Leaflet Velocity CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet-velocity/dist/leaflet-velocity.css"
   />
 
   <style>
@@ -342,11 +348,92 @@
       padding: 0 !important;
       margin: 0 !important;
     }
+
+    /* ===== MENU LAYER THỜI TIẾT KIỂU WINDY (bên phải) ===== */
+    .weather-layer-menu {
+      position: absolute;
+      top: 50%;
+      right: 6px;
+      transform: translateY(-50%);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .weather-layer-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px 4px 4px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(0,0,0,0.35);
+      color: #fff;
+      font-size: 11px;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      outline: none;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.1s;
+      white-space: nowrap;
+    }
+    .weather-layer-item:hover {
+      background: rgba(0,0,0,0.55);
+      transform: translateX(-1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .weather-layer-item.active {
+      background: rgba(234, 179, 8, 0.9);
+      color: #111827;
+    }
+    .weather-layer-thumb {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      flex-shrink: 0;
+      background-size: cover;
+      background-position: center;
+      border: 1px solid rgba(255,255,255,0.8);
+    }
+    /* màu tượng trưng cho từng lớp */
+    .thumb-radar     { background-image: linear-gradient(135deg,#22c55e,#0ea5e9); }
+    .thumb-sat       { background-image: linear-gradient(135deg,#0f172a,#9ca3af); }
+    .thumb-wind      { background-image: linear-gradient(135deg,#0ea5e9,#22d3ee); }
+    .thumb-rain      { background-image: linear-gradient(135deg,#1d4ed8,#a855f7); }
+    .thumb-temp      { background-image: linear-gradient(135deg,#f97316,#ef4444); }
+    .thumb-wind-anim { background-image: linear-gradient(135deg,#22c55e,#eab308); }
   </style>
 </head>
 <body>
-  <div class="map-title">BẢN ĐỒ MƯA NINH THUẬN (dữ liệu Open-Meteo)</div>
+  <div class="map-title">BẢN ĐỒ MƯA NINH THUẬN (Open-Meteo) + Layer nền (OpenWeatherMap)</div>
   <div id="map"></div>
+
+  <!-- MENU LAYER THỜI TIẾT BÊN PHẢI -->
+  <div class="weather-layer-menu" id="weather-layer-menu">
+    <button class="weather-layer-item" data-layer="radar">
+      <span class="weather-layer-thumb thumb-radar"></span>
+      <span>Radar thời tiết</span>
+    </button>
+    <button class="weather-layer-item" data-layer="satellite">
+      <span class="weather-layer-thumb thumb-sat"></span>
+      <span>Vệ tinh (mây)</span>
+    </button>
+    <button class="weather-layer-item" data-layer="wind">
+      <span class="weather-layer-thumb thumb-wind"></span>
+      <span>Gió (bản đồ màu)</span>
+    </button>
+    <button class="weather-layer-item" data-layer="rain">
+      <span class="weather-layer-thumb thumb-rain"></span>
+      <span>Mưa, sét</span>
+    </button>
+    <button class="weather-layer-item" data-layer="temp">
+      <span class="weather-layer-thumb thumb-temp"></span>
+      <span>Nhiệt độ</span>
+    </button>
+    <button class="weather-layer-item" data-layer="windDynamic">
+      <span class="weather-layer-thumb thumb-wind-anim"></span>
+      <span>Gió động</span>
+    </button>
+  </div>
 
   <!-- KPI bên phải -->
   <div id="kpi-panel" class="kpi-panel"></div>
@@ -380,7 +467,7 @@
   </div>
 
   <div class="data-source">
-    Nguồn dữ liệu: api.open-meteo.com (mưa tức thời & dự báo ngày)
+    Nguồn: Open-Meteo (mưa, gió, trạng thái) · OpenWeatherMap (Radar, vệ tinh, gió, mưa, nhiệt độ dạng bản đồ) · Gió động: dữ liệu demo leaflet-velocity
   </div>
 
   <!-- Leaflet JS -->
@@ -390,7 +477,14 @@
     crossorigin=""
   ></script>
 
+  <!-- Leaflet Velocity JS -->
+  <script src="https://unpkg.com/leaflet-velocity/dist/leaflet-velocity.min.js"></script>
+
   <script>
+    // ====== CONFIG OPENWEATHERMAP CHO CÁC LỚP BẢN ĐỒ ======
+    // Thay API key của anh vào đây
+    const OWM_KEY = 'd26587d88a62abe31ad7941479dfb53e';
+
     // ===== 1. Map + lớp nền =====
     const map = L.map('map').setView([11.7, 108.9], 9);
 
@@ -415,13 +509,124 @@
       "Vệ tinh (Esri Satellite)": satellite
     };
     const overlayMaps = {
-      "Mưa hiện tại": rainLayer
+      "Mưa hiện tại (trạm)": rainLayer
     };
     L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
 
+    // ===== LỚP BẢN ĐỒ THỜI TIẾT (TILE) TỪ OPENWEATHERMAP =====
+    const owmLayers = {
+      radar: L.tileLayer(
+        `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`,
+        { opacity: 1 }
+      ),
+      satellite: L.tileLayer(
+        `https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`,
+        { opacity: 1 }
+      ),
+      wind: L.tileLayer(
+        `https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`,
+        { opacity: 1 }
+      ),
+      rain: L.tileLayer(
+        `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`,
+        { opacity: 1 }
+      ),
+      temp: L.tileLayer(
+        `https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`,
+        { opacity: 1 }
+      )
+    };
+
+    // ===== LỚP "GIÓ ĐỘNG" – LEAFLET-VELOCITY =====
+    let velocityLayer = null;
+    let velocityDataLoaded = false;
+
+    async function ensureVelocityLayer() {
+      if (velocityLayer && velocityDataLoaded) return velocityLayer;
+
+      // Dữ liệu mẫu từ repo leaflet-velocity (không phải realtime, nhưng đủ để demo hiệu ứng gió).
+      const url = "https://raw.githubusercontent.com/danwild/leaflet-velocity/master/demo/2016112000.json";
+      const res = await fetch(url);
+      const json = await res.json();
+
+      velocityLayer = L.velocityLayer({
+        data: json,
+        maxVelocity: 25,          // m/s
+        velocityScale: 0.005,     // độ dài vector
+        lineWidth: 2,
+        colorScale: ["#00ffff", "#00ff00", "#ffff00", "#ff0000"],
+        displayValues: true,
+        displayOptions: {
+          velocityType: "Gió",
+          position: "bottomleft",
+          emptyString: "Không có dữ liệu gió",
+          speedUnit: "m/s"
+        },
+        // Giới hạn vùng hiển thị quanh Ninh Thuận để tập trung hơn
+        // bounds: [[10.5, 107.5], [12.5, 110.5]]
+      });
+
+      velocityDataLoaded = true;
+      return velocityLayer;
+    }
+
+    // Xử lý click menu bên phải để bật/tắt layer
+    const menuEl = document.getElementById('weather-layer-menu');
+    const layerButtons = menuEl.querySelectorAll('.weather-layer-item');
+
+    // Không cho map bắt sự kiện khi click menu
+    L.DomEvent.disableClickPropagation(menuEl);
+
+    function deactivateAllWeatherButtons() {
+      layerButtons.forEach(btn => btn.classList.remove('active'));
+    }
+    function removeAllWeatherTileLayers() {
+      Object.keys(owmLayers).forEach(key => {
+        if (map.hasLayer(owmLayers[key])) {
+          map.removeLayer(owmLayers[key]);
+        }
+      });
+    }
+    function removeVelocityLayerIfAny() {
+      if (velocityLayer && map.hasLayer(velocityLayer)) {
+        map.removeLayer(velocityLayer);
+      }
+    }
+
+    layerButtons.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const layerId = btn.dataset.layer;
+        const isActive = btn.classList.contains('active');
+
+        // Tắt hết mọi thứ trước
+        removeAllWeatherTileLayers();
+        removeVelocityLayerIfAny();
+        deactivateAllWeatherButtons();
+
+        if (isActive) {
+          // Nếu đã active rồi thì click lần nữa là tắt, không bật gì cả
+          return;
+        }
+
+        if (layerId === 'windDynamic') {
+          try {
+            const vLayer = await ensureVelocityLayer();
+            map.addLayer(vLayer);
+            btn.classList.add('active');
+          } catch (e) {
+            console.error("Lỗi tải dữ liệu gió động:", e);
+            alert("Không tải được dữ liệu gió động (leaflet-velocity).");
+          }
+        } else {
+          const layer = owmLayers[layerId];
+          if (!layer) return;
+          map.addLayer(layer);
+          btn.classList.add('active');
+        }
+      });
+    });
+
     // ===== 2. Danh sách huyện/hồ + xã/phường =====
-    // LƯU Ý: lat/lon từng xã hiện đang dùng TOẠ ĐỘ HUYỆN làm mặc định.
-    // Khi anh có tọa độ chuẩn, chỉ cần sửa lat/lon trong từng communes là xong.
     const stations = [
       {
         id: "phan_rang",
@@ -595,6 +800,43 @@
       }
     }
 
+    // ===== 3b. Mô tả thời tiết & gió hiện tại =====
+    function describeWeatherCode(code) {
+      if (code === null || code === undefined || isNaN(code)) {
+        return "Không rõ trạng thái";
+      }
+      if (code === 0) return "Trời quang mây, nắng đẹp";
+      if (code === 1) return "Trời hầu như quang mây";
+      if (code === 2) return "Trời ít mây";
+      if (code === 3) return "Trời nhiều mây, u ám";
+      if (code === 45 || code === 48) return "Sương mù / sương mù đóng băng";
+
+      if ([51,53,55].includes(code)) return "Mưa phùn";
+      if ([56,57].includes(code)) return "Mưa phùn đóng băng";
+      if ([61,63,65].includes(code)) return "Mưa";
+      if ([66,67].includes(code)) return "Mưa đóng băng";
+      if ([71,73,75,77].includes(code)) return "Tuyết / mưa tuyết";
+
+      if ([80,81,82].includes(code)) return "Mưa rào";
+      if ([85,86].includes(code)) return "Mưa tuyết rào";
+
+      if (code === 95) return "Dông, có mưa";
+      if (code === 96 || code === 99) return "Dông mạnh, có khả năng mưa đá";
+
+      return "Thời tiết không xác định (mã " + code + ")";
+    }
+
+    function classifyWind(speedKmH) {
+      if (speedKmH === null || speedKmH === undefined || isNaN(speedKmH)) {
+        return { label: "Không rõ gió" };
+      }
+      if (speedKmH < 1)   return { label: "Lặng gió" };
+      if (speedKmH < 11)  return { label: "Gió nhẹ" };
+      if (speedKmH < 29)  return { label: "Gió vừa" };
+      if (speedKmH < 50)  return { label: "Gió mạnh" };
+      return { label: "Gió rất mạnh (gần cấp bão)" };
+    }
+
     function formatTimeVN(isoString) {
       if (!isoString) return "";
       const d = new Date(isoString);
@@ -682,14 +924,15 @@
       }
     }
 
-    // ===== 6. Mưa hiện tại huyện/hồ – dùng hourly =====
+    // ===== 6. Mưa + thời tiết & gió hiện tại huyện/hồ =====
     async function loadRainForStation(station, index) {
       const url =
         `https://api.open-meteo.com/v1/forecast` +
         `?latitude=${station.lat}` +
         `&longitude=${station.lon}` +
         `&daily=rain_sum,precipitation_sum,temperature_2m_max,temperature_2m_min` +
-        `&hourly=temperature_2m,rain,precipitation,relative_humidity_2m,wind_speed_10m` +
+        `&hourly=temperature_2m,rain,precipitation,relative_humidity_2m,wind_speed_10m,weather_code` +
+        `&current_weather=true` +
         `&timezone=auto&forecast_days=1`;
 
       try {
@@ -699,6 +942,15 @@
         const hourly = data.hourly || {};
         const times = hourly.time || [];
         const rainArr = (hourly.rain && hourly.rain.length ? hourly.rain : hourly.precipitation) || [];
+
+        // Thời tiết & gió hiện tại
+        const cw = data.current_weather || {};
+        const weatherCode = (typeof cw.weathercode === "number") ? cw.weathercode : null;
+        const weatherDesc = describeWeatherCode(weatherCode);
+        const windSpeed = (typeof cw.windspeed === "number") ? cw.windspeed : null; // km/h
+        const windInfo = classifyWind(windSpeed);
+        const windText = windSpeed === null ? "—" : windSpeed.toFixed(1).replace(".", ",");
+        const hasThunder = weatherCode === 95 || weatherCode === 96 || weatherCode === 99;
 
         let rainMm = null;
         let timeStr = null;
@@ -729,14 +981,22 @@
         const rainText = rainMm === null ? "—" : rainMm.toFixed(2).replace(".", ",");
 
         const popupHtml = `
-          <div style="min-width: 230px; font-size: 13px;">
+          <div style="min-width: 240px; font-size: 13px;">
             <strong>${station.name}</strong><br/>
             <span>Mưa hiện tại: <b>${rainText} mm/giờ</b></span><br/>
-            <span>Mức: <b>${cls.label}</b> (${cls.description})</span><br/>
+            <span>Mức mưa: <b>${cls.label}</b> (${cls.description})</span><br/>
             <span>Thời điểm (giờ địa phương):<br/><b>${formatTimeVN(timeStr)}</b></span><br/>
-            <span style="font-size: 11px; color: #6b7280;">
-              Dữ liệu: Open-Meteo · hourly rain/precipitation
-            </span>
+            <hr style="margin:6px 0;border:none;border-top:1px solid #e5e7eb;" />
+            <span>Thời tiết hiện tại: <b>${weatherDesc}</b></span><br/>
+            <span>Gió: <b>${windText} km/h</b> – ${windInfo.label}</span>
+            ${
+              hasThunder
+                ? '<div style="color:#b91c1c;font-size:11px;margin-top:4px;">⚠️ Có dông / thời tiết xấu, cần theo dõi.</div>'
+                : ''
+            }
+            <div style="font-size: 11px; color: #6b7280; margin-top:4px;">
+              Dữ liệu: Open-Meteo · hourly rain & current_weather
+            </div>
           </div>
         `;
         marker.bindPopup(popupHtml);
@@ -747,6 +1007,9 @@
             <span>${cls.label}</span>
           </div>
           <div style="font-size:11px;margin-top:2px;">${rainText} mm/giờ</div>
+          <div style="font-size:10px;color:#4b5563;margin-top:2px;">
+            ${weatherDesc} · Gió ${windText} km/h
+          </div>
         `;
         updateStationRow(index, cellHtml);
 
@@ -826,7 +1089,6 @@
       loadDailyRainForCommunes(st);
     }
 
-    // Gọi API riêng từng xã
     async function loadDailyRainForCommunes(station) {
       const tbody = document.getElementById("commune-tbody");
       if (!tbody) return;
@@ -880,7 +1142,7 @@
     // ===== 8. KPI 3 ngày – daily.precipitation_sum =====
     async function loadKpiForecast() {
       const kpiPanel = document.getElementById("kpi-panel");
-      const lat = 11.5643; // trung tâm Ninh Thuận anh đưa
+      const lat = 11.5643;
       const lon = 108.9886;
 
       const url =
