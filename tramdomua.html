@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bản đồ mưa Ninh Thuận - Open-Meteo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    #map {
+      height: 100vh;
+      width: 100vw;
+    }
+    .map-title {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.9);
+      padding: 8px 16px;
+      border-radius: 999px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      font-weight: 600;
+      z-index: 1000;
+      font-size: 14px;
+    }
+    .leaflet-control.legend {
+      background: white;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1.4;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      border-radius: 6px;
+    }
+    .legend-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .legend-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      margin-right: 6px;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+    .data-source {
+      position: absolute;
+      bottom: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      background: rgba(255,255,255,0.9);
+      padding: 3px 8px;
+      border-radius: 999px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+      z-index: 1000;
+    }
+
+    /* KPI – bên phải */
+    .kpi-panel {
+      position: absolute;
+      top: 90px;
+      right: 10px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 360px;
+      align-items: stretch;
+    }
+    .kpi-card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 8px 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+      font-size: 12px;
+      border: 1px solid #e5e7eb;
+    }
+    .kpi-main-card {
+      border-left: 3px solid #1EA48D;
+    }
+    .kpi-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .kpi-day-card {
+      background: linear-gradient(135deg,#e0f2fe,#cffafe);
+      border-color: #bae6fd;
+    }
+    .kpi-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .kpi-day {
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .kpi-value {
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .kpi-note {
+      font-size: 11px;
+      color: #4b5563;
+    }
+    .kpi-title-main {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+
+    /* PANEL HUYỆN/HỒ + XÃ – góc dưới bên trái */
+    .station-panel {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 8px;
+      max-width: 100%;
+      flex-wrap: wrap;
+    }
+
+    /* Card huyện/hồ */
+    .station-card {
+      background: rgba(255,255,255,0.95);
+      border-radius: 12px;
+      padding: 8px 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      font-size: 12px;
+      border-left: 3px solid #2563eb;
+      display: flex;
+      flex-direction: column;
+      width: 340px;
+    }
+    .station-title {
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .station-title-main {
+      font-weight: 700;
+      font-size: 13px;
+      color: #111827;
+    }
+    .station-title span {
+      font-size: 11px;
+      color: #6b7280;
+      font-weight: 400;
+    }
+    .station-updated {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+    .station-table-wrapper {
+      margin-top: 4px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      overflow: hidden;
+    }
+    table.station-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .station-table thead {
+      background: linear-gradient(90deg,#2563eb,#38bdf8);
+      color: #ffffff;
+    }
+    .station-table th,
+    .station-table td {
+      padding: 4px 6px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .station-table th {
+      text-align: left;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .station-table tr {
+      cursor: pointer;
+    }
+    .station-table tbody tr:nth-child(even) {
+      background: #f9fafb;
+    }
+    .station-table tbody tr:hover {
+      background: #eff6ff;
+    }
+    .station-table tr.selected {
+      background: #dbeafe;
+    }
+    .station-table td.value-loading {
+      color: #9ca3af;
+      font-style: italic;
+    }
+    .station-table td.value-error {
+      color: #b91c1c;
+      font-style: italic;
+    }
+
+    /* Card xã */
+    #commune-panel {
+      display: none;
+    }
+    .commune-card {
+      background: rgba(255,255,255,0.96);
+      border-radius: 12px;
+      padding: 8px 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.16);
+      font-size: 12px;
+      border-left: 3px solid #16a34a;
+      display: flex;
+      flex-direction: column;
+      width: 340px;
+    }
+    .commune-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .commune-title {
+      font-weight: 700;
+      font-size: 13px;
+      color: #111827;
+    }
+    .commune-subtitle {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .commune-close {
+      border: none;
+      background: #fee2e2;
+      color: #b91c1c;
+      font-size: 12px;
+      border-radius: 999px;
+      padding: 2px 7px;
+      cursor: pointer;
+    }
+    .commune-close:hover {
+      background: #fecaca;
+    }
+    .commune-table-wrapper {
+      overflow-y: visible;
+      margin-top: 4px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+    .commune-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .commune-table th,
+    .commune-table td {
+      padding: 4px 6px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .commune-table thead {
+      background: linear-gradient(90deg,#16a34a,#22c55e);
+      color: #ffffff;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .commune-table tbody tr:nth-child(even) {
+      background: #f9fafb;
+    }
+    .commune-table td.value-loading {
+      color: #9ca3af;
+      font-style: italic;
+    }
+    .commune-table td.value-error {
+      color: #b91c1c;
+      font-style: italic;
+    }
+
+    /* badge trạng thái mưa */
+    .rain-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 10px;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,0.9);
+    }
+    .rain-badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+    }
+
+    /* Icon marker */
+    .marker-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.8);
+      font-size: 14px;
+      color: #ffffff;
+      font-weight: 700;
+    }
+    .marker-district {
+      background: linear-gradient(135deg,#2563eb,#22c55e);
+    }
+    .marker-reservoir {
+      background: linear-gradient(135deg,#0369a1,#22d3ee);
+    }
+
+    .leaflet-marker-icon,
+    .leaflet-marker-shadow {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="map-title">BẢN ĐỒ MƯA NINH THUẬN (dữ liệu Open-Meteo)</div>
+  <div id="map"></div>
+
+  <!-- KPI bên phải -->
+  <div id="kpi-panel" class="kpi-panel"></div>
+
+  <!-- Góc dưới trái -->
+  <div class="station-panel">
+    <div class="station-card">
+      <div class="station-title">
+        <div>
+          <div class="station-title-main">Danh sách huyện / hồ chứa</div>
+          <div id="updated-time" class="station-updated">Đang cập nhật...</div>
+        </div>
+        <span>Click để zoom & xem danh sách xã</span>
+      </div>
+      <div class="station-table-wrapper">
+        <table class="station-table">
+          <thead>
+            <tr>
+              <th style="width:55%;">Điểm</th>
+              <th style="width:45%;">Mưa hiện tại</th>
+            </tr>
+          </thead>
+          <tbody id="station-tbody">
+            <!-- JS sinh -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="commune-panel"></div>
+  </div>
+
+  <div class="data-source">
+    Nguồn dữ liệu: api.open-meteo.com (mưa tức thời & dự báo ngày)
+  </div>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <script>
+    // ===== 1. Map + lớp nền =====
+    const map = L.map('map').setView([11.7, 108.9], 9);
+
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; OpenStreetMap contributors'
+    });
+
+    const satellite = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      {
+        maxZoom: 19,
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Earthstar Geographics, etc.'
+      }
+    );
+
+    const rainLayer = L.layerGroup().addTo(map);
+    osm.addTo(map);
+
+    const baseMaps = {
+      "Nền đường phố (OSM)": osm,
+      "Vệ tinh (Esri Satellite)": satellite
+    };
+    const overlayMaps = {
+      "Mưa hiện tại": rainLayer
+    };
+    L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
+
+    // ===== 2. Danh sách huyện/hồ + xã/phường =====
+    // LƯU Ý: lat/lon từng xã hiện đang dùng TOẠ ĐỘ HUYỆN làm mặc định.
+    // Khi anh có tọa độ chuẩn, chỉ cần sửa lat/lon trong từng communes là xong.
+    const stations = [
+      {
+        id: "phan_rang",
+        type: "city",
+        name: "TP Phan Rang - Tháp Chàm",
+        lat: 11.5826,
+        lon: 108.9912,
+        communes: [
+          { name: "Phường Bảo An",    lat: 11.5826, lon: 108.9912 },
+          { name: "Phường Đài Sơn",   lat: 11.5826, lon: 108.9912 },
+          { name: "Phường Đạo Long",  lat: 11.5826, lon: 108.9912 },
+          { name: "Phường Đông Hải",  lat: 11.5826, lon: 108.9912 },
+          { name: "Phường Đô Vinh",   lat: 11.5826, lon: 108.9912 },
+          { name: "Phường Kinh Dinh", lat: 11.5826, lon: 108.9912 },
+          { name: "Phường Mỹ Bình",   lat: 11.5826, lon: 108.9912 },
+          { name: "Phường Mỹ Đông",   lat: 11.5826, lon: 108.9912 },
+          { name: "Phường Mỹ Hải",    lat: 11.5826, lon: 108.9912 },
+          { name: "Phường Mỹ Hương",  lat: 11.5826, lon: 108.9912 },
+          { name: "Phường Phủ Hà",    lat: 11.5826, lon: 108.9912 },
+          { name: "Phường Phước Mỹ",  lat: 11.5826, lon: 108.9912 },
+          { name: "Phường Tấn Tài",   lat: 11.5826, lon: 108.9912 },
+          { name: "Phường Thanh Sơn", lat: 11.5826, lon: 108.9912 },
+          { name: "Phường Văn Hải",   lat: 11.5826, lon: 108.9912 },
+          { name: "Xã Thành Hải",     lat: 11.5826, lon: 108.9912 }
+        ]
+      },
+      {
+        id: "ninh_hai",
+        type: "district",
+        name: "Huyện Ninh Hải (Khánh Hải)",
+        lat: 11.5897,
+        lon: 109.0335,
+        communes: [
+          { name: "Thị trấn Khánh Hải", lat: 11.5897, lon: 109.0335 },
+          { name: "Xã Hộ Hải",          lat: 11.5897, lon: 109.0335 },
+          { name: "Xã Nhơn Hải",        lat: 11.5897, lon: 109.0335 },
+          { name: "Xã Phương Hải",      lat: 11.5897, lon: 109.0335 },
+          { name: "Xã Tân Hải",         lat: 11.5897, lon: 109.0335 },
+          { name: "Xã Thanh Hải",       lat: 11.5897, lon: 109.0335 },
+          { name: "Xã Tri Hải",         lat: 11.5897, lon: 109.0335 },
+          { name: "Xã Vĩnh Hải",        lat: 11.5897, lon: 109.0335 },
+          { name: "Xã Xuân Hải",        lat: 11.5897, lon: 109.0335 }
+        ]
+      },
+      {
+        id: "ninh_phuoc",
+        type: "district",
+        name: "Huyện Ninh Phước (Phước Dân)",
+        lat: 11.5258,
+        lon: 108.9266,
+        communes: [
+          { name: "Thị trấn Phước Dân", lat: 11.5258, lon: 108.9266 },
+          { name: "Xã An Hải",          lat: 11.5258, lon: 108.9266 },
+          { name: "Xã Phước Hải",       lat: 11.5258, lon: 108.9266 },
+          { name: "Xã Phước Hậu",       lat: 11.5258, lon: 108.9266 },
+          { name: "Xã Phước Hữu",       lat: 11.5258, lon: 108.9266 },
+          { name: "Xã Phước Sơn",       lat: 11.5258, lon: 108.9266 },
+          { name: "Xã Phước Thái",      lat: 11.5258, lon: 108.9266 },
+          { name: "Xã Phước Thuận",     lat: 11.5258, lon: 108.9266 },
+          { name: "Xã Phước Vinh",      lat: 11.5258, lon: 108.9266 }
+        ]
+      },
+      {
+        id: "ninh_son",
+        type: "district",
+        name: "Huyện Ninh Sơn",
+        lat: 11.7083,
+        lon: 108.7708,
+        communes: [
+          { name: "Thị trấn Tân Sơn", lat: 11.7083, lon: 108.7708 },
+          { name: "Xã Hòa Sơn",       lat: 11.7083, lon: 108.7708 },
+          { name: "Xã Lâm Sơn",       lat: 11.7083, lon: 108.7708 },
+          { name: "Xã Lương Sơn",     lat: 11.7083, lon: 108.7708 },
+          { name: "Xã Ma Nới",        lat: 11.7083, lon: 108.7708 },
+          { name: "Xã Mỹ Sơn",        lat: 11.7083, lon: 108.7708 },
+          { name: "Xã Nhơn Sơn",      lat: 11.7083, lon: 108.7708 },
+          { name: "Xã Quảng Sơn",     lat: 11.7083, lon: 108.7708 }
+        ]
+      },
+      {
+        id: "bac_ai",
+        type: "district",
+        name: "Huyện Bác Ái",
+        lat: 11.8334,
+        lon: 108.8551,
+        communes: [
+          { name: "Xã Phước Bình",  lat: 11.8334, lon: 108.8551 },
+          { name: "Xã Phước Chính", lat: 11.8334, lon: 108.8551 },
+          { name: "Xã Phước Đại",   lat: 11.8334, lon: 108.8551 },
+          { name: "Xã Phước Hòa",   lat: 11.8334, lon: 108.8551 },
+          { name: "Xã Phước Tân",   lat: 11.8334, lon: 108.8551 },
+          { name: "Xã Phước Thắng", lat: 11.8334, lon: 108.8551 },
+          { name: "Xã Phước Thành", lat: 11.8334, lon: 108.8551 },
+          { name: "Xã Phước Tiến",  lat: 11.8334, lon: 108.8551 },
+          { name: "Xã Phước Trung", lat: 11.8334, lon: 108.8551 }
+        ]
+      },
+      {
+        id: "thuan_bac",
+        type: "district",
+        name: "Huyện Thuận Bắc",
+        lat: 11.73,
+        lon: 109.02,
+        communes: [
+          { name: "Xã Bắc Phong",  lat: 11.73, lon: 109.02 },
+          { name: "Xã Bắc Sơn",    lat: 11.73, lon: 109.02 },
+          { name: "Xã Công Hải",   lat: 11.73, lon: 109.02 },
+          { name: "Xã Lợi Hải",    lat: 11.73, lon: 109.02 },
+          { name: "Xã Phước Chiến",lat: 11.73, lon: 109.02 },
+          { name: "Xã Phước Kháng",lat: 11.73, lon: 109.02 }
+        ]
+      },
+      {
+        id: "thuan_nam",
+        type: "district",
+        name: "Huyện Thuận Nam",
+        lat: 11.35,
+        lon: 108.93,
+        communes: [
+          { name: "Xã Cà Ná",       lat: 11.35, lon: 108.93 },
+          { name: "Xã Phước Ninh",  lat: 11.35, lon: 108.93 },
+          { name: "Xã Phước Diêm",  lat: 11.35, lon: 108.93 },
+          { name: "Xã Phước Nam",   lat: 11.35, lon: 108.93 },
+          { name: "Xã Phước Dinh",  lat: 11.35, lon: 108.93 },
+          { name: "Xã Phước Minh",  lat: 11.35, lon: 108.93 },
+          { name: "Xã Phước Hà",    lat: 11.35, lon: 108.93 },
+          { name: "Xã Nhị Hà",      lat: 11.35, lon: 108.93 }
+        ]
+      },
+      { id: "ho_thanh_son", type: "reservoir", name: "Hồ Thành Sơn", lat: 11.741500, lon: 109.031680 },
+      { id: "ho_ong_kinh",  type: "reservoir", name: "Hồ Ông Kinh",  lat: 11.607557, lon: 109.124561 },
+      { id: "ho_nuoc_ngot", type: "reservoir", name: "Hồ Nước Ngọt", lat: 11.689060, lon: 109.162849 }
+    ];
+
+    const stationLayers = [];
+    const stationTbody = document.getElementById("station-tbody");
+    const communePanel = document.getElementById("commune-panel");
+
+    // ===== 3. Phân loại mưa =====
+    function classifyRain(mm) {
+      if (mm === null || mm === undefined || isNaN(mm)) {
+        return { label: "Không có dữ liệu", description: "", color: "#9ca3af" };
+      }
+      if (mm === 0) {
+        return { label: "Không mưa", description: "0 mm", color: "#9ca3af" };
+      } else if (mm > 0 && mm < 16) {
+        return { label: "Mưa nhỏ", description: "< 16 mm", color: "#22d3ee" };
+      } else if (mm >= 16 && mm < 51) {
+        return { label: "Mưa vừa", description: "16 – < 51 mm", color: "#22c55e" };
+      } else if (mm >= 51 && mm <= 100) {
+        return { label: "Mưa to", description: "51 – 100 mm", color: "#f97316" };
+      } else {
+        return { label: "Mưa rất to", description: "> 100 mm", color: "#ef4444" };
+      }
+    }
+
+    function classifyDailyRain(mm) {
+      if (mm === null || mm === undefined || isNaN(mm)) {
+        return { label: "Không có dữ liệu", description: "", tag: "N/A", color: "#9ca3af" };
+      }
+      if (mm === 0) {
+        return { label: "Không mưa", description: "0 mm/ngày", tag: "Rất tốt", color: "#9ca3af" };
+      } else if (mm > 0 && mm < 16) {
+        return { label: "Mưa nhỏ", description: "< 16 mm/ngày", tag: "Ít ảnh hưởng", color: "#22d3ee" };
+      } else if (mm >= 16 && mm < 51) {
+        return { label: "Mưa vừa", description: "16 – < 51 mm/ngày", tag: "Cần theo dõi", color: "#22c55e" };
+      } else if (mm >= 51 && mm <= 100) {
+        return { label: "Mưa to", description: "51 – 100 mm/ngày", tag: "Nguy cơ cao", color: "#f97316" };
+      } else {
+        return { label: "Mưa rất to", description: "> 100 mm/ngày", tag: "Rất nguy hiểm", color: "#ef4444" };
+      }
+    }
+
+    function formatTimeVN(isoString) {
+      if (!isoString) return "";
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return isoString;
+      const dd = String(d.getDate()).padStart(2, "0");
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const yyyy = d.getFullYear();
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mi = String(d.getMinutes()).padStart(2, "0");
+      return `${hh}:${mi} ${dd}/${mm}/${yyyy}`;
+    }
+
+    function formatShortDate(isoDateStr) {
+      if (!isoDateStr) return "";
+      const d = new Date(isoDateStr);
+      if (isNaN(d.getTime())) return isoDateStr;
+      const dd = String(d.getDate()).padStart(2, "0");
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      return `${dd}/${mm}`;
+    }
+
+    // ===== 4. Icon =====
+    function createDistrictIcon() {
+      return L.divIcon({
+        className: '',
+        html: '<div class="marker-icon marker-district">H</div>',
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+      });
+    }
+
+    function createReservoirIcon() {
+      return L.divIcon({
+        className: '',
+        html: '<div class="marker-icon marker-reservoir">💧</div>',
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+      });
+    }
+
+    // ===== 5. Bảng huyện/hồ =====
+    function initStationTable() {
+      stations.forEach((st, index) => {
+        const tr = document.createElement("tr");
+        tr.dataset.index = index;
+        tr.innerHTML = `
+          <td>${st.name}</td>
+          <td class="rain-cell value-loading">Đang tải…</td>
+        `;
+        tr.addEventListener("click", () => {
+          focusStation(index);
+          highlightRow(index);
+          showCommunesForDistrict(index);
+        });
+        stationTbody.appendChild(tr);
+      });
+    }
+
+    function highlightRow(index) {
+      const rows = stationTbody.querySelectorAll("tr");
+      rows.forEach(r => r.classList.remove("selected"));
+      const row = stationTbody.querySelector(`tr[data-index="${index}"]`);
+      if (row) row.classList.add("selected");
+    }
+
+    function updateStationRow(index, html, isError = false) {
+      const row = stationTbody.querySelector(`tr[data-index="${index}"]`);
+      if (!row) return;
+      const cell = row.querySelector(".rain-cell");
+      if (!cell) return;
+      cell.innerHTML = html;
+      cell.classList.remove("value-loading", "value-error");
+      if (isError) cell.classList.add("value-error");
+    }
+
+    initStationTable();
+
+    function focusStation(index) {
+      const st = stations[index];
+      if (!st) return;
+      map.setView([st.lat, st.lon], 11);
+      const layer = stationLayers[index];
+      if (layer && layer.marker) {
+        layer.marker.openPopup();
+      }
+    }
+
+    // ===== 6. Mưa hiện tại huyện/hồ – dùng hourly =====
+    async function loadRainForStation(station, index) {
+      const url =
+        `https://api.open-meteo.com/v1/forecast` +
+        `?latitude=${station.lat}` +
+        `&longitude=${station.lon}` +
+        `&daily=rain_sum,precipitation_sum,temperature_2m_max,temperature_2m_min` +
+        `&hourly=temperature_2m,rain,precipitation,relative_humidity_2m,wind_speed_10m` +
+        `&timezone=auto&forecast_days=1`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        const hourly = data.hourly || {};
+        const times = hourly.time || [];
+        const rainArr = (hourly.rain && hourly.rain.length ? hourly.rain : hourly.precipitation) || [];
+
+        let rainMm = null;
+        let timeStr = null;
+        let idxClosest = -1;
+
+        if (times.length && rainArr.length) {
+          const now = new Date();
+          let minDiff = Infinity;
+          for (let i = 0; i < times.length; i++) {
+            const t = new Date(times[i]);
+            const diff = Math.abs(t - now);
+            if (diff < minDiff) {
+              minDiff = diff;
+              idxClosest = i;
+            }
+          }
+          if (idxClosest >= 0) {
+            rainMm = typeof rainArr[idxClosest] === "number" ? rainArr[idxClosest] : null;
+            timeStr = times[idxClosest];
+          }
+        }
+
+        const cls = classifyRain(rainMm);
+        const icon = station.type === "reservoir" ? createReservoirIcon() : createDistrictIcon();
+        const marker = L.marker([station.lat, station.lon], { icon }).addTo(rainLayer);
+        stationLayers[index] = { marker };
+
+        const rainText = rainMm === null ? "—" : rainMm.toFixed(2).replace(".", ",");
+
+        const popupHtml = `
+          <div style="min-width: 230px; font-size: 13px;">
+            <strong>${station.name}</strong><br/>
+            <span>Mưa hiện tại: <b>${rainText} mm/giờ</b></span><br/>
+            <span>Mức: <b>${cls.label}</b> (${cls.description})</span><br/>
+            <span>Thời điểm (giờ địa phương):<br/><b>${formatTimeVN(timeStr)}</b></span><br/>
+            <span style="font-size: 11px; color: #6b7280;">
+              Dữ liệu: Open-Meteo · hourly rain/precipitation
+            </span>
+          </div>
+        `;
+        marker.bindPopup(popupHtml);
+
+        const cellHtml = `
+          <div class="rain-badge" style="border-color:${cls.color};">
+            <span class="rain-badge-dot" style="background:${cls.color};"></span>
+            <span>${cls.label}</span>
+          </div>
+          <div style="font-size:11px;margin-top:2px;">${rainText} mm/giờ</div>
+        `;
+        updateStationRow(index, cellHtml);
+
+      } catch (err) {
+        console.error("Lỗi lấy mưa cho", station.name, err);
+        updateStationRow(index, "Lỗi dữ liệu", true);
+      }
+    }
+
+    stations.forEach((st, idx) => loadRainForStation(st, idx));
+
+    // ===== 7. Bảng xã – mỗi xã GỌI API RIÊNG =====
+    function hideCommunePanel() {
+      communePanel.style.display = "none";
+      communePanel.innerHTML = "";
+    }
+    window.hideCommunePanel = hideCommunePanel;
+
+    function showCommunesForDistrict(index) {
+      const st = stations[index];
+
+      if (!st || !st.communes || !Array.isArray(st.communes) || st.communes.length === 0) {
+        communePanel.style.display = "block";
+        communePanel.innerHTML = `
+          <div class="commune-card">
+            <div class="commune-header">
+              <div>
+                <div class="commune-title">Danh sách xã / phường</div>
+                <div class="commune-subtitle">Điểm: ${st ? st.name : ""}</div>
+              </div>
+              <button class="commune-close" onclick="hideCommunePanel()">✕</button>
+            </div>
+            <div style="font-size:11px;color:#6b7280;">
+              Điểm này là hồ chứa, chưa khai báo danh sách xã chi tiết.
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      let rowsHtml = "";
+      st.communes.forEach((c, i) => {
+        rowsHtml += `
+          <tr data-cindex="${i}">
+            <td>${c.name}</td>
+            <td class="commune-rain-cell value-loading">Đang tải…</td>
+          </tr>
+        `;
+      });
+
+      communePanel.style.display = "block";
+      communePanel.innerHTML = `
+        <div class="commune-card">
+          <div class="commune-header">
+            <div>
+              <div class="commune-title">Xã / Phường thuộc ${st.name}</div>
+              <div class="commune-subtitle">Mưa ngày 24h (mm)</div>
+            </div>
+            <button class="commune-close" onclick="hideCommunePanel()">✕</button>
+          </div>
+          <div class="commune-table-wrapper">
+            <table class="commune-table">
+              <thead>
+                <tr>
+                  <th style="width:55%;">Xã / Phường</th>
+                  <th style="width:45%;">Mưa ngày</th>
+                </tr>
+              </thead>
+              <tbody id="commune-tbody">
+                ${rowsHtml}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      loadDailyRainForCommunes(st);
+    }
+
+    // Gọi API riêng từng xã
+    async function loadDailyRainForCommunes(station) {
+      const tbody = document.getElementById("commune-tbody");
+      if (!tbody) return;
+
+      station.communes.forEach(async (commune, idx) => {
+        const url =
+          `https://api.open-meteo.com/v1/forecast` +
+          `?latitude=${commune.lat}` +
+          `&longitude=${commune.lon}` +
+          `&daily=rain_sum,precipitation_sum,temperature_2m_max,temperature_2m_min` +
+          `&hourly=temperature_2m,rain,precipitation,relative_humidity_2m,wind_speed_10m` +
+          `&timezone=auto&forecast_days=1`;
+
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          const daily = data.daily || {};
+          const arr = daily.precipitation_sum || [];
+          const mm = typeof arr[0] === "number" ? arr[0] : null;
+
+          const cls = classifyDailyRain(mm);
+          const mmText = mm === null ? "—" : mm.toFixed(1).replace(".", ",");
+
+          const row = tbody.querySelector(`tr[data-cindex="${idx}"]`);
+          if (!row) return;
+          const cell = row.querySelector(".commune-rain-cell");
+          if (!cell) return;
+
+          cell.classList.remove("value-loading", "value-error");
+          cell.innerHTML = `
+            <div class="rain-badge" style="border-color:${cls.color};">
+              <span class="rain-badge-dot" style="background:${cls.color};"></span>
+              <span>${cls.label}</span>
+            </div>
+            <div style="font-size:11px;margin-top:2px;">${mmText} mm/ngày</div>
+          `;
+        } catch (err) {
+          console.error("Lỗi mưa ngày cho xã", commune.name, err);
+          const row = tbody.querySelector(`tr[data-cindex="${idx}"]`);
+          if (!row) return;
+          const cell = row.querySelector(".commune-rain-cell");
+          if (!cell) return;
+
+          cell.textContent = "Lỗi dữ liệu";
+          cell.classList.remove("value-loading");
+          cell.classList.add("value-error");
+        }
+      });
+    }
+
+    // ===== 8. KPI 3 ngày – daily.precipitation_sum =====
+    async function loadKpiForecast() {
+      const kpiPanel = document.getElementById("kpi-panel");
+      const lat = 11.5643; // trung tâm Ninh Thuận anh đưa
+      const lon = 108.9886;
+
+      const url =
+        `https://api.open-meteo.com/v1/forecast` +
+        `?latitude=${lat}` +
+        `&longitude=${lon}` +
+        `&daily=rain_sum,precipitation_sum,temperature_2m_max,temperature_2m_min` +
+        `&hourly=temperature_2m,rain,precipitation,relative_humidity_2m,wind_speed_10m` +
+        `&timezone=auto&forecast_days=5`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const daily = data.daily || {};
+        const times = daily.time || [];
+        const prec = daily.precipitation_sum || [];
+
+        const dayCards = [];
+        for (let i = 0; i < 3 && i < times.length; i++) {
+          const mm = typeof prec[i] === "number" ? prec[i] : null;
+          const cls = classifyDailyRain(mm);
+          let dayLabel;
+          if (i === 0) dayLabel = "Hôm nay";
+          else if (i === 1) dayLabel = "Ngày mai";
+          else dayLabel = `Ngày ${formatShortDate(times[i])}`;
+
+          const mmText = mm === null ? "—" : mm.toFixed(1).replace(".", ",");
+
+          dayCards.push(`
+            <div class="kpi-card kpi-day-card">
+              <div class="kpi-header">
+                <span class="kpi-day">${dayLabel}</span>
+                <span class="kpi-value">${mmText} mm/ngày</span>
+              </div>
+              <div>${cls.label} (${cls.description})</div>
+              <div class="kpi-note">Đánh giá: ${cls.tag}</div>
+            </div>
+          `);
+        }
+
+        kpiPanel.innerHTML = `
+          <div class="kpi-card kpi-main-card">
+            <div class="kpi-title-main">KPI mưa 3 ngày tới (trung tâm Ninh Thuận)</div>
+            <div class="kpi-note">
+              Nguồn: Open-Meteo · daily.precipitation_sum
+            </div>
+          </div>
+          <div class="kpi-row">
+            ${dayCards.join("")}
+          </div>
+        `;
+      } catch (err) {
+        console.error("Lỗi KPI forecast", err);
+        kpiPanel.innerHTML = `
+          <div class="kpi-card kpi-main-card">
+            <div class="kpi-title-main">KPI mưa 3 ngày tới</div>
+            <div class="kpi-note" style="color:#b91c1c;">
+              Không lấy được dữ liệu dự báo (lỗi kết nối).
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    loadKpiForecast();
+
+    // ===== 9. Cập nhật giờ "Dữ liệu được cập nhật lúc..." =====
+    function updateTimeNow() {
+      const el = document.getElementById("updated-time");
+      if (!el) return;
+
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2, '0');
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const yyyy = now.getFullYear();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mi = String(now.getMinutes()).padStart(2, '0');
+
+      el.innerHTML = `Dữ liệu được cập nhật lúc ${hh}:${mi} ngày ${dd}/${mm}/${yyyy}`;
+    }
+
+    updateTimeNow();
+
+    // ===== 10. Legend =====
+    const legend = L.control({ position: "bottomright" });
+
+    legend.onAdd = function () {
+      const div = L.DomUtil.create("div", "legend leaflet-control");
+      div.innerHTML = `
+        <div style="font-weight: 600; margin-bottom: 4px;">Mức mưa (mm)</div>
+        <div class="legend-row">
+          <span class="legend-color" style="background:#9ca3af;"></span>
+          <span>Không mưa</span>
+        </div>
+        <div class="legend-row">
+          <span class="legend-color" style="background:#22d3ee;"></span>
+          <span>Mưa nhỏ (mưa nhỏ hơn 16mm)</span>
+        </div>
+        <div class="legend-row">
+          <span class="legend-color" style="background:#22c55e;"></span>
+          <span>Mưa vừa (mưa từ 16mm đến dưới 51mm)</span>
+        </div>
+        <div class="legend-row">
+          <span class="legend-color" style="background:#f97316;"></span>
+          <span>Mưa to (mưa từ 51mm đến 100mm)</span>
+        </div>
+        <div class="legend-row" style="margin-bottom:0;">
+          <span class="legend-color" style="background:#ef4444;"></span>
+          <span>Mưa rất to (mưa lớn hơn 100mm)</span>
+        </div>
+      `;
+      return div;
+    };
+
+    legend.addTo(map);
+  </script>
+</body>
+</html>
