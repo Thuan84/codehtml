@@ -13,12 +13,6 @@
     crossorigin=""
   />
 
-  <!-- Leaflet Velocity CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet-velocity/dist/leaflet-velocity.css"
-  />
-
   <style>
     html, body {
       height: 100%;
@@ -77,62 +71,6 @@
       z-index: 1000;
     }
 
-    /* KPI – bên phải */
-    .kpi-panel {
-      position: absolute;
-      top: 90px;
-      right: 10px;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-width: 360px;
-      align-items: stretch;
-    }
-    .kpi-card {
-      background: #ffffff;
-      border-radius: 14px;
-      padding: 8px 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
-      font-size: 12px;
-      border: 1px solid #e5e7eb;
-    }
-    .kpi-main-card {
-      border-left: 3px solid #1EA48D;
-    }
-    .kpi-row {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .kpi-day-card {
-      background: linear-gradient(135deg,#e0f2fe,#cffafe);
-      border-color: #bae6fd;
-    }
-    .kpi-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 4px;
-    }
-    .kpi-day {
-      font-weight: 600;
-      font-size: 12px;
-    }
-    .kpi-value {
-      font-weight: 700;
-      font-size: 13px;
-    }
-    .kpi-note {
-      font-size: 11px;
-      color: #4b5563;
-    }
-    .kpi-title-main {
-      font-weight: 600;
-      font-size: 13px;
-      margin-bottom: 2px;
-    }
-
     /* PANEL HUYỆN/HỒ + XÃ – góc dưới bên trái */
     .station-panel {
       position: absolute;
@@ -147,17 +85,16 @@
       flex-wrap: wrap;
     }
 
-    /* Card huyện/hồ */
+    /* Card huyện/hồ – phong cách Windy: nền tối, chữ sáng, rộng hơn */
     .station-card {
-      background: rgba(255,255,255,0.95);
-      border-radius: 12px;
-      padding: 8px 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      font-size: 12px;
-      border-left: 3px solid #2563eb;
-      display: flex;
-      flex-direction: column;
-      width: 340px;
+      background: rgba(15,23,42,0.95); /* slate-900 */
+      border-radius: 16px;
+      padding: 6px 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+      font-size: 11px;
+      width: 320px; /* rộng hơn */
+      color: #e5e7eb;
+      border: 1px solid rgba(148,163,184,0.5);
     }
     .station-title {
       margin-bottom: 4px;
@@ -167,66 +104,88 @@
     }
     .station-title-main {
       font-weight: 700;
-      font-size: 13px;
-      color: #111827;
+      font-size: 12px;
+      color: #f9fafb;
     }
     .station-title span {
-      font-size: 11px;
-      color: #6b7280;
+      font-size: 10px;
+      color: #9ca3af;
       font-weight: 400;
     }
     .station-updated {
-      font-size: 11px;
-      color: #6b7280;
-      margin-top: 2px;
+      font-size: 10px;
+      color: #9ca3af;
+      margin-top: 1px;
     }
+
+    /* Bảng huyện kiểu list Windy */
     .station-table-wrapper {
       margin-top: 4px;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      overflow: hidden;
+      border-radius: 12px;
+      border: none;
+      overflow: visible;
     }
     table.station-table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;   /* để dùng border-spacing tạo khoảng cách giữa các row */
+      border-spacing: 0 4px;       /* khoảng cách dọc giữa các huyện */
       font-size: 11px;
     }
+
+    /* Ẩn header, chỉ giữ nội dung như list Windy */
     .station-table thead {
-      background: linear-gradient(90deg,#2563eb,#38bdf8);
-      color: #ffffff;
+      display: none;
     }
+
     .station-table th,
     .station-table td {
-      padding: 4px 6px;
-      border-bottom: 1px solid #e5e7eb;
+      padding: 2px 6px;
+      border: none;
+      font-size: 11px;
     }
-    .station-table th {
-      text-align: left;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-    .station-table tr {
+
+    .station-table tbody tr {
+      background: rgba(15,23,42,0.95);
+      color: #e5e7eb;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      border-left: 3px solid transparent; /* màu sẽ set bằng JS theo cấp mưa */
       cursor: pointer;
+      transition: transform 0.07s ease, box-shadow 0.07s ease, background 0.07s ease;
     }
-    .station-table tbody tr:nth-child(even) {
-      background: #f9fafb;
-    }
+
     .station-table tbody tr:hover {
-      background: #eff6ff;
+      background: rgba(30,64,175,0.85); /* xanh dương đậm khi hover */
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.5);
     }
+
     .station-table tr.selected {
-      background: #dbeafe;
+      outline: 1px solid #facc15; /* vàng như windy chọn điểm */
+      outline-offset: 0;
     }
+
     .station-table td.value-loading {
       color: #9ca3af;
       font-style: italic;
     }
     .station-table td.value-error {
-      color: #b91c1c;
+      color: #fecaca;
       font-style: italic;
     }
 
-    /* Card xã */
+    /* Cột tên điểm + cột mưa/gió */
+    .station-table td:first-child {
+      width: 48%;
+      font-weight: 600;
+      font-size: 11px;
+      white-space: normal;
+    }
+    .station-table td:last-child {
+      width: 52%;
+    }
+
+    /* Card xã (giữ sáng cho dễ nhìn text) */
     #commune-panel {
       display: none;
     }
@@ -303,21 +262,22 @@
       font-style: italic;
     }
 
-    /* badge trạng thái mưa */
+    /* badge trạng thái mưa – sửa cho hợp nền tối */
     .rain-badge {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 1px 6px;
+      padding: 1px 5px;
       border-radius: 999px;
       font-weight: 600;
-      font-size: 10px;
-      border: 1px solid transparent;
-      background: rgba(255,255,255,0.9);
+      font-size: 9px;
+      border: 1px solid rgba(148,163,184,0.9);
+      background: rgba(15,23,42,0.9);
+      color: #e5e7eb;
     }
     .rain-badge-dot {
-      width: 8px;
-      height: 8px;
+      width: 6px;
+      height: 6px;
       border-radius: 999px;
     }
 
@@ -394,17 +354,15 @@
       background-position: center;
       border: 1px solid rgba(255,255,255,0.8);
     }
-    /* màu tượng trưng cho từng lớp */
-    .thumb-radar     { background-image: linear-gradient(135deg,#22c55e,#0ea5e9); }
-    .thumb-sat       { background-image: linear-gradient(135deg,#0f172a,#9ca3af); }
-    .thumb-wind      { background-image: linear-gradient(135deg,#0ea5e9,#22d3ee); }
-    .thumb-rain      { background-image: linear-gradient(135deg,#1d4ed8,#a855f7); }
-    .thumb-temp      { background-image: linear-gradient(135deg,#f97316,#ef4444); }
-    .thumb-wind-anim { background-image: linear-gradient(135deg,#22c55e,#eab308); }
+    .thumb-radar { background-image: linear-gradient(135deg,#22c55e,#0ea5e9); }
+    .thumb-sat   { background-image: linear-gradient(135deg,#0f172a,#9ca3af); }
+    .thumb-wind  { background-image: linear-gradient(135deg,#0ea5e9,#22d3ee); }
+    .thumb-rain  { background-image: linear-gradient(135deg,#1d4ed8,#a855f7); }
+    .thumb-temp  { background-image: linear-gradient(135deg,#f97316,#ef4444); }
   </style>
 </head>
 <body>
-  <div class="map-title">BẢN ĐỒ MƯA NINH THUẬN (Open-Meteo) + Layer nền (OpenWeatherMap)</div>
+  
   <div id="map"></div>
 
   <!-- MENU LAYER THỜI TIẾT BÊN PHẢI -->
@@ -429,14 +387,7 @@
       <span class="weather-layer-thumb thumb-temp"></span>
       <span>Nhiệt độ</span>
     </button>
-    <button class="weather-layer-item" data-layer="windDynamic">
-      <span class="weather-layer-thumb thumb-wind-anim"></span>
-      <span>Gió động</span>
-    </button>
   </div>
-
-  <!-- KPI bên phải -->
-  <div id="kpi-panel" class="kpi-panel"></div>
 
   <!-- Góc dưới trái -->
   <div class="station-panel">
@@ -446,14 +397,14 @@
           <div class="station-title-main">Danh sách huyện / hồ chứa</div>
           <div id="updated-time" class="station-updated">Đang cập nhật...</div>
         </div>
-        
+        <span>Click để zoom & xem danh sách xã</span>
       </div>
       <div class="station-table-wrapper">
         <table class="station-table">
           <thead>
             <tr>
-              <th style="width:55%;">Điểm</th>
-              <th style="width:45%;">Mưa hiện tại</th>
+              <th>Điểm</th>
+              <th>Mưa / Gió</th>
             </tr>
           </thead>
           <tbody id="station-tbody">
@@ -467,7 +418,7 @@
   </div>
 
   <div class="data-source">
-    Nguồn: Open-Meteo (mưa, gió, trạng thái) · OpenWeatherMap (Radar, vệ tinh, gió, mưa, nhiệt độ dạng bản đồ) · Gió động: dữ liệu demo leaflet-velocity
+    Nguồn: Open-Meteo (mưa, gió, trạng thái) · OpenWeatherMap (Radar, vệ tinh, gió, mưa, nhiệt độ dạng bản đồ)
   </div>
 
   <!-- Leaflet JS -->
@@ -476,9 +427,6 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
-
-  <!-- Leaflet Velocity JS -->
-  <script src="https://unpkg.com/leaflet-velocity/dist/leaflet-velocity.min.js"></script>
 
   <script>
     // ====== CONFIG OPENWEATHERMAP CHO CÁC LỚP BẢN ĐỒ ======
@@ -517,110 +465,88 @@
     const owmLayers = {
       radar: L.tileLayer(
         `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`,
-        { opacity: 1 }
+        { opacity: 0.95, zIndex: 500 }
       ),
-      satellite: L.tileLayer(
+      clouds: L.tileLayer(
         `https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`,
-        { opacity: 1 }
+        { opacity: 0.7, zIndex: 490 }
       ),
       wind: L.tileLayer(
         `https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`,
-        { opacity: 1 }
-      ),
-      rain: L.tileLayer(
-        `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`,
-        { opacity: 1 }
+        { opacity: 0.9, zIndex: 480 }
       ),
       temp: L.tileLayer(
         `https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`,
-        { opacity: 1 }
+        { opacity: 0.9, zIndex: 480 }
       )
     };
 
-    // ===== LỚP "GIÓ ĐỘNG" – LEAFLET-VELOCITY =====
-    let velocityLayer = null;
-    let velocityDataLoaded = false;
-
-    async function ensureVelocityLayer() {
-      if (velocityLayer && velocityDataLoaded) return velocityLayer;
-
-      // Dữ liệu mẫu từ repo leaflet-velocity (không phải realtime, nhưng đủ để demo hiệu ứng gió).
-      const url = "https://raw.githubusercontent.com/danwild/leaflet-velocity/master/demo/2016112000.json";
-      const res = await fetch(url);
-      const json = await res.json();
-
-      velocityLayer = L.velocityLayer({
-        data: json,
-        maxVelocity: 25,          // m/s
-        velocityScale: 0.005,     // độ dài vector
-        lineWidth: 2,
-        colorScale: ["#00ffff", "#00ff00", "#ffff00", "#ff0000"],
-        displayValues: true,
-        displayOptions: {
-          velocityType: "Gió",
-          position: "bottomleft",
-          emptyString: "Không có dữ liệu gió",
-          speedUnit: "m/s"
-        },
-        // Giới hạn vùng hiển thị quanh Ninh Thuận để tập trung hơn
-        // bounds: [[10.5, 107.5], [12.5, 110.5]]
-      });
-
-      velocityDataLoaded = true;
-      return velocityLayer;
+    function setBaseOpacityForRainMode(isRainMode) {
+      if (isRainMode) {
+        osm.setOpacity(0.7);
+        satellite.setOpacity(0.5);
+      } else {
+        osm.setOpacity(1);
+        satellite.setOpacity(1);
+      }
     }
 
-    // Xử lý click menu bên phải để bật/tắt layer
+    function forceStreetBaseForRain() {
+      if (!map.hasLayer(osm)) {
+        osm.addTo(map);
+      }
+      if (map.hasLayer(satellite)) {
+        map.removeLayer(satellite);
+      }
+    }
+
+    // ===== MENU LAYER THỜI TIẾT =====
     const menuEl = document.getElementById('weather-layer-menu');
     const layerButtons = menuEl.querySelectorAll('.weather-layer-item');
 
-    // Không cho map bắt sự kiện khi click menu
     L.DomEvent.disableClickPropagation(menuEl);
 
     function deactivateAllWeatherButtons() {
       layerButtons.forEach(btn => btn.classList.remove('active'));
     }
     function removeAllWeatherTileLayers() {
-      Object.keys(owmLayers).forEach(key => {
-        if (map.hasLayer(owmLayers[key])) {
-          map.removeLayer(owmLayers[key]);
+      Object.values(owmLayers).forEach(layer => {
+        if (map.hasLayer(layer)) {
+          map.removeLayer(layer);
         }
       });
-    }
-    function removeVelocityLayerIfAny() {
-      if (velocityLayer && map.hasLayer(velocityLayer)) {
-        map.removeLayer(velocityLayer);
-      }
+      setBaseOpacityForRainMode(false);
     }
 
     layerButtons.forEach(btn => {
-      btn.addEventListener('click', async () => {
+      btn.addEventListener('click', () => {
         const layerId = btn.dataset.layer;
         const isActive = btn.classList.contains('active');
 
-        // Tắt hết mọi thứ trước
         removeAllWeatherTileLayers();
-        removeVelocityLayerIfAny();
         deactivateAllWeatherButtons();
 
-        if (isActive) {
-          // Nếu đã active rồi thì click lần nữa là tắt, không bật gì cả
-          return;
-        }
+        if (isActive) return;
 
-        if (layerId === 'windDynamic') {
-          try {
-            const vLayer = await ensureVelocityLayer();
-            map.addLayer(vLayer);
-            btn.classList.add('active');
-          } catch (e) {
-            console.error("Lỗi tải dữ liệu gió động:", e);
-            alert("Không tải được dữ liệu gió động (leaflet-velocity).");
-          }
-        } else {
-          const layer = owmLayers[layerId];
-          if (!layer) return;
-          map.addLayer(layer);
+        if (layerId === 'radar') {
+          forceStreetBaseForRain();
+          setBaseOpacityForRainMode(true);
+          map.addLayer(owmLayers.radar);
+          btn.classList.add('active');
+        } else if (layerId === 'rain') {
+          forceStreetBaseForRain();
+          setBaseOpacityForRainMode(true);
+          map.addLayer(owmLayers.radar);
+          map.addLayer(owmLayers.clouds);
+          btn.classList.add('active');
+        } else if (layerId === 'satellite') {
+          map.addLayer(owmLayers.clouds);
+          btn.classList.add('active');
+        } else if (layerId === 'wind') {
+          map.addLayer(owmLayers.wind);
+          btn.classList.add('active');
+        } else if (layerId === 'temp') {
+          map.addLayer(owmLayers.temp);
           btn.classList.add('active');
         }
       });
@@ -849,15 +775,6 @@
       return `${hh}:${mi} ${dd}/${mm}/${yyyy}`;
     }
 
-    function formatShortDate(isoDateStr) {
-      if (!isoDateStr) return "";
-      const d = new Date(isoDateStr);
-      if (isNaN(d.getTime())) return isoDateStr;
-      const dd = String(d.getDate()).padStart(2, "0");
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      return `${dd}/${mm}`;
-    }
-
     // ===== 4. Icon =====
     function createDistrictIcon() {
       return L.divIcon({
@@ -943,14 +860,12 @@
         const times = hourly.time || [];
         const rainArr = (hourly.rain && hourly.rain.length ? hourly.rain : hourly.precipitation) || [];
 
-        // Thời tiết & gió hiện tại
         const cw = data.current_weather || {};
         const weatherCode = (typeof cw.weathercode === "number") ? cw.weathercode : null;
         const weatherDesc = describeWeatherCode(weatherCode);
         const windSpeed = (typeof cw.windspeed === "number") ? cw.windspeed : null; // km/h
         const windInfo = classifyWind(windSpeed);
         const windText = windSpeed === null ? "—" : windSpeed.toFixed(1).replace(".", ",");
-        const hasThunder = weatherCode === 95 || weatherCode === 96 || weatherCode === 99;
 
         let rainMm = null;
         let timeStr = null;
@@ -981,37 +896,34 @@
         const rainText = rainMm === null ? "—" : rainMm.toFixed(2).replace(".", ",");
 
         const popupHtml = `
-          <div style="min-width: 240px; font-size: 13px;">
-            <strong>${station.name}</strong><br/>
-            <span>Mưa hiện tại: <b>${rainText} mm/giờ</b></span><br/>
-            <span>Mức mưa: <b>${cls.label}</b> (${cls.description})</span><br/>
-            <span>Thời điểm (giờ địa phương):<br/><b>${formatTimeVN(timeStr)}</b></span><br/>
-            <hr style="margin:6px 0;border:none;border-top:1px solid #e5e7eb;" />
-            <span>Thời tiết hiện tại: <b>${weatherDesc}</b></span><br/>
-            <span>Gió: <b>${windText} km/h</b> – ${windInfo.label}</span>
-            ${
-              hasThunder
-                ? '<div style="color:#b91c1c;font-size:11px;margin-top:4px;">⚠️ Có dông / thời tiết xấu, cần theo dõi.</div>'
-                : ''
-            }
-            <div style="font-size: 11px; color: #6b7280; margin-top:4px;">
-              Dữ liệu: Open-Meteo · hourly rain & current_weather
-            </div>
+          <div style="min-width:200px;font-size:12px;">
+            <b>${station.name}</b><br/>
+            Mưa: <b>${rainText} mm/giờ</b> – ${cls.label}<br/>
+            Gió: <b>${windText} km/h</b> – ${windInfo.label}<br/>
+            Thời tiết: ${weatherDesc}<br/>
+            <span style="color:#6b7280;font-size:10px;">${formatTimeVN(timeStr)}</span><br/>
+            <span style="font-size:10px;color:#9ca3af;">Dữ liệu: Open-Meteo</span>
           </div>
         `;
         marker.bindPopup(popupHtml);
 
         const cellHtml = `
-          <div class="rain-badge" style="border-color:${cls.color};">
-            <span class="rain-badge-dot" style="background:${cls.color};"></span>
-            <span>${cls.label}</span>
-          </div>
-          <div style="font-size:11px;margin-top:2px;">${rainText} mm/giờ</div>
-          <div style="font-size:10px;color:#4b5563;margin-top:2px;">
-            ${weatherDesc} · Gió ${windText} km/h
+          <div style="font-size:11px;">
+            <div class="rain-badge" style="border-color:${cls.color};">
+              <span class="rain-badge-dot" style="background:${cls.color};"></span>
+              ${cls.label}
+            </div>
+            <div>Mưa: ${rainText} mm/giờ</div>
+            <div>Gió: ${windText} km/h – ${windInfo.label}</div>
           </div>
         `;
         updateStationRow(index, cellHtml);
+
+        // Gán màu viền trái theo cấp mưa cho từng huyện (hiệu ứng Windy)
+        const row = stationTbody.querySelector(`tr[data-index="${index}"]`);
+        if (row) {
+          row.style.borderLeftColor = cls.color;
+        }
 
       } catch (err) {
         console.error("Lỗi lấy mưa cho", station.name, err);
@@ -1021,7 +933,7 @@
 
     stations.forEach((st, idx) => loadRainForStation(st, idx));
 
-    // ===== 7. Bảng xã – mỗi xã GỌI API RIÊNG =====
+    // ===== 7. Bảng xã =====
     function hideCommunePanel() {
       communePanel.style.display = "none";
       communePanel.innerHTML = "";
@@ -1139,77 +1051,7 @@
       });
     }
 
-    // ===== 8. KPI 3 ngày – daily.precipitation_sum =====
-    async function loadKpiForecast() {
-      const kpiPanel = document.getElementById("kpi-panel");
-      const lat = 11.5643;
-      const lon = 108.9886;
-
-      const url =
-        `https://api.open-meteo.com/v1/forecast` +
-        `?latitude=${lat}` +
-        `&longitude=${lon}` +
-        `&daily=rain_sum,precipitation_sum,temperature_2m_max,temperature_2m_min` +
-        `&hourly=temperature_2m,rain,precipitation,relative_humidity_2m,wind_speed_10m` +
-        `&timezone=auto&forecast_days=5`;
-
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        const daily = data.daily || {};
-        const times = daily.time || [];
-        const prec = daily.precipitation_sum || [];
-
-        const dayCards = [];
-        for (let i = 0; i < 3 && i < times.length; i++) {
-          const mm = typeof prec[i] === "number" ? prec[i] : null;
-          const cls = classifyDailyRain(mm);
-          let dayLabel;
-          if (i === 0) dayLabel = "Hôm nay";
-          else if (i === 1) dayLabel = "Ngày mai";
-          else dayLabel = `Ngày ${formatShortDate(times[i])}`;
-
-          const mmText = mm === null ? "—" : mm.toFixed(1).replace(".", ",");
-
-          dayCards.push(`
-            <div class="kpi-card kpi-day-card">
-              <div class="kpi-header">
-                <span class="kpi-day">${dayLabel}</span>
-                <span class="kpi-value">${mmText} mm/ngày</span>
-              </div>
-              <div>${cls.label} (${cls.description})</div>
-              <div class="kpi-note">Đánh giá: ${cls.tag}</div>
-            </div>
-          `);
-        }
-
-        kpiPanel.innerHTML = `
-          <div class="kpi-card kpi-main-card">
-            <div class="kpi-title-main">KPI mưa 3 ngày tới (trung tâm Ninh Thuận)</div>
-            <div class="kpi-note">
-              Nguồn: Open-Meteo · daily.precipitation_sum
-            </div>
-          </div>
-          <div class="kpi-row">
-            ${dayCards.join("")}
-          </div>
-        `;
-      } catch (err) {
-        console.error("Lỗi KPI forecast", err);
-        kpiPanel.innerHTML = `
-          <div class="kpi-card kpi-main-card">
-            <div class="kpi-title-main">KPI mưa 3 ngày tới</div>
-            <div class="kpi-note" style="color:#b91c1c;">
-              Không lấy được dữ liệu dự báo (lỗi kết nối).
-            </div>
-          </div>
-        `;
-      }
-    }
-
-    loadKpiForecast();
-
-    // ===== 9. Cập nhật giờ "Dữ liệu được cập nhật lúc..." =====
+    // ===== 8. Cập nhật giờ "Dữ liệu được cập nhật lúc..." =====
     function updateTimeNow() {
       const el = document.getElementById("updated-time");
       if (!el) return;
@@ -1226,7 +1068,7 @@
 
     updateTimeNow();
 
-    // ===== 10. Legend =====
+    // ===== 9. Legend =====
     const legend = L.control({ position: "bottomright" });
 
     legend.onAdd = function () {
