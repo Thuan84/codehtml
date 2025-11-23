@@ -37,6 +37,9 @@
             --warning-danger: #ef4444;
             --warning-critical: #991b1b;
             --dashboard-primary: #3b82f6;
+            --sidebar-bg: #1a2b3d;
+            --sidebar-text: #ffffff;
+            --sidebar-active: #0ea5e9;
         }
 
         body {
@@ -44,8 +47,81 @@
             background: #f4f6f8;
             color: var(--ink);
             margin: 0;
-            padding: 20px;
+            padding: 0;
             font-size: 14pt;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 20px 0;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 18pt;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 5px;
+        }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 12px 20px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            transition: background-color 0.2s;
+            font-size: 14pt;
+        }
+
+        .sidebar-menu a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-menu a.active {
+            background-color: var(--sidebar-active);
+            font-weight: bold;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
         }
 
         .container {
@@ -210,39 +286,29 @@
         }
 
         .kpi-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    margin: 14px 0 6px;
-    justify-content: space-between;
-}
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin: 14px 0 6px;
+            justify-content: space-between;
+        }
 
-.kpi {
-    position: relative;
-    background: var(--card-bg);
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 14px 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, .04);
-    flex: 1 1 150px; /* Cho phép các thẻ co giãn đều nhau */
-    min-width: 150px; /* Đảm bảo chiều rộng tối thiểu */
-    max-width: 220px; /* Đặt chiều rộng tối đa để tránh quá rộng */
-}
-
-.kpi::before {
-    content: "";
-    position: absolute;
-    inset: auto 0 0 0;
-    height: 6px;
-    border-bottom-left-radius: 14px;
-    border-bottom-right-radius: 14px;
-}
-/* ... (các thuộc tính khác của .kpi) ... */
+        .kpi {
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 14px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, .04);
+            flex: 1 1 150px; /* Cho phép các thẻ co giãn đều nhau */
+            min-width: 150px; /* Đảm bảo chiều rộng tối thiểu */
+            max-width: 220px; /* Đặt chiều rộng tối đa để tránh quá rộng */
+        }
 
         .kpi::before {
             content: "";
@@ -1020,6 +1086,82 @@
             background: #5a6268;
         }
 
+        /* Rain Gauge Station Styles */
+        .rain-gauge-container {
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .rain-gauge-title {
+            font-size: 16pt;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #0ea5e9;
+        }
+
+        .rain-gauge-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .rain-gauge-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .rain-gauge-card-title {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #334155;
+        }
+
+        .rain-gauge-placeholder {
+            padding: 40px;
+            text-align: center;
+            color: #64748b;
+            font-style: italic;
+        }
+
+        /* Map Container Styles - Updated for full height */
+        .rain-gauge-map-container {
+            margin-top: 10px;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 8px;
+            height: calc(100vh - 200px); /* Full height minus header and margins */
+            min-height: 600px; /* Minimum height for smaller screens */
+        }
+
+        .rain-gauge-map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+
+        /* Mobile Responsive */
+        .menu-toggle-btn {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 101;
+            background: var(--sidebar-bg);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
         @media print {
             body {
                 background: #fff;
@@ -1029,6 +1171,14 @@
 
             @page {
                 margin: 12mm;
+            }
+
+            .sidebar {
+                display: none !important;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
             }
 
             .top-actions,
@@ -1141,6 +1291,23 @@
         }
 
         @media (max-width:768px) {
+            .menu-toggle-btn {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 60px 10px 10px;
+            }
+
             .top-actions {
                 justify-content: flex-start;
             }
@@ -1156,420 +1323,489 @@
             .customization-options {
                 grid-template-columns: 1fr;
             }
+            
+            .rain-gauge-map-container {
+                height: calc(100vh - 120px); /* Adjust for smaller screens */
+                min-height: 400px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC ÔNG KINH</h1>
-        <div id="subtitle" class="subtitle"></div>
-
-        <div class="top-actions">
-            <button id="btn-custom-time">⏱️ Thời gian tùy chỉnh</button>
-            <button id="export-excel">Xuất Excel</button>
-            <button id="btn-print-portrait">In dọc</button>
-            <button id="btn-print-landscape">In ngang</button>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>NGUYỄN NGỌC THUẬN</h2>
         </div>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="#" data-section="rain-gauge" class="active">
+                    <span>🌧️ Trạm mưa</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" data-section="monitoring-data">
+                    <span>📊 Dữ liệu quan trắc</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" data-section="alerts-analysis">
+                    <span>⚠️ Cảnh báo và phân tích</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
 
-        <div class="controls-container">
-            <div class="filters">
-                <label for="year-filter">Năm:</label>
-                <select id="year-filter">
-                    <option value="all">Tất cả</option>
-                </select>
+    <!-- Mobile Menu Toggle Button -->
+    <button class="menu-toggle-btn" id="menu-toggle-btn">☰</button>
 
-                <label for="quarter-filter">Quý:</label>
-                <select id="quarter-filter">
-                    <option value="all">Tất cả</option>
-                    <option value="1">Quý 1</option>
-                    <option value="2">Quý 2</option>
-                    <option value="3">Quý 3</option>
-                    <option value="4">Quý 4</option>
-                </select>
-
-                <label for="month-filter">Tháng:</label>
-                <select id="month-filter">
-                    <option value="all">Tất cả</option>
-                    <script>for (let i = 1; i <= 12; i++)document.write(`<option value="${i}">Tháng ${i}</option>`);</script>
-                </select>
-
-                <label for="week-filter">Tuần:</label>
-                <select id="week-filter">
-                    <option value="all">Tất cả</option>
-                </select>
-
-                <label for="daynight-filter">Ngày/Đêm:</label>
-                <select id="daynight-filter">
-                    <option value="all">Tất cả</option>
-                    <option value="day">Ngày (7h-19h)</option>
-                    <option value="night">Đêm (19h-7h)</option>
-                </select>
-
-                <label for="q-filter">Q tràn (m³/s):</label>
-                <select id="q-filter" title="Bộ lọc Q tràn tự do">
-                    <option value="all">Tất cả</option>
-                    <option value="zero">= 0</option>
-                    <option value="positive">&gt; 0</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="custom-time-panel" id="custom-time-panel">
-            <div class="time-inputs">
-                <div class="input-group">
-                    <label>Từ ngày:</label>
-                    <input type="date" id="custom-from-date">
-                </div>
-                <div class="input-group">
-                    <label>Giờ:phút:giây</label>
-                    <input type="time" id="custom-from-time" step="1" value="00:00:00">
-                </div>
-                <div class="input-group">
-                    <label>Đến ngày:</label>
-                    <input type="date" id="custom-to-date">
-                </div>
-                <div class="input-group">
-                    <label>Giờ:phút:giây</label>
-                    <input type="time" id="custom-to-time" step="1" value="23:59:59">
-                </div>
-                <button id="btn-apply-custom">Áp dụng</button>
-                <button id="btn-clear-custom">Xóa</button>
-            </div>
-        </div>
-
-        <!-- NEW KPI CARDS -->
-        <div class="kpi-grid" id="kpi-grid">
-            <div class="kpi k5" data-kpi="k5">
-                <div class="icon">💧</div>
-                <div class="label">Mực nước hiện tại</div>
-                <div id="kpi-current-water-level" class="value">0 m</div>
-            </div>
-            <div class="kpi k6" data-kpi="k6">
-                <div class="icon">🌊</div>
-                <div class="label">Dung tích hiện tại</div>
-                <div id="kpi-current-capacity" class="value">0.234 triệu m³</div>
-            </div>
-            <div class="kpi k7" data-kpi="k7">
-                <div class="icon">🌧️</div>
-                <div class="label">Lượng mưa (Ngày)</div>
-                <div id="kpi-daily-rainfall" class="value">0 mm</div>
-                <div id="kpi-rainfall-change" class="comparison">~ 0% so với hôm qua</div>
-            </div>
-            <div class="kpi k1" data-kpi="k1">
-                <div class="icon">💦</div>
-                <div class="label">Tổng lượng mưa (kỳ lọc) (mm)</div>
-                <div id="kpi-total" class="value">0</div>
-            </div>
-            <div class="kpi k2" data-kpi="k2">
-                <div class="icon">📅</div>
-                <div class="label">Ngày có mưa / Tổng ngày</div>
-                <div id="kpi-days" class="value">0 / 0</div>
-            </div>
-            <div class="kpi k3" data-kpi="k3">
-                <div class="icon">⛈️</div>
-                <div class="label">Mưa lớn nhất (mm)</div>
-                <div id="kpi-max" class="value">0</div>
-            </div>
-            <div class="kpi k4" data-kpi="k4">
-                <div class="icon">💦</div>
-                <div class="label">Q tràn tự do lớn nhất (m³/s)</div>
-                <div id="kpi-qmax" class="value">0</div>
-            </div>
-        </div>
-
-        <!-- Dashboard Customization -->
-        <div class="dashboard-customization-container">
-            <div class="dashboard-customization-header">
-                <h2 class="dashboard-customization-title">
-                    <span class="dashboard-customization-icon">🎨</span>
-                    Tùy chỉnh Dashboard
-                </h2>
-                <button id="btn-toggle-customization" class="ai-analysis-button">
-                    <span>⚙️</span>
-                    Hiển thị
-                </button>
-            </div>
-            <div class="dashboard-customization-content" id="dashboard-customization-content" style="display: none;">
-                <div class="customization-section">
-                    <div class="customization-section-title">Chọn các chỉ số KPI muốn hiển thị</div>
-                    <div class="customization-options">
-                        <div class="customization-option">
-                            <input type="checkbox" id="kpi-k5" checked>
-                            <label for="kpi-k5">Mực nước hiện tại</label>
-                        </div>
-                        <div class="customization-option">
-                            <input type="checkbox" id="kpi-k6" checked>
-                            <label for="kpi-k6">Dung tích hiện tại</label>
-                        </div>
-                        <div class="customization-option">
-                            <input type="checkbox" id="kpi-k7" checked>
-                            <label for="kpi-k7">Lượng mưa (Ngày)</label>
-                        </div>
-                        <div class="customization-option">
-                            <input type="checkbox" id="kpi-k1" checked>
-                            <label for="kpi-k1">Tổng lượng mưa (kỳ lọc)</label>
-                        </div>
-                        <div class="customization-option">
-                            <input type="checkbox" id="kpi-k2" checked>
-                            <label for="kpi-k2">Ngày có mưa / Tổng ngày</label>
-                        </div>
-                        <div class="customization-option">
-                            <input type="checkbox" id="kpi-k3" checked>
-                            <label for="kpi-k3">Mưa lớn nhất</label>
-                        </div>
-                        <div class="customization-option">
-                            <input type="checkbox" id="kpi-k4" checked>
-                            <label for="kpi-k4">Q tràn tự do lớn nhất</label>
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Rain Gauge Station Section -->
+        <section class="content-section active" id="rain-gauge-section">
+            <div class="container">
+                <h1>TRẠM ĐO MƯA</h1>
+                <div class="rain-gauge-container">
+                    <div class="rain-gauge-content">
+                        <!-- Only the map card remains -->
+                        <div class="rain-gauge-card">
+                            
+                            <div class="rain-gauge-map-container">
+                                <iframe src="https://thuan84.github.io/codehtml/tramdomua.html" 
+                                        width="100%" 
+                                        height="100%" 
+                                        frameborder="0" 
+                                        style="border: 1px solid #e5e7eb; border-radius: 8px;">
+                                </iframe>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="customization-section">
-                    <div class="customization-section-title">Chọn các phần khác muốn hiển thị</div>
-                    <div class="customization-options">
-                        <div class="customization-option">
-                            <input type="checkbox" id="show-warning-system" checked>
-                            <label for="show-warning-system">Hệ thống cảnh báo thông minh</label>
-                        </div>
-                        <div class="customization-option">
-                            <input type="checkbox" id="show-ai-analysis" checked>
-                            <label for="show-ai-analysis">Phân tích AI</label>
-                        </div>
-                        <div class="customization-option">
-                            <input type="checkbox" id="show-main-chart" checked>
-                            <label for="show-main-chart">Biểu đồ Lượng mưa & Mực nước</label>
-                        </div>
-                        <div class="customization-option">
-                            <input type="checkbox" id="show-data-table" checked>
-                            <label for="show-data-table">Bảng dữ liệu chi tiết</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="customization-actions">
-                    <button id="save-customization" class="customization-button save-customization">Lưu cài đặt</button>
-                    <button id="reset-customization" class="customization-button reset-customization">Khôi phục mặc định</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Smart Warning System -->
-        <div class="warning-system-container" id="warning-system-container">
-            <div class="warning-system-header">
-                <h2 class="warning-system-title">
-                    <span class="warning-system-icon">⚠️</span>
-                    Hệ thống cảnh báo thông minh
-                </h2>
-                <button id="btn-warning-settings" class="ai-analysis-button">
-                    <span>⚙️</span>
-                    Cài đặt
-                </button>
-            </div>
-            <div class="warning-system-content">
-                <div class="warning-levels">
-                    <div class="warning-level normal">
-                        <div class="warning-level-title">Bình thường</div>
-                        <div class="warning-level-desc">Mực nước an toàn</div>
-                    </div>
-                    <div class="warning-level watch">
-                        <div class="warning-level-title">Theo dõi</div>
-                        <div class="warning-level-desc">Mực nước cao</div>
-                    </div>
-                    <div class="warning-level danger">
-                        <div class="warning-level-title">Nguy hiểm</div>
-                        <div class="warning-level-desc">Cần hành động</div>
-                    </div>
-                    <div class="warning-level critical">
-                        <div class="warning-level-title">Khẩn cấp</div>
-                        <div class="warning-level-desc">Nguy cơ cao</div>
-                    </div>
-                </div>
-                
-                <div id="current-warning-status" class="current-status normal">
-                    <div class="status-indicator normal"></div>
-                    <div class="status-text">Trạng thái hiện tại: Bình thường</div>
-                </div>
-                
-                <div class="warning-settings" id="warning-settings" style="display: none;">
-                    <div class="warning-settings-title">Cài đặt ngưỡng cảnh báo (m)</div>
-                    <div class="warning-thresholds">
-                        <div class="threshold-input">
-                            <label for="threshold-watch">Ngưỡng theo dõi:</label>
-                            <input type="number" id="threshold-watch" step="0.01" value="47.70">
-                        </div>
-                        <div class="threshold-input">
-                            <label for="threshold-danger">Ngưỡng nguy hiểm:</label>
-                            <input type="number" id="threshold-danger" step="0.01" value="48.50">
-                        </div>
-                        <div class="threshold-input">
-                            <label for="threshold-critical">Ngưỡng khẩn cấp:</label>
-                            <input type="number" id="threshold-critical" step="0.01" value="49.35">
-                        </div>
-                        <div class="threshold-input">
-                            <label for="threshold-rain">Ngưỡng lượng mưa (mm):</label>
-                            <input type="number" id="threshold-rain" step="1" value="50">
-                        </div>
-                    </div>
-                    <div class="threshold-actions">
-                        <button id="save-thresholds" class="threshold-button save-thresholds">Lưu cài đặt</button>
-                        <button id="reset-thresholds" class="threshold-button reset-thresholds">Đặt lại mặc định</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- AI Analysis Section -->
-        <div class="ai-analysis-container" id="ai-analysis-container">
-            <div class="ai-analysis-header">
-                <h2 class="ai-analysis-title">
-                    <span class="ai-analysis-icon">🤖</span>
-                    Phân tích AI
-                </h2>
-                <button id="btn-generate-analysis" class="ai-analysis-button">
-                    <span>🔄</span>
-                    Tạo phân tích
-                </button>
-            </div>
-            <div class="ai-analysis-content" id="ai-analysis-content">
-                <div class="ai-analysis-loading">
-                    <div class="spinner"></div>
-                    <div class="ai-analysis-loading-text">Nhấn "Tạo phân tích" để bắt đầu phân tích dữ liệu</div>
-                </div>
-            </div>
-            <div class="ai-analysis-footer">
-                Phân tích được tạo bởi AI dựa trên dữ liệu đã lọc
-            </div>
-        </div>
-
-        <section class="charts" id="main-chart-container">
-            <div class="chart-card">
-                <div class="chart-header">
-                    <p class="chart-title">Lượng mưa &amp; mực nước theo ngày – vùng cảnh báo mực nước</p>
-
-                    <div class="chart-legend-hint">
-                        <span class="legend-item">
-                            <span class="legend-box legend-below"></span>
-                            <span>Dưới MN chết</span>
-                        </span>
-                        <span class="legend-item">
-                            <span class="legend-box legend-safe"></span>
-                            <span>Vùng an toàn</span>
-                        </span>
-                        <span class="legend-item">
-                            <span class="legend-box legend-watch"></span>
-                            <span>Vùng theo dõi</span>
-                        </span>
-                        <span class="legend-item">
-                            <span class="legend-box legend-danger"></span>
-                            <span>Vùng cảnh báo cao</span>
-                        </span>
-                    </div>
-
-                    <div id="water-status" class="water-status"></div>
-                </div>
-
-                <div class="chart-wrap">
-                    <canvas id="waterChart"></canvas>
                 </div>
             </div>
         </section>
 
-        <div class="data-table-container" id="data-table-container">
-            <div class="pagination-bar">
-                <div class="pager-left">
-                    <label for="page-size">Hiển thị:</label>
-                    <select id="page-size">
-                        <option value="20">20 dòng</option>
-                        <option value="50" selected>50 dòng</option>
-                        <option value="100">100 dòng</option>
-                    </select>
+        <!-- Monitoring Data Section -->
+        <section class="content-section" id="monitoring-data-section">
+            <div class="container">
+                <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC ÔNG KINH</h1>
+                <div id="subtitle" class="subtitle"></div>
+
+                <div class="top-actions">
+                    <button id="btn-custom-time">⏱️ Thời gian tùy chỉnh</button>
+                    <button id="export-excel">Xuất Excel</button>
+                    <button id="btn-print-portrait">In dọc</button>
+                    <button id="btn-print-landscape">In ngang</button>
                 </div>
-                <div class="pager-right">
-                    <span id="page-info">Trang 1/1 — 0 dòng</span>
-                    <button id="prev-page">« Trước</button>
-                    <button id="next-page">Sau »</button>
+
+                <div class="controls-container">
+                    <div class="filters">
+                        <label for="year-filter">Năm:</label>
+                        <select id="year-filter">
+                            <option value="all">Tất cả</option>
+                        </select>
+
+                        <label for="quarter-filter">Quý:</label>
+                        <select id="quarter-filter">
+                            <option value="all">Tất cả</option>
+                            <option value="1">Quý 1</option>
+                            <option value="2">Quý 2</option>
+                            <option value="3">Quý 3</option>
+                            <option value="4">Quý 4</option>
+                        </select>
+
+                        <label for="month-filter">Tháng:</label>
+                        <select id="month-filter">
+                            <option value="all">Tất cả</option>
+                            <script>for (let i = 1; i <= 12; i++)document.write(`<option value="${i}">Tháng ${i}</option>`);</script>
+                        </select>
+
+                        <label for="week-filter">Tuần:</label>
+                        <select id="week-filter">
+                            <option value="all">Tất cả</option>
+                        </select>
+
+                        <label for="daynight-filter">Ngày/Đêm:</label>
+                        <select id="daynight-filter">
+                            <option value="all">Tất cả</option>
+                            <option value="day">Ngày (7h-19h)</option>
+                            <option value="night">Đêm (19h-7h)</option>
+                        </select>
+
+                        <label for="q-filter">Q tràn (m³/s):</label>
+                        <select id="q-filter" title="Bộ lọc Q tràn tự do">
+                            <option value="all">Tất cả</option>
+                            <option value="zero">= 0</option>
+                            <option value="positive">&gt; 0</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="custom-time-panel" id="custom-time-panel">
+                    <div class="time-inputs">
+                        <div class="input-group">
+                            <label>Từ ngày:</label>
+                            <input type="date" id="custom-from-date">
+                        </div>
+                        <div class="input-group">
+                            <label>Giờ:phút:giây</label>
+                            <input type="time" id="custom-from-time" step="1" value="00:00:00">
+                        </div>
+                        <div class="input-group">
+                            <label>Đến ngày:</label>
+                            <input type="date" id="custom-to-date">
+                        </div>
+                        <div class="input-group">
+                            <label>Giờ:phút:giây</label>
+                            <input type="time" id="custom-to-time" step="1" value="23:59:59">
+                        </div>
+                        <button id="btn-apply-custom">Áp dụng</button>
+                        <button id="btn-clear-custom">Xóa</button>
+                    </div>
+                </div>
+
+                <!-- NEW KPI CARDS -->
+                <div class="kpi-grid" id="kpi-grid">
+                    <div class="kpi k5" data-kpi="k5">
+                        <div class="icon">💧</div>
+                        <div class="label">Mực nước hiện tại</div>
+                        <div id="kpi-current-water-level" class="value">0 m</div>
+                    </div>
+                    <div class="kpi k6" data-kpi="k6">
+                        <div class="icon">🌊</div>
+                        <div class="label">Dung tích hiện tại</div>
+                        <div id="kpi-current-capacity" class="value">0.234 triệu m³</div>
+                    </div>
+                    <div class="kpi k7" data-kpi="k7">
+                        <div class="icon">🌧️</div>
+                        <div class="label">Lượng mưa (Ngày)</div>
+                        <div id="kpi-daily-rainfall" class="value">0 mm</div>
+                        <div id="kpi-rainfall-change" class="comparison">~ 0% so với hôm qua</div>
+                    </div>
+                    <div class="kpi k1" data-kpi="k1">
+                        <div class="icon">💦</div>
+                        <div class="label">Tổng lượng mưa (kỳ lọc) (mm)</div>
+                        <div id="kpi-total" class="value">0</div>
+                    </div>
+                    <div class="kpi k2" data-kpi="k2">
+                        <div class="icon">📅</div>
+                        <div class="label">Ngày có mưa / Tổng ngày</div>
+                        <div id="kpi-days" class="value">0 / 0</div>
+                    </div>
+                    <div class="kpi k3" data-kpi="k3">
+                        <div class="icon">⛈️</div>
+                        <div class="label">Mưa lớn nhất (mm)</div>
+                        <div id="kpi-max" class="value">0</div>
+                    </div>
+                    <div class="kpi k4" data-kpi="k4">
+                        <div class="icon">💦</div>
+                        <div class="label">Q tràn tự do lớn nhất (m³/s)</div>
+                        <div id="kpi-qmax" class="value">0</div>
+                    </div>
+                </div>
+
+                <section class="charts" id="main-chart-container">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <p class="chart-title">Lượng mưa &amp; mực nước theo ngày – vùng cảnh báo mực nước</p>
+
+                            <div class="chart-legend-hint">
+                                <span class="legend-item">
+                                    <span class="legend-box legend-below"></span>
+                                    <span>Dưới MN chết</span>
+                                </span>
+                                <span class="legend-item">
+                                    <span class="legend-box legend-safe"></span>
+                                    <span>Vùng an toàn</span>
+                                </span>
+                                <span class="legend-item">
+                                    <span class="legend-box legend-watch"></span>
+                                    <span>Vùng theo dõi</span>
+                                </span>
+                                <span class="legend-item">
+                                    <span class="legend-box legend-danger"></span>
+                                    <span>Vùng cảnh báo cao</span>
+                                </span>
+                            </div>
+
+                            <div id="water-status" class="water-status"></div>
+                        </div>
+
+                        <div class="chart-wrap">
+                            <canvas id="waterChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="data-table-container" id="data-table-container">
+                    <div class="pagination-bar">
+                        <div class="pager-left">
+                            <label for="page-size">Hiển thị:</label>
+                            <select id="page-size">
+                                <option value="20">20 dòng</option>
+                                <option value="50" selected>50 dòng</option>
+                                <option value="100">100 dòng</option>
+                            </select>
+                        </div>
+                        <div class="pager-right">
+                            <span id="page-info">Trang 1/1 — 0 dòng</span>
+                            <button id="prev-page">« Trước</button>
+                            <button id="next-page">Sau »</button>
+                        </div>
+                    </div>
+                    <table id="data-table">
+                        <colgroup>
+                            <col class="col-stt">
+                            <col class="col-ngay">
+                            <col class="col-gio">
+                            <col class="col-mucnuoc">
+                            <col class="col-dungtich">
+                            <col class="col-luongmua">
+                            <col class="col-htran">
+                            <col class="col-qtran">
+                            <col class="col-vanhanh">
+                            <col class="col-sign">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th rowspan="2">STT</th>
+                                <th rowspan="2">Ngày</th>
+                                <th rowspan="2">Giờ</th>
+                                <th rowspan="2">Mực nước (m)</th>
+                                <th rowspan="2">Dung tích (Triệu m³)</th>
+                                <th rowspan="2">Lượng mưa (mm)</th>
+                                <th colspan="2">Thông số vận hành tràn xả lũ</th>
+                                <th rowspan="2">Họ, tên người vận hành</th>
+                                <th rowspan="2">Ký tên</th>
+                            </tr>
+                            <tr>
+                                <th>H tràn (cm)</th>
+                                <th>Q tràn tự do (m³/s)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <tr>
+                                <td colspan="10">
+                                    <div class="loader-container">
+                                        <div class="spinner"></div>
+                                        <div class="status-message">Đang tải dữ liệu...</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <table id="print-table">
+                    <colgroup>
+                        <col class="col-stt">
+                        <col class="col-ngay">
+                        <col class="col-gio">
+                        <col class="col-mucnuoc">
+                        <col class="col-dungtich">
+                        <col class="col-luongmua">
+                        <col class="col-htran">
+                        <col class="col-qtran">
+                        <col class="col-vanhanh">
+                        <col class="col-sign">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th rowspan="2">STT</th>
+                            <th rowspan="2">Ngày</th>
+                            <th rowspan="2">Giờ</th>
+                            <th rowspan="2">Mực nước (m)</th>
+                            <th rowspan="2">Dung tích (Triệu m³)</th>
+                            <th rowspan="2">Lượng mưa (mm)</th>
+                            <th colspan="2">Thông số vận hành tràn xả lũ</th>
+                            <th rowspan="2">Họ, tên người vận hành</th>
+                            <th rowspan="2">Ký tên</th>
+                        </tr>
+                        <tr>
+                            <th>H tràn (cm)</th>
+                            <th>Q tràn tự do (m³/s)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="print-tbody"></tbody>
+                </table>
+
+                <div id="error-message" class="error-message" style="display:none;"></div>
+                <div id="toast-container"></div>
+            </div>
+        </section>
+
+        <!-- Alerts and Analysis Section -->
+        <section class="content-section" id="alerts-analysis-section">
+            <div class="container">
+                <h1>CẢNH BÁO VÀ PHÂN TÍCH</h1>
+
+                <!-- Dashboard Customization -->
+                <div class="dashboard-customization-container" id="dashboard-customization-container">
+                    <div class="dashboard-customization-header">
+                        <h2 class="dashboard-customization-title">
+                            <span class="dashboard-customization-icon">🎨</span>
+                            Tùy chỉnh Dashboard
+                        </h2>
+                        <button id="btn-toggle-customization" class="ai-analysis-button">
+                            <span>⚙️</span>
+                            Hiển thị
+                        </button>
+                    </div>
+                    <div class="dashboard-customization-content" id="dashboard-customization-content" style="display: none;">
+                        <div class="customization-section">
+                            <div class="customization-section-title">Chọn các chỉ số KPI muốn hiển thị</div>
+                            <div class="customization-options">
+                                <div class="customization-option">
+                                    <input type="checkbox" id="kpi-k5" checked>
+                                    <label for="kpi-k5">Mực nước hiện tại</label>
+                                </div>
+                                <div class="customization-option">
+                                    <input type="checkbox" id="kpi-k6" checked>
+                                    <label for="kpi-k6">Dung tích hiện tại</label>
+                                </div>
+                                <div class="customization-option">
+                                    <input type="checkbox" id="kpi-k7" checked>
+                                    <label for="kpi-k7">Lượng mưa (Ngày)</label>
+                                </div>
+                                <div class="customization-option">
+                                    <input type="checkbox" id="kpi-k1" checked>
+                                    <label for="kpi-k1">Tổng lượng mưa (kỳ lọc)</label>
+                                </div>
+                                <div class="customization-option">
+                                    <input type="checkbox" id="kpi-k2" checked>
+                                    <label for="kpi-k2">Ngày có mưa / Tổng ngày</label>
+                                </div>
+                                <div class="customization-option">
+                                    <input type="checkbox" id="kpi-k3" checked>
+                                    <label for="kpi-k3">Mưa lớn nhất</label>
+                                </div>
+                                <div class="customization-option">
+                                    <input type="checkbox" id="kpi-k4" checked>
+                                    <label for="kpi-k4">Q tràn tự do lớn nhất</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="customization-section">
+                            <div class="customization-section-title">Chọn các phần khác muốn hiển thị</div>
+                            <div class="customization-options">
+                                <div class="customization-option">
+                                    <input type="checkbox" id="show-warning-system" checked>
+                                    <label for="show-warning-system">Hệ thống cảnh báo thông minh</label>
+                                </div>
+                                <div class="customization-option">
+                                    <input type="checkbox" id="show-ai-analysis" checked>
+                                    <label for="show-ai-analysis">Phân tích AI</label>
+                                </div>
+                                <div class="customization-option">
+                                    <input type="checkbox" id="show-main-chart" checked>
+                                    <label for="show-main-chart">Biểu đồ Lượng mưa & Mực nước</label>
+                                </div>
+                                <div class="customization-option">
+                                    <input type="checkbox" id="show-data-table" checked>
+                                    <label for="show-data-table">Bảng dữ liệu chi tiết</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="customization-actions">
+                            <button id="save-customization" class="customization-button save-customization">Lưu cài đặt</button>
+                            <button id="reset-customization" class="customization-button reset-customization">Khôi phục mặc định</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Smart Warning System -->
+                <div class="warning-system-container" id="warning-system-container">
+                    <div class="warning-system-header">
+                        <h2 class="warning-system-title">
+                            <span class="warning-system-icon">⚠️</span>
+                            Hệ thống cảnh báo thông minh
+                        </h2>
+                        <button id="btn-warning-settings" class="ai-analysis-button">
+                            <span>⚙️</span>
+                            Cài đặt
+                        </button>
+                    </div>
+                    <div class="warning-system-content">
+                        <div class="warning-levels">
+                            <div class="warning-level normal">
+                                <div class="warning-level-title">Bình thường</div>
+                                <div class="warning-level-desc">Mực nước an toàn</div>
+                            </div>
+                            <div class="warning-level watch">
+                                <div class="warning-level-title">Theo dõi</div>
+                                <div class="warning-level-desc">Mực nước cao</div>
+                            </div>
+                            <div class="warning-level danger">
+                                <div class="warning-level-title">Nguy hiểm</div>
+                                <div class="warning-level-desc">Cần hành động</div>
+                            </div>
+                            <div class="warning-level critical">
+                                <div class="warning-level-title">Khẩn cấp</div>
+                                <div class="warning-level-desc">Nguy cơ cao</div>
+                            </div>
+                        </div>
+                        
+                        <div id="current-warning-status" class="current-status normal">
+                            <div class="status-indicator normal"></div>
+                            <div class="status-text">Trạng thái hiện tại: Bình thường</div>
+                        </div>
+                        
+                        <div class="warning-settings" id="warning-settings" style="display: none;">
+                            <div class="warning-settings-title">Cài đặt ngưỡng cảnh báo (m)</div>
+                            <div class="warning-thresholds">
+                                <div class="threshold-input">
+                                    <label for="threshold-watch">Ngưỡng theo dõi:</label>
+                                    <input type="number" id="threshold-watch" step="0.01" value="47.70">
+                                </div>
+                                <div class="threshold-input">
+                                    <label for="threshold-danger">Ngưỡng nguy hiểm:</label>
+                                    <input type="number" id="threshold-danger" step="0.01" value="48.50">
+                                </div>
+                                <div class="threshold-input">
+                                    <label for="threshold-critical">Ngưỡng khẩn cấp:</label>
+                                    <input type="number" id="threshold-critical" step="0.01" value="49.35">
+                                </div>
+                                <div class="threshold-input">
+                                    <label for="threshold-rain">Ngưỡng lượng mưa (mm):</label>
+                                    <input type="number" id="threshold-rain" step="1" value="50">
+                                </div>
+                            </div>
+                            <div class="threshold-actions">
+                                <button id="save-thresholds" class="threshold-button save-thresholds">Lưu cài đặt</button>
+                                <button id="reset-thresholds" class="threshold-button reset-thresholds">Đặt lại mặc định</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Analysis Section -->
+                <div class="ai-analysis-container" id="ai-analysis-container">
+                    <div class="ai-analysis-header">
+                        <h2 class="ai-analysis-title">
+                            <span class="ai-analysis-icon">🤖</span>
+                            Phân tích AI
+                        </h2>
+                        <button id="btn-generate-analysis" class="ai-analysis-button">
+                            <span>🔄</span>
+                            Tạo phân tích
+                        </button>
+                    </div>
+                    <div class="ai-analysis-content" id="ai-analysis-content">
+                        <div class="ai-analysis-loading">
+                            <div class="spinner"></div>
+                            <div class="ai-analysis-loading-text">Nhấn "Tạo phân tích" để bắt đầu phân tích dữ liệu</div>
+                        </div>
+                    </div>
+                    <div class="ai-analysis-footer">
+                        Phân tích được tạo bởi AI dựa trên dữ liệu đã lọc
+                    </div>
                 </div>
             </div>
-            <table id="data-table">
-                <colgroup>
-                    <col class="col-stt">
-                    <col class="col-ngay">
-                    <col class="col-gio">
-                    <col class="col-mucnuoc">
-                    <col class="col-dungtich">
-                    <col class="col-luongmua">
-                    <col class="col-htran">
-                    <col class="col-qtran">
-                    <col class="col-vanhanh">
-                    <col class="col-sign">
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th rowspan="2">STT</th>
-                        <th rowspan="2">Ngày</th>
-                        <th rowspan="2">Giờ</th>
-                        <th rowspan="2">Mực nước (m)</th>
-                        <th rowspan="2">Dung tích (Triệu m³)</th>
-                        <th rowspan="2">Lượng mưa (mm)</th>
-                        <th colspan="2">Thông số vận hành tràn xả lũ</th>
-                        <th rowspan="2">Họ, tên người vận hành</th>
-                        <th rowspan="2">Ký tên</th>
-                    </tr>
-                    <tr>
-                        <th>H tràn (cm)</th>
-                        <th>Q tràn tự do (m³/s)</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body">
-                    <tr>
-                        <td colspan="10">
-                            <div class="loader-container">
-                                <div class="spinner"></div>
-                                <div class="status-message">Đang tải dữ liệu...</div>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        </section>
+    </main>
 
-        <table id="print-table">
-            <colgroup>
-                <col class="col-stt">
-                <col class="col-ngay">
-                <col class="col-gio">
-                <col class="col-mucnuoc">
-                <col class="col-dungtich">
-                <col class="col-luongmua">
-                <col class="col-htran">
-                <col class="col-qtran">
-                <col class="col-vanhanh">
-                <col class="col-sign">
-            </colgroup>
-            <thead>
-                <tr>
-                    <th rowspan="2">STT</th>
-                    <th rowspan="2">Ngày</th>
-                    <th rowspan="2">Giờ</th>
-                    <th rowspan="2">Mực nước (m)</th>
-                    <th rowspan="2">Dung tích (Triệu m³)</th>
-                    <th rowspan="2">Lượng mưa (mm)</th>
-                    <th colspan="2">Thông số vận hành tràn xả lũ</th>
-                    <th rowspan="2">Họ, tên người vận hành</th>
-                    <th rowspan="2">Ký tên</th>
-                </tr>
-                <tr>
-                    <th>H tràn (cm)</th>
-                    <th>Q tràn tự do (m³/s)</th>
-                </tr>
-            </thead>
-            <tbody id="print-tbody"></tbody>
-        </table>
-
-        <div id="error-message" class="error-message" style="display:none;"></div>
-        <div id="toast-container"></div>
-    </div>
     <!-- PHẦN JAVASCRIPT TIẾP THEO Ở FILE PART 2 -->
     <script>
         // ====== API ======
@@ -1610,7 +1846,7 @@
         const LVL_BT_TXT = formatMeter(LVL_BT, 2);
         const LVL_GC_TXT = formatMeter(LVL_GC, 2);
 
-        let allData = [];
+        let allData =         [];
         let filteredData = [];
         let customTimeRange = null;
 
@@ -1664,6 +1900,12 @@
         const dashboardCustomizationContent = document.getElementById('dashboard-customization-content');
         const saveCustomizationBtn = document.getElementById('save-customization');
         const resetCustomizationBtn = document.getElementById('reset-customization');
+
+        // Sidebar Elements
+        const sidebar = document.getElementById('sidebar');
+        const menuToggleBtn = document.getElementById('menu-toggle-btn');
+        const sidebarLinks = document.querySelectorAll('.sidebar a[data-section]');
+        const contentSections = document.querySelectorAll('.content-section');
 
         let comboChart;
 
@@ -2113,20 +2355,19 @@
                 }
             }
 
-            // Update checkboxes to match the
-                    // Update checkboxes to match the loaded preferences
-        document.getElementById('kpi-k5').checked = dashboardPrefs.kpis.k5;
-        document.getElementById('kpi-k6').checked = dashboardPrefs.kpis.k6;
-        document.getElementById('kpi-k7').checked = dashboardPrefs.kpis.k7;
-        document.getElementById('kpi-k1').checked = dashboardPrefs.kpis.k1;
-        document.getElementById('kpi-k2').checked = dashboardPrefs.kpis.k2;
-        document.getElementById('kpi-k3').checked = dashboardPrefs.kpis.k3;
-        document.getElementById('kpi-k4').checked = dashboardPrefs.kpis.k4;
+            // Update checkboxes to match the loaded preferences
+            document.getElementById('kpi-k5').checked = dashboardPrefs.kpis.k5;
+            document.getElementById('kpi-k6').checked = dashboardPrefs.kpis.k6;
+            document.getElementById('kpi-k7').checked = dashboardPrefs.kpis.k7;
+            document.getElementById('kpi-k1').checked = dashboardPrefs.kpis.k1;
+            document.getElementById('kpi-k2').checked = dashboardPrefs.kpis.k2;
+            document.getElementById('kpi-k3').checked = dashboardPrefs.kpis.k3;
+            document.getElementById('kpi-k4').checked = dashboardPrefs.kpis.k4;
 
-        document.getElementById('show-warning-system').checked = dashboardPrefs.sections['warning-system-container'];
-        document.getElementById('show-ai-analysis').checked = dashboardPrefs.sections['ai-analysis-container'];
-        document.getElementById('show-main-chart').checked = dashboardPrefs.sections['main-chart-container'];
-        document.getElementById('show-data-table').checked = dashboardPrefs.sections['data-table-container'];
+            document.getElementById('show-warning-system').checked = dashboardPrefs.sections['warning-system-container'];
+            document.getElementById('show-ai-analysis').checked = dashboardPrefs.sections['ai-analysis-container'];
+            document.getElementById('show-main-chart').checked = dashboardPrefs.sections['main-chart-container'];
+            document.getElementById('show-data-table').checked = dashboardPrefs.sections['data-table-container'];
         }
 
         function debounce(func, wait) {
@@ -2138,6 +2379,58 @@
         }
 
         const debouncedApply = debounce(applyFiltersAndRender, 300);
+
+        // Sidebar Navigation Functions
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+        }
+
+        function showSection(sectionId) {
+            // Hide all sections
+            contentSections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            const targetSection = document.getElementById(`${sectionId}-section`);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Update active menu item
+            sidebarLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Close sidebar on mobile after selection
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+            }
+        }
+
+        // Initialize sidebar event listeners
+        menuToggleBtn.addEventListener('click', toggleSidebar);
+
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = link.dataset.section;
+                showSection(sectionId);
+            });
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(e.target) && 
+                !menuToggleBtn.contains(e.target) &&
+                sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+            }
+        });
 
         btnCustomTime.addEventListener('click', () => {
             const isVisible = customTimePanel.style.display !== 'none';
