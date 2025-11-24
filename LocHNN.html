@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Nhật ký vận hành hồ chứa nước ngọt</title>
+  <title>Hệ thống quan trắc hồ chứa nước ngọt</title>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -24,6 +24,9 @@
       --monitor-color: #f59e0b;
       --danger-color: #ef4444;
       --emergency-color: #a855f7;
+      --sidebar-bg: #f8fafc;
+      --sidebar-active: #e2f8f0;
+      --sidebar-hover: #f0fdfa;
     }
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
@@ -32,6 +35,87 @@
       font-family: Inter,"Segoe UI",Roboto,Arial,sans-serif;
       color:var(--ink);
       background:#f8fafc;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 100;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      background: linear-gradient(135deg, #1EA48D 0%, #158572 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sidebar-header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .sidebar-menu {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .menu-item {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+      color: var(--ink);
+      border-left: 3px solid transparent;
+    }
+
+    .menu-item:hover {
+      background: var(--sidebar-hover);
+    }
+
+    .menu-item.active {
+      background: var(--sidebar-active);
+      border-left-color: var(--brand);
+      color: var(--brand);
+    }
+
+    .menu-item i {
+      font-size: 18px;
+      width: 24px;
+      text-align: center;
+    }
+
+    .menu-text {
+      font-size: 15px;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 260px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
     }
 
     /* Toolbar */
@@ -94,6 +178,18 @@
     #btnDashboardSettings{ background:#f97316; color:#fff; border-color:#f97316; }
     #btnDashboardSettings:hover{ filter:brightness(.95); }
 
+    /* Content Area */
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: none;
+    }
+
+    .content-area.active {
+      display: block;
+    }
+
     .sheet{
       width:100%;
       min-height:calc(100vh - 56px);
@@ -114,6 +210,21 @@
       font-size:12pt;
       color:var(--muted);
       margin-bottom:12px;
+    }
+
+    /* Map Container */
+    .map-container {
+      width: 100%;
+      height: calc(100vh - 60px);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .map-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
     }
 
     /* ===== HỆ THỐNG CẢNH BÁO THÔNG MINH ===== */
@@ -813,14 +924,14 @@
       text-align:center;
     }
     .kpi-icon{
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  margin-bottom: 8px;
-  font-size: 24px; /* Kích thước của emoji */
-}
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      margin-bottom: 8px;
+      font-size: 24px; /* Kích thước của emoji */
+    }
     .kpi .t{
       font-size:12px;
       color:#475569;
@@ -1068,17 +1179,23 @@
 
     /* ===== PRINT ===== */
     @media print{
-      .toolbar,
-      .filters,
-      .charts,
-      .kpis,
-      .pager,
-      .custom-time-panel,
-      .modal,
-      .alert-system,
-      .ai-analysis {
-        display:none !important;
-      }
+  .toolbar,
+  .filters,
+  .charts,
+  .kpis,
+  .pager,
+  .custom-time-panel,
+  .modal,
+  .alert-system,
+  .ai-analysis,
+  .sidebar,
+  .menu-toggle {
+    display:none !important;
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+  }
       table{ border:1.2px solid #000; }
       thead th, tbody td{
         border:1px solid #000 !important;
@@ -1139,436 +1256,519 @@
       .ai-metrics {
         grid-template-columns: 1fr;
       }
+      
+      /* Responsive sidebar */
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+      
+      .menu-toggle {
+        display: block;
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 101;
+        background: var(--brand);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      }
+    }
+    
+    @media (min-width:769px) {
+      .menu-toggle {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="toolbar">
-    <div class="brand"><span class="dot"></span>Nhật ký vận hành – Hồ Nước Ngọt</div>
-    <div class="spacer"></div>
-    <button class="btn" id="btnCustomTime"><i class="fas fa-clock"></i> Thời gian tùy chỉnh</button>
-    <button class="btn" id="btnExcel"><i class="fas fa-file-excel"></i> Xuất Excel</button>
-    <button class="btn" id="btnPortrait"><i class="fas fa-file-alt"></i> In dọc</button>
-    <button class="btn" id="btnLandscape"><i class="fas fa-file-image"></i> In ngang</button>
-    <button class="btn" id="btnDashboardSettings"><i class="fas fa-cog"></i> Cá nhân hóa</button>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <i class="fas fa-water"></i>
+      <h1>NGUYỄN NGỌC THUẬN</h1>
+    </div>
+    
+    <div class="sidebar-menu">
+      <div class="menu-item active" data-content="station">
+        <i class="fas fa-map-marked-alt"></i>
+        <span class="menu-text">Trạm đo</span>
+      </div>
+      
+      <div class="menu-item" data-content="monitoring">
+        <i class="fas fa-chart-line"></i>
+        <span class="menu-text">Dữ liệu quan trắc</span>
+      </div>
+      
+      <div class="menu-item" data-content="analysis">
+        <i class="fas fa-brain"></i>
+        <span class="menu-text">Cảnh báo và phân tích</span>
+      </div>
+    </div>
   </div>
-
-  <div id="printArea" class="sheet">
-    <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</h1>
-    <div class="subhead" id="subTitle">Tháng …/…</div>
-
-    <!-- Filters -->
-    <div class="filters">
-      <span class="label">Bộ lọc:</span>
-      <label for="yearSel">Năm</label>
-      <select id="yearSel"><option value="all">Tất cả</option></select>
-
-      <label for="quarterSel">Quý</label>
-      <select id="quarterSel">
-        <option value="all">Tất cả</option>
-        <option value="1">Quý 1</option>
-        <option value="2">Quý 2</option>
-        <option value="3">Quý 3</option>
-        <option value="4">Quý 4</option>
-      </select>
-
-      <label for="monthSel">Tháng</label>
-      <select id="monthSel">
-        <option value="all">Tất cả</option>
-        <script>for(let i=1;i<=12;i++) document.write(`<option value="${i}">Tháng ${i}</option>`);</script>
-      </select>
-
-      <label for="weekSel">Tuần</label>
-      <select id="weekSel">
-        <option value="all">Tất cả</option>
-      </select>
-
-      <label for="dayNightSel">Ngày/Đêm</label>
-      <select id="dayNightSel">
-        <option value="all">Tất cả</option>
-        <option value="day">Ngày (7h-19h)</option>
-        <option value="night">Đêm (19h-7h)</option>
-      </select>
+  
+  <!-- Menu Toggle Button for Mobile -->
+  <button class="menu-toggle" id="menuToggle">
+    <i class="fas fa-bars"></i>
+  </button>
+  
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="brand"><span class="dot"></span>Hệ thống quan trắc hồ chứa nước ngọt</div>
+      <div class="spacer"></div>
+      <button class="btn" id="btnCustomTime"><i class="fas fa-clock"></i> Thời gian tùy chỉnh</button>
+      <button class="btn" id="btnExcel"><i class="fas fa-file-excel"></i> Xuất Excel</button>
+      <button class="btn" id="btnPortrait"><i class="fas fa-file-alt"></i> In dọc</button>
+      <button class="btn" id="btnLandscape"><i class="fas fa-file-image"></i> In ngang</button>
+      <button class="btn" id="btnDashboardSettings"><i class="fas fa-cog"></i> Cá nhân hóa</button>
     </div>
-
-    <!-- Custom Time Panel -->
-    <div class="custom-time-panel" id="customTimePanel">
-      <div class="time-inputs">
-        <div class="input-group">
-          <label>Từ ngày:</label>
-          <input type="date" id="customFromDate">
-        </div>
-        <div class="input-group">
-          <label>Giờ:phút:giây</label>
-          <input type="time" id="customFromTime" step="1" value="00:00:00">
-        </div>
-        <div class="input-group">
-          <label>Đến ngày:</label>
-          <input type="date" id="customToDate">
-        </div>
-        <div class="input-group">
-          <label>Giờ:phút:giây</label>
-          <input type="time" id="customToTime" step="1" value="23:59:59">
-        </div>
-        <button id="btnApplyCustom">Áp dụng</button>
-        <button id="btnClearCustom">Xóa</button>
+    
+    <!-- Content Areas -->
+    <div class="content-area active" id="station-content">
+      <div class="map-container">
+        <iframe src="https://thuan84.github.io/codehtml/tramdomua.html" title="Bản đồ trạm đo"></iframe>
       </div>
     </div>
+    
+    <div class="content-area" id="monitoring-content">
+      <div class="sheet">
+        <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</h1>
+        <div class="subhead" id="subTitle">Tháng …/…</div>
 
-    <!-- KPI: 6 ô -->
-    <div class="kpis" id="kpisContainer">
-        <div class="kpi" data-kpi-id="kpi_current_level">
-            <span class="kpi-icon">💧</span>
-            <div class="t">Mực nước hiện tại (m)</div>
-            <div class="v" id="kpiCurrentLevel">0</div>
-        </div>
-        <div class="kpi" data-kpi-id="kpi_current_volume">
-            <span class="kpi-icon">🏞️</span>
-            <div class="t">Dung tích hiện tại (Triệu m³)</div>
-            <div class="v" id="kpiCurrentVolume">0</div>
-        </div>
-        <div class="kpi" data-kpi-id="kpi_total_rain">
-        <span class="kpi-icon">💦</span>
-        <div class="t">Tổng lượng mưa (kỳ lọc) (mm)</div>
-        <div class="v" id="kpiTotalRain">0</div>
-      </div>
-      <div class="kpi" data-kpi-id="kpi_max_level">
-        <span class="kpi-icon">♒</span>
-        <div class="t">Mực nước lớn nhất (m)</div>
-        <div class="v" id="kpiMaxLevel">0</div>
-      </div>
-      <div class="kpi" data-kpi-id="kpi_max_rain">
-        <span class="kpi-icon">⛈️</span>
-        <div class="t">Mưa lớn nhất (mm)</div>
-        <div class="v">
-          <span id="kpiMaxRain">0</span>
-          <span class="s" id="kpiMaxRainDay"></span>
-        </div>
-      </div>
-      <div class="kpi" data-kpi-id="kpi_max_q">
-        <span class="kpi-icon">🌊</span>
-        <div class="t">Q lớn nhất (m³/s)</div>
-        <div class="v"><span id="kpiMaxQ">0</span></div>
-      </div>
-      
-    </div>
+        <!-- Filters -->
+        <div class="filters">
+          <span class="label">Bộ lọc:</span>
+          <label for="yearSel">Năm</label>
+          <select id="yearSel"><option value="all">Tất cả</option></select>
 
-    <!-- Hệ thống cảnh báo thông minh -->
-    <div class="alert-system">
-      <div class="alert-header">
-        <h2><i class="fas fa-exclamation-triangle"></i> Hệ thống cảnh báo thông minh</h2>
-        <div class="alert-timestamp" id="alertTimestamp">Cập nhật: --:--:-- --/--/----</div>
-      </div>
-      
-      <div class="alert-content">
-        <!-- Trạng thái cảnh báo -->
-        <div class="alert-status-container">
-          <div class="alert-status normal" data-status="normal">
-            <i class="fas fa-check-circle"></i>
-            <div class="status-title">Bình thường</div>
-            <div class="status-value"><span id="normalValue">56.5</span> <span class="status-unit">m</span></div>
-          </div>
-          <div class="alert-status monitor active" data-status="monitor">
-            <i class="fas fa-eye"></i>
-            <div class="status-title">Theo dõi</div>
-            <div class="status-value"><span id="monitorValue">58.78</span> <span class="status-unit">m</span></div>
-          </div>
-          <div class="alert-status danger" data-status="danger">
-            <i class="fas fa-exclamation-triangle"></i>
-            <div class="status-title">Nguy hiểm</div>
-            <div class="status-value"><span id="dangerValue">60.3</span> <span class="status-unit">m</span></div>
-          </div>
-          <div class="alert-status emergency" data-status="emergency">
-            <i class="fas fa-bell"></i>
-            <div class="status-title">Khẩn cấp</div>
-            <div class="status-value"><span id="emergencyValue">60.76</span> <span class="status-unit">m</span></div>
-          </div>
+          <label for="quarterSel">Quý</label>
+          <select id="quarterSel">
+            <option value="all">Tất cả</option>
+            <option value="1">Quý 1</option>
+            <option value="2">Quý 2</option>
+            <option value="3">Quý 3</option>
+            <option value="4">Quý 4</option>
+          </select>
+
+          <label for="monthSel">Tháng</label>
+          <select id="monthSel">
+            <option value="all">Tất cả</option>
+            <script>for(let i=1;i<=12;i++) document.write(`<option value="${i}">Tháng ${i}</option>`);</script>
+          </select>
+
+          <label for="weekSel">Tuần</label>
+          <select id="weekSel">
+            <option value="all">Tất cả</option>
+          </select>
+
+          <label for="dayNightSel">Ngày/Đêm</label>
+          <select id="dayNightSel">
+            <option value="all">Tất cả</option>
+            <option value="day">Ngày (7h-19h)</option>
+            <option value="night">Đêm (19h-7h)</option>
+          </select>
         </div>
-        
-        <!-- Thông báo cảnh báo -->
-        <div class="alert-message normal" id="alertMessage">
-          <i class="fas fa-info-circle"></i>
-          <span id="alertText">Mực nước (56,65 m) trong ngưỡng an toàn (56,5 m). Hoạt động bình thường.</span>
-        </div>
-        
-        <!-- Trực quan hóa mực nước -->
-        <div class="alert-visual">
-          <div class="water-level-visual" id="waterLevelVisual"></div>
-          <div class="level-markers">
-            <div class="level-marker dead" data-label="Mực nước chết: 50.6 m"></div>
-            <div class="level-marker normal" data-label="MN dâng bình thường: 58.78 m"></div>
-            <div class="level-marker danger" data-label="MN dâng gia cường: 60.76 m"></div>
-          </div>
-          <div class="current-level-indicator" id="currentLevelIndicator" data-label="56.65 m"></div>
-        </div>
-        
-        <!-- Cài đặt ngưỡng cảnh báo (ẩn/hiện) -->
-        <div class="alert-expandable">
-          <div class="expandable-header">
-            <div class="expandable-title">
-              <i class="fas fa-sliders-h"></i> Cài đặt ngưỡng cảnh báo (m)
+
+        <!-- Custom Time Panel -->
+        <div class="custom-time-panel" id="customTimePanel">
+          <div class="time-inputs">
+            <div class="input-group">
+              <label>Từ ngày:</label>
+              <input type="date" id="customFromDate">
             </div>
-            <button class="toggle-btn" id="toggleSettings">
-              <i class="fas fa-chevron-down"></i> Hiện
-            </button>
+            <div class="input-group">
+              <label>Giờ:phút:giây</label>
+              <input type="time" id="customFromTime" step="1" value="00:00:00">
+            </div>
+            <div class="input-group">
+              <label>Đến ngày:</label>
+              <input type="date" id="customToDate">
+            </div>
+            <div class="input-group">
+              <label>Giờ:phút:giây</label>
+              <input type="time" id="customToTime" step="1" value="23:59:59">
+            </div>
+            <button id="btnApplyCustom">Áp dụng</button>
+            <button id="btnClearCustom">Xóa</button>
           </div>
-          <div class="expandable-content" id="settingsContent">
-            <div class="threshold-inputs">
-              <div class="threshold-group">
-                <label>
-                  <span class="threshold-indicator indicator-normal"></span>
-                  Bình thường
-                </label>
-                <input type="number" id="normalThreshold" step="0.01" value="56.5">
-              </div>
-              <div class="threshold-group">
-                <label>
-                  <span class="threshold-indicator indicator-monitor"></span>
-                  Theo dõi (MN dâng BT)
-                </label>
-                <input type="number" id="monitorThreshold" step="0.01" value="58.78">
-              </div>
-              <div class="threshold-group">
-                <label>
-                  <span class="threshold-indicator indicator-danger"></span>
-                  Nguy hiểm
-                </label>
-                <input type="number" id="dangerThreshold" step="0.01" value="60.3">
-              </div>
-              <div class="threshold-group">
-                <label>
-                  <span class="threshold-indicator indicator-emergency"></span>
-                  Khẩn cấp (MN dâng GC)
-                </label>
-                <input type="number" id="emergencyThreshold" step="0.01" value="60.76">
+        </div>
+
+        <!-- KPI: 6 ô -->
+        <div class="kpis" id="kpisContainer">
+            <div class="kpi" data-kpi-id="kpi_current_level">
+                <span class="kpi-icon">💧</span>
+                <div class="t">Mực nước hiện tại (m)</div>
+                <div class="v" id="kpiCurrentLevel">0</div>
+            </div>
+            <div class="kpi" data-kpi-id="kpi_current_volume">
+                <span class="kpi-icon">🏞️</span>
+                <div class="t">Dung tích hiện tại (Triệu m³)</div>
+                <div class="v" id="kpiCurrentVolume">0</div>
+            </div>
+            <div class="kpi" data-kpi-id="kpi_total_rain">
+            <span class="kpi-icon">💦</span>
+            <div class="t">Tổng lượng mưa (kỳ lọc) (mm)</div>
+            <div class="v" id="kpiTotalRain">0</div>
+          </div>
+          <div class="kpi" data-kpi-id="kpi_max_level">
+            <span class="kpi-icon">♒</span>
+            <div class="t">Mực nước lớn nhất (m)</div>
+            <div class="v" id="kpiMaxLevel">0</div>
+          </div>
+          <div class="kpi" data-kpi-id="kpi_max_rain">
+            <span class="kpi-icon">⛈️</span>
+            <div class="t">Mưa lớn nhất (mm)</div>
+            <div class="v">
+              <span id="kpiMaxRain">0</span>
+              <span class="s" id="kpiMaxRainDay"></span>
+            </div>
+          </div>
+          <div class="kpi" data-kpi-id="kpi_max_q">
+            <span class="kpi-icon">🌊</span>
+            <div class="t">Q lớn nhất (m³/s)</div>
+            <div class="v"><span id="kpiMaxQ">0</span></div>
+          </div>
+          
+        </div>
+
+        <!-- Chart gộp mưa + mực nước -->
+        <div class="charts" id="chartsContainer">
+          <div class="card">
+            <div class="card-header">
+              <h3>Lượng mưa &amp; mực nước theo ngày – vùng cảnh báo mực nước</h3>
+              <div id="waterStatus"></div>
+              <div class="chart-legend-hint">
+                🟢 an toàn · 🟡 theo dõi · 🟠 cảnh báo · 🔴 nguy hiểm<br>
+                ╌ MN chết 50.6 m · ╌ MN dâng BT 58.78 m · ╌ MN dâng GC 60.76 m
               </div>
             </div>
-            <div class="threshold-actions">
-              <button class="btn-reset" id="resetThresholds"><i class="fas fa-undo"></i> Đặt lại mặc định</button>
-              <button class="btn-save" id="saveThresholds"><i class="fas fa-save"></i> Lưu cài đặt</button>
-            </div>
+            <div class="chart-box"><canvas id="comboChart"></canvas></div>
           </div>
         </div>
-        
-        <!-- Lịch sử cảnh báo (ẩn/hiện) -->
-        <div class="alert-expandable">
-          <div class="expandable-header">
-            <div class="expandable-title">
-              <i class="fas fa-history"></i> Lịch sử cảnh báo
-            </div>
-            <button class="toggle-btn" id="toggleHistory">
-              <i class="fas fa-chevron-down"></i> Hiện
-            </button>
+
+        <!-- Bảng -->
+        <div class="table-wrap">
+          <table id="grid">
+            <colgroup><col class="cw-day"><col class="cw-time"></colgroup>
+            <thead>
+              <tr>
+                <th class="col-ngay" rowspan="2">Ngày</th>
+                <th class="col-gio"  rowspan="2">Giờ</th>
+                <th rowspan="2">Mực nước<br>(m)</th>
+                <th rowspan="2">Dung tích<br>(Triệu m³)</th>
+                <th rowspan="2">Lượng mưa<br>(mm)</th>
+                <th colspan="2">Thông số vận hành tràn tự do</th>
+                <th colspan="4">Thông số vận hành tràn sự cố</th>
+                <th colspan="3">Thông số vận hành cống lấy nước</th>
+                <th rowspan="2" style="min-width:180px">Họ, tên người vận hành</th>
+                <th rowspan="2" style="min-width:140px">Chữ ký</th>
+              </tr>
+              <tr>
+                <th>H tràn<br>(cm)</th>
+                <th>Q tràn tự do<br>(m³/s)</th>
+                <th>a1<br>(cm)</th>
+                <th>a2<br>(cm)</th>
+                <th>a3<br>(cm)</th>
+                <th>Q tràn sự cố<br>(m³/s)</th>
+                <th>a<br>(cm)</th>
+                <th>Cột nước đầu kênh<br>(m)</th>
+                <th>Q cống<br>(m³/s)</th>
+              </tr>
+            </thead>
+            <tbody id="tbody">
+              <tr><td class="state" colspan="16">Đang tải dữ liệu…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Phân trang -->
+        <div id="pager" class="pager"></div>
+      </div>
+    </div>
+    
+    <div class="content-area" id="analysis-content">
+      <div class="sheet">
+        <!-- Hệ thống cảnh báo thông minh -->
+        <div class="alert-system">
+          <div class="alert-header">
+            <h2><i class="fas fa-exclamation-triangle"></i> Hệ thống cảnh báo thông minh</h2>
+            <div class="alert-timestamp" id="alertTimestamp">Cập nhật: --:--:-- --/--/----</div>
           </div>
-          <div class="expandable-content" id="historyContent">
-            <div class="history-list" id="historyList">
-              <div class="history-item normal">
-                <span>Mực nước (56,65 m) trong ngưỡng an toàn (56,5 m)</span>
-                <span class="history-time">10:30:25 15/06/2023</span>
+          
+          <div class="alert-content">
+            <!-- Trạng thái cảnh báo -->
+            <div class="alert-status-container">
+              <div class="alert-status normal" data-status="normal">
+                <i class="fas fa-check-circle"></i>
+                <div class="status-title">Bình thường</div>
+                <div class="status-value"><span id="normalValue">56.5</span> <span class="status-unit">m</span></div>
               </div>
-              <div class="history-item monitor">
-                <span>Mực nước (58,90 m) đã vượt ngưỡng theo dõi (58,78 m)</span>
-                <span class="history-time">09:15:10 15/06/2023</span>
+              <div class="alert-status monitor active" data-status="monitor">
+                <i class="fas fa-eye"></i>
+                <div class="status-title">Theo dõi</div>
+                <div class="status-value"><span id="monitorValue">58.78</span> <span class="status-unit">m</span></div>
+              </div>
+              <div class="alert-status danger" data-status="danger">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div class="status-title">Nguy hiểm</div>
+                <div class="status-value"><span id="dangerValue">60.3</span> <span class="status-unit">m</span></div>
+              </div>
+              <div class="alert-status emergency" data-status="emergency">
+                <i class="fas fa-bell"></i>
+                <div class="status-title">Khẩn cấp</div>
+                <div class="status-value"><span id="emergencyValue">60.76</span> <span class="status-unit">m</span></div>
+              </div>
+            </div>
+            
+            <!-- Thông báo cảnh báo -->
+            <div class="alert-message normal" id="alertMessage">
+              <i class="fas fa-info-circle"></i>
+              <span id="alertText">Mực nước (56,65 m) trong ngưỡng an toàn (56,5 m). Hoạt động bình thường.</span>
+            </div>
+            
+            <!-- Trực quan hóa mực nước -->
+            <div class="alert-visual">
+              <div class="water-level-visual" id="waterLevelVisual"></div>
+              <div class="level-markers">
+                <div class="level-marker dead" data-label="Mực nước chết: 50.6 m"></div>
+                <div class="level-marker normal" data-label="MN dâng bình thường: 58.78 m"></div>
+                <div class="level-marker danger" data-label="MN dâng gia cường: 60.76 m"></div>
+              </div>
+              <div class="current-level-indicator" id="currentLevelIndicator" data-label="56.65 m"></div>
+            </div>
+            
+            <!-- Cài đặt ngưỡng cảnh báo (ẩn/hiện) -->
+            <div class="alert-expandable">
+              <div class="expandable-header">
+                <div class="expandable-title">
+                  <i class="fas fa-sliders-h"></i> Cài đặt ngưỡng cảnh báo (m)
+                </div>
+                <button class="toggle-btn" id="toggleSettings">
+                  <i class="fas fa-chevron-down"></i> Hiện
+                </button>
+              </div>
+              <div class="expandable-content" id="settingsContent">
+                <div class="threshold-inputs">
+                  <div class="threshold-group">
+                    <label>
+                      <span class="threshold-indicator indicator-normal"></span>
+                      Bình thường
+                    </label>
+                    <input type="number" id="normalThreshold" step="0.01" value="56.5">
+                  </div>
+                  <div class="threshold-group">
+                    <label>
+                      <span class="threshold-indicator indicator-monitor"></span>
+                      Theo dõi (MN dâng BT)
+                    </label>
+                    <input type="number" id="monitorThreshold" step="0.01" value="58.78">
+                  </div>
+                  <div class="threshold-group">
+                    <label>
+                      <span class="threshold-indicator indicator-danger"></span>
+                      Nguy hiểm
+                    </label>
+                    <input type="number" id="dangerThreshold" step="0.01" value="60.3">
+                  </div>
+                  <div class="threshold-group">
+                    <label>
+                      <span class="threshold-indicator indicator-emergency"></span>
+                      Khẩn cấp (MN dâng GC)
+                    </label>
+                    <input type="number" id="emergencyThreshold" step="0.01" value="60.76">
+                  </div>
+                </div>
+                <div class="threshold-actions">
+                  <button class="btn-reset" id="resetThresholds"><i class="fas fa-undo"></i> Đặt lại mặc định</button>
+                  <button class="btn-save" id="saveThresholds"><i class="fas fa-save"></i> Lưu cài đặt</button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Lịch sử cảnh báo (ẩn/hiện) -->
+            <div class="alert-expandable">
+              <div class="expandable-header">
+                <div class="expandable-title">
+                  <i class="fas fa-history"></i> Lịch sử cảnh báo
+                </div>
+                <button class="toggle-btn" id="toggleHistory">
+                  <i class="fas fa-chevron-down"></i> Hiện
+                </button>
+              </div>
+              <div class="expandable-content" id="historyContent">
+                <div class="history-list" id="historyList">
+                  <div class="history-item normal">
+                    <span>Mực nước (56,65 m) trong ngưỡng an toàn (56,5 m)</span>
+                    <span class="history-time">10:30:25 15/06/2023</span>
+                  </div>
+                  <div class="history-item monitor">
+                    <span>Mực nước (58,90 m) đã vượt ngưỡng theo dõi (58,78 m)</span>
+                    <span class="history-time">09:15:10 15/06/2023</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phân tích AI -->
+        <div class="ai-analysis" id="aiAnalysis">
+          <div class="ai-header">
+            <h2><i class="fas fa-brain"></i> Phân tích AI</h2>
+            <div class="ai-timestamp" id="aiTimestamp">Cập nhật: --:--:-- --/--/----</div>
+          </div>
+          
+          <div class="ai-content">
+            <div class="ai-tabs">
+              <button class="ai-tab active" data-tab="trend">Xu hướng</button>
+              <button class="ai-tab" data-tab="prediction">Dự báo</button>
+              <button class="ai-tab" data-tab="recommendation">Đề xuất</button>
+              <button class="ai-tab" data-tab="pattern">Phân tích mẫu</button>
+            </div>
+            
+            <div class="ai-tab-content active" id="trend-tab">
+              <div class="ai-insight">
+                <div class="ai-insight-title">
+                  <i class="fas fa-chart-line"></i> Xu hướng mực nước
+                </div>
+                <div class="ai-insight-content" id="waterLevelTrend">
+                  Đang phân tích xu hướng mực nước...
+                </div>
+              </div>
+              
+              <div class="ai-metrics">
+                <div class="ai-metric">
+                  <div class="ai-metric-value" id="trendDirection">--</div>
+                  <div class="ai-metric-label">Xu hướng</div>
+                </div>
+                <div class="ai-metric">
+                  <div class="ai-metric-value" id="trendRate">--</div>
+                  <div class="ai-metric-label">Tốc độ thay đổi (m/ngày)</div>
+                </div>
+                <div class="ai-metric">
+                  <div class="ai-metric-value" id="trendConsistency">--</div>
+                  <div class="ai-metric-label">Độ ổn định (%)</div>
+                </div>
+              </div>
+              
+              <div class="ai-chart-container">
+                <canvas id="trendChart"></canvas>
+              </div>
+            </div>
+            
+            <div class="ai-tab-content" id="prediction-tab">
+              <div class="ai-prediction">
+                <div class="ai-prediction-title">
+                  <i class="fas fa-crystal-ball"></i> Dự báo mực nước 7 ngày tới
+                </div>
+                <div class="ai-prediction-content" id="waterLevelPrediction">
+                  Đang phân tích dữ liệu lịch sử để đưa ra dự báo...
+                </div>
+              </div>
+              
+              <div class="ai-metrics">
+                <div class="ai-metric">
+                  <div class="ai-metric-value" id="predictionMin">--</div>
+                  <div class="ai-metric-label">Dự báo thấp nhất (m)</div>
+                </div>
+                <div class="ai-metric">
+                  <div class="ai-metric-value" id="predictionMax">--</div>
+                  <div class="ai-metric-label">Dự báo cao nhất (m)</div>
+                </div>
+                <div class="ai-metric">
+                  <div class="ai-metric-value" id="predictionRisk">--</div>
+                  <div class="ai-metric-label">Rủi ro vượt ngưỡng</div>
+                </div>
+              </div>
+              
+              <div class="ai-chart-container">
+                <canvas id="predictionChart"></canvas>
+              </div>
+            </div>
+            
+            <div class="ai-tab-content" id="recommendation-tab">
+              <div class="ai-recommendation">
+                <div class="ai-recommendation-title">
+                  <i class="fas fa-lightbulb"></i> Đề xuất vận hành
+                </div>
+                <div class="ai-recommendation-content" id="operationRecommendation">
+                  Đang phân tích dữ liệu để đưa ra đề xuất vận hành...
+                </div>
+              </div>
+              
+              <div class="ai-insight">
+                <div class="ai-insight-title">
+                  <i class="fas fa-tint"></i> Khuyến nghị xả nước
+                </div>
+                <div class="ai-insight-content" id="dischargeRecommendation">
+                  Đang phân tích dữ liệu để đưa ra khuyến nghị xả nước...
+                </div>
+              </div>
+              
+              <div class="ai-insight">
+                <div class="ai-insight-title">
+                  <i class="fas fa-exclamation-circle"></i> Các điểm cần chú ý
+                </div>
+                <div class="ai-insight-content" id="attentionPoints">
+                  Đang phân tích dữ liệu để xác định các điểm cần chú ý...
+                </div>
+              </div>
+            </div>
+            
+            <div class="ai-tab-content" id="pattern-tab">
+              <div class="ai-insight">
+                <div class="ai-insight-title">
+                  <i class="fas fa-cloud-rain"></i> Phân tích mẫu mưa
+                </div>
+                <div class="ai-insight-content" id="rainPattern">
+                  Đang phân tích mẫu lượng mưa...
+                </div>
+              </div>
+              
+              <div class="ai-insight">
+                <div class="ai-insight-title">
+                  <i class="fas fa-water"></i> Phân tích mẫu mực nước theo mùa
+                </div>
+                <div class="ai-insight-content" id="seasonalPattern">
+                  Đang phân tích mẫu mực nước theo mùa...
+                </div>
+              </div>
+              
+              <div class="ai-metrics">
+                <div class="ai-metric">
+                  <div class="ai-metric-value" id="rainCorrelation">--</div>
+                  <div class="ai-metric-label">Tương quan mưa-mực nước</div>
+                </div>
+                <div class="ai-metric">
+                  <div class="ai-metric-value" id="seasonalVariation">--</div>
+                  <div class="ai-metric-label">Biến động theo mùa (%)</div>
+                </div>
+              </div>
+              
+              <div class="ai-chart-container">
+                <canvas id="patternChart"></canvas>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Phân tích AI -->
-    <div class="ai-analysis" id="aiAnalysis">
-      <div class="ai-header">
-        <h2><i class="fas fa-brain"></i> Phân tích AI</h2>
-        <div class="ai-timestamp" id="aiTimestamp">Cập nhật: --:--:-- --/--/----</div>
-      </div>
-      
-      <div class="ai-content">
-        <div class="ai-tabs">
-          <button class="ai-tab active" data-tab="trend">Xu hướng</button>
-          <button class="ai-tab" data-tab="prediction">Dự báo</button>
-          <button class="ai-tab" data-tab="recommendation">Đề xuất</button>
-          <button class="ai-tab" data-tab="pattern">Phân tích mẫu</button>
-        </div>
-        
-        <div class="ai-tab-content active" id="trend-tab">
-          <div class="ai-insight">
-            <div class="ai-insight-title">
-              <i class="fas fa-chart-line"></i> Xu hướng mực nước
-            </div>
-            <div class="ai-insight-content" id="waterLevelTrend">
-              Đang phân tích xu hướng mực nước...
-            </div>
-          </div>
-          
-          <div class="ai-metrics">
-            <div class="ai-metric">
-              <div class="ai-metric-value" id="trendDirection">--</div>
-              <div class="ai-metric-label">Xu hướng</div>
-            </div>
-            <div class="ai-metric">
-              <div class="ai-metric-value" id="trendRate">--</div>
-              <div class="ai-metric-label">Tốc độ thay đổi (m/ngày)</div>
-            </div>
-            <div class="ai-metric">
-              <div class="ai-metric-value" id="trendConsistency">--</div>
-              <div class="ai-metric-label">Độ ổn định (%)</div>
-            </div>
-          </div>
-          
-          <div class="ai-chart-container">
-            <canvas id="trendChart"></canvas>
-          </div>
-        </div>
-        
-        <div class="ai-tab-content" id="prediction-tab">
-          <div class="ai-prediction">
-            <div class="ai-prediction-title">
-              <i class="fas fa-crystal-ball"></i> Dự báo mực nước 7 ngày tới
-            </div>
-            <div class="ai-prediction-content" id="waterLevelPrediction">
-              Đang phân tích dữ liệu lịch sử để đưa ra dự báo...
-            </div>
-          </div>
-          
-          <div class="ai-metrics">
-            <div class="ai-metric">
-              <div class="ai-metric-value" id="predictionMin">--</div>
-              <div class="ai-metric-label">Dự báo thấp nhất (m)</div>
-            </div>
-            <div class="ai-metric">
-              <div class="ai-metric-value" id="predictionMax">--</div>
-              <div class="ai-metric-label">Dự báo cao nhất (m)</div>
-            </div>
-            <div class="ai-metric">
-              <div class="ai-metric-value" id="predictionRisk">--</div>
-              <div class="ai-metric-label">Rủi ro vượt ngưỡng</div>
-            </div>
-          </div>
-          
-          <div class="ai-chart-container">
-            <canvas id="predictionChart"></canvas>
-          </div>
-        </div>
-        
-        <div class="ai-tab-content" id="recommendation-tab">
-          <div class="ai-recommendation">
-            <div class="ai-recommendation-title">
-              <i class="fas fa-lightbulb"></i> Đề xuất vận hành
-            </div>
-            <div class="ai-recommendation-content" id="operationRecommendation">
-              Đang phân tích dữ liệu để đưa ra đề xuất vận hành...
-            </div>
-          </div>
-          
-          <div class="ai-insight">
-            <div class="ai-insight-title">
-              <i class="fas fa-tint"></i> Khuyến nghị xả nước
-            </div>
-            <div class="ai-insight-content" id="dischargeRecommendation">
-              Đang phân tích dữ liệu để đưa ra khuyến nghị xả nước...
-            </div>
-          </div>
-          
-          <div class="ai-insight">
-            <div class="ai-insight-title">
-              <i class="fas fa-exclamation-circle"></i> Các điểm cần chú ý
-            </div>
-            <div class="ai-insight-content" id="attentionPoints">
-              Đang phân tích dữ liệu để xác định các điểm cần chú ý...
-            </div>
-          </div>
-        </div>
-        
-        <div class="ai-tab-content" id="pattern-tab">
-          <div class="ai-insight">
-            <div class="ai-insight-title">
-              <i class="fas fa-cloud-rain"></i> Phân tích mẫu mưa
-            </div>
-            <div class="ai-insight-content" id="rainPattern">
-              Đang phân tích mẫu lượng mưa...
-            </div>
-          </div>
-          
-          <div class="ai-insight">
-            <div class="ai-insight-title">
-              <i class="fas fa-water"></i> Phân tích mẫu mực nước theo mùa
-            </div>
-            <div class="ai-insight-content" id="seasonalPattern">
-              Đang phân tích mẫu mực nước theo mùa...
-            </div>
-          </div>
-          
-          <div class="ai-metrics">
-            <div class="ai-metric">
-              <div class="ai-metric-value" id="rainCorrelation">--</div>
-              <div class="ai-metric-label">Tương quan mưa-mực nước</div>
-            </div>
-            <div class="ai-metric">
-              <div class="ai-metric-value" id="seasonalVariation">--</div>
-              <div class="ai-metric-label">Biến động theo mùa (%)</div>
-            </div>
-          </div>
-          
-          <div class="ai-chart-container">
-            <canvas id="patternChart"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Chart gộp mưa + mực nước -->
-    <div class="charts" id="chartsContainer">
-      <div class="card">
-        <div class="card-header">
-          <h3>Lượng mưa &amp; mực nước theo ngày – vùng cảnh báo mực nước</h3>
-          <div id="waterStatus"></div>
-          <div class="chart-legend-hint">
-            🟢 an toàn · 🟡 theo dõi · 🟠 cảnh báo · 🔴 nguy hiểm<br>
-            ╌ MN chết 50.6 m · ╌ MN dâng BT 58.78 m · ╌ MN dâng GC 60.76 m
-          </div>
-        </div>
-        <div class="chart-box"><canvas id="comboChart"></canvas></div>
-      </div>
-    </div>
-
-    <!-- Bảng -->
-    <div class="table-wrap">
-      <table id="grid">
-        <colgroup><col class="cw-day"><col class="cw-time"></colgroup>
-        <thead>
-          <tr>
-            <th class="col-ngay" rowspan="2">Ngày</th>
-            <th class="col-gio"  rowspan="2">Giờ</th>
-            <th rowspan="2">Mực nước<br>(m)</th>
-            <th rowspan="2">Dung tích<br>(Triệu m³)</th>
-            <th rowspan="2">Lượng mưa<br>(mm)</th>
-            <th colspan="2">Thông số vận hành tràn tự do</th>
-            <th colspan="4">Thông số vận hành tràn sự cố</th>
-            <th colspan="3">Thông số vận hành cống lấy nước</th>
-            <th rowspan="2" style="min-width:180px">Họ, tên người vận hành</th>
-            <th rowspan="2" style="min-width:140px">Chữ ký</th>
-          </tr>
-          <tr>
-            <th>H tràn<br>(cm)</th>
-            <th>Q tràn tự do<br>(m³/s)</th>
-            <th>a1<br>(cm)</th>
-            <th>a2<br>(cm)</th>
-            <th>a3<br>(cm)</th>
-            <th>Q tràn sự cố<br>(m³/s)</th>
-            <th>a<br>(cm)</th>
-            <th>Cột nước đầu kênh<br>(m)</th>
-            <th>Q cống<br>(m³/s)</th>
-          </tr>
-        </thead>
-        <tbody id="tbody">
-          <tr><td class="state" colspan="16">Đang tải dữ liệu…</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Phân trang -->
-    <div id="pager" class="pager"></div>
   </div>
 
   <!-- Dashboard Settings Modal -->
@@ -1711,6 +1911,12 @@
     const rainCorrelation = document.getElementById('rainCorrelation');
     const seasonalVariation = document.getElementById('seasonalVariation');
 
+    // Sidebar and content switching
+    const menuItems = document.querySelectorAll('.menu-item');
+    const contentAreas = document.querySelectorAll('.content-area');
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+
     let customTimeRange = null;
     let currentAlertStatus = 'normal'; // Mặc định là 'normal'
     let currentWaterLevel = 56.65; // Giá trị mặc định đã cập nhật theo thực tế
@@ -1740,7 +1946,6 @@
       const date=new Date(yyyy,mm-1,dd,HH,MM);
       return Number.isNaN(date.getTime())?null:date;
     }
-    
     const fmtDateVN=d=>`${fmt2(d.getDate())}/${fmt2(d.getMonth()+1)}/${d.getFullYear()}`;
     const fmtTimeVN=d=>`${fmt2(d.getHours())}:${fmt2(d.getMinutes())}`;
     const fmtDateTimeVN=d=>`${fmtDateVN(d)} ${fmtTimeVN(d)}`;
@@ -1957,9 +2162,14 @@
 
       updateSubtitle();
 
-      currentPage = 1;
-      renderTablePage();
-      updateKPIAndCharts();
+      // Only update table and charts if the monitoring tab is active
+      if (document.getElementById('monitoring-content').classList.contains('active')) {
+        currentPage = 1;
+        renderTablePage();
+        updateKPIAndCharts();
+      }
+      
+      // Always update alert and AI analysis as they might be viewed later
       updateAlertSystem();
       updateAIAnalysis();
     }
@@ -2094,13 +2304,15 @@
       const yMaxLvl = niceCeil(lvlMax + pad, 0.2);
 
       if(comboChart) comboChart.destroy();
-      const ctx = document.getElementById('comboChart').getContext('2d');
+      const ctx = document.getElementById('comboChart');
+      if (!ctx) return; // Exit if chart canvas is not in the DOM
+      const chartCtx = ctx.getContext('2d');
 
-      const gradient = ctx.createLinearGradient(0,0,0,ctx.canvas.height);
+      const gradient = chartCtx.createLinearGradient(0,0,0,chartCtx.canvas.height);
       gradient.addColorStop(0,'rgba(248,113,113,0.35)');
       gradient.addColorStop(1,'rgba(248,113,113,0.00)');
 
-      comboChart = new Chart(ctx,{
+      comboChart = new Chart(chartCtx,{
         type:'bar',
         data:{
           labels:labelsDM,
@@ -2378,7 +2590,7 @@
     
     // Toggle buttons functionality
     toggleSettingsBtn.addEventListener('click', () => {
-      const isHidden = settingsContent.classList.contains('show');
+      const isHidden = !settingsContent.classList.contains('show');
       if (isHidden) {
         settingsContent.classList.remove('show');
         toggleSettingsBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Hiện';
@@ -2389,7 +2601,7 @@
     });
     
     toggleHistoryBtn.addEventListener('click', () => {
-      const isHidden = historyContent.classList.contains('show');
+      const isHidden = !historyContent.classList.contains('show');
       if (isHidden) {
         historyContent.classList.remove('show');
         toggleHistoryBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Hiện';
@@ -3292,6 +3504,7 @@
           subTitle.textContent = `Tháng ${params.get('thang')}`;
         }
         
+        // Apply filters to initialize the data
         applyFiltersCore();
       })
       .catch(err=>{
@@ -3335,6 +3548,54 @@
       XLSX.utils.book_append_sheet(wb,ws,"NhatKy_HoNuocNgot");
       XLSX.writeFile(wb,"NhatKyVanHanh_HoNuocNgot.xlsx");
       function num(v){ const n=Number(v); return Number.isNaN(n)?"":n; }
+    });
+
+    /* Sidebar Navigation Logic */
+    menuItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const targetContent = item.dataset.content;
+        
+        // Remove active class from all menu items and content areas
+        menuItems.forEach(i => i.classList.remove('active'));
+        contentAreas.forEach(area => area.classList.remove('active'));
+        
+        // Add active class to clicked menu item and corresponding content area
+        item.classList.add('active');
+        document.getElementById(`${targetContent}-content`).classList.add('active');
+        
+        // Close sidebar on mobile after selection
+        if (window.innerWidth <= 768) {
+          sidebar.classList.remove('open');
+        }
+        
+        // Trigger updates for the specific content
+        if (targetContent === 'monitoring') {
+          // Re-render table and charts when this tab is activated
+          currentPage = 1;
+          renderTablePage();
+          updateKPIAndCharts();
+        } else if (targetContent === 'analysis') {
+          // Re-render alert and AI analysis when this tab is activated
+          updateAlertSystem();
+          updateAIAnalysis();
+        }
+      });
+    });
+
+    /* Mobile Menu Toggle Logic */
+    menuToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', (event) => {
+      const isClickInsideSidebar = sidebar.contains(event.target);
+      const isClickOnToggle = menuToggle.contains(event.target);
+      const isMobile = window.innerWidth <= 768;
+
+      if (isMobile && !isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+      }
     });
   </script>
 </body>
