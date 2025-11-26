@@ -64,13 +64,21 @@
             height: 100vh;
             overflow-y: auto;
             z-index: 100;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, width 0.3s ease;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-100%);
+            width: 0;
         }
 
         .sidebar-header {
             padding: 0 20px 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .sidebar-header h2 {
@@ -78,6 +86,22 @@
             font-size: 18pt;
             font-weight: bold;
             text-align: center;
+            flex-grow: 1;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            color: var(--sidebar-text);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .sidebar-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .sidebar-menu {
@@ -114,6 +138,31 @@
             margin-left: 250px;
             padding: 20px;
             transition: margin-left 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        /* Show Sidebar Button - Thêm mới */
+        .show-sidebar-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 101;
+            background: var(--sidebar-bg);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 16px;
+            display: none;
+            transition: all 0.3s ease;
+        }
+
+        .show-sidebar-btn.visible {
+            display: block;
         }
 
         .content-section {
@@ -1174,7 +1223,8 @@
     }
 
     .sidebar,
-    .menu-toggle-btn {
+    .menu-toggle-btn,
+    .show-sidebar-btn {
         display: none !important;
     }
 
@@ -1337,6 +1387,7 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h2>NGUYỄN NGỌC THUẬN</h2>
+            <button class="sidebar-toggle" id="sidebar-toggle">✕</button>
         </div>
         <ul class="sidebar-menu">
             <li>
@@ -1357,11 +1408,14 @@
         </ul>
     </aside>
 
+    <!-- Show Sidebar Button - Thêm mới -->
+    <button class="show-sidebar-btn" id="show-sidebar-btn">☰ Menu</button>
+
     <!-- Mobile Menu Toggle Button -->
     <button class="menu-toggle-btn" id="menu-toggle-btn">☰</button>
 
     <!-- Main Content -->
-    <main class="main-content">
+    <main class="main-content" id="main-content">
         <!-- Rain Gauge Station Section -->
         <section class="content-section active" id="rain-gauge-section">
             <div class="container">
@@ -1846,7 +1900,7 @@
         const LVL_BT_TXT = formatMeter(LVL_BT, 2);
         const LVL_GC_TXT = formatMeter(LVL_GC, 2);
 
-        let allData =         [];
+        let allData = [];
         let filteredData = [];
         let customTimeRange = null;
 
@@ -1903,6 +1957,9 @@
 
         // Sidebar Elements
         const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle'); // Thêm mới
+        const showSidebarBtn = document.getElementById('show-sidebar-btn'); // Thêm mới
+        const mainContent = document.getElementById('main-content'); // Thêm mới
         const menuToggleBtn = document.getElementById('menu-toggle-btn');
         const sidebarLinks = document.querySelectorAll('.sidebar a[data-section]');
         const contentSections = document.querySelectorAll('.content-section');
@@ -2385,6 +2442,19 @@
             sidebar.classList.toggle('open');
         }
 
+        // New functions for hiding/showing sidebar
+        function hideSidebar() {
+            sidebar.classList.add('hidden');
+            mainContent.classList.add('expanded');
+            showSidebarBtn.classList.add('visible');
+        }
+
+        function showSidebar() {
+            sidebar.classList.remove('hidden');
+            mainContent.classList.remove('expanded');
+            showSidebarBtn.classList.remove('visible');
+        }
+
         function showSection(sectionId) {
             // Hide all sections
             contentSections.forEach(section => {
@@ -2413,6 +2483,10 @@
 
         // Initialize sidebar event listeners
         menuToggleBtn.addEventListener('click', toggleSidebar);
+
+        // Add event listeners for new sidebar toggle buttons
+        sidebarToggle.addEventListener('click', hideSidebar);
+        showSidebarBtn.addEventListener('click', showSidebar);
 
         sidebarLinks.forEach(link => {
             link.addEventListener('click', (e) => {
