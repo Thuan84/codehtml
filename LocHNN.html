@@ -694,67 +694,34 @@
       margin-top: 16px;
     }
 
-    /* ===== PHÂN TÍCH THEO KỲ ===== */
-    .period-analysis-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
-    }
-
-    .period-analysis-card {
-      background-color: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .period-analysis-card h4 {
-      margin: 0 0 12px 0;
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--ink);
-      text-align: center;
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 8px;
-    }
-
-    .period-metrics {
+    /* ===== NÚT CHỌN KỲ PHÂN TÍCH ===== */
+    .period-selector {
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       gap: 10px;
+      margin-bottom: 20px;
     }
 
-    .metric {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .period-btn {
+      padding: 8px 16px;
+      border: 2px solid var(--brand);
+      background-color: #fff;
+      color: var(--brand);
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
-    .metric-label {
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 500;
+    .period-btn:hover {
+      background-color: rgba(30, 164, 141, 0.1);
+      transform: translateY(-1px);
     }
 
-    .metric-value {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--ink);
-    }
-
-    .metric-trend {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .trend-icon.stable {
-      color: #64748b;
-    }
-    
-    .trend-text.stable {
-      color: #64748b;
+    .period-btn.active {
+      background-color: var(--brand);
+      color: #fff;
     }
     
     /* Filters */
@@ -1485,7 +1452,7 @@
               <div id="waterStatus"></div>
               <div class="chart-legend-hint">
                 🟢 an toàn · 🟡 theo dõi · 🟠 cảnh báo · 🔴 nguy hiểm<br>
-                ╌ MN chết 50.6 m · ╌ MN dâng BT 58.78 m · ╌ MN dâng GC 60.76 m
+                ╌ MN chết 50.60 m · ╌ MN dâng BT 58.78 m · ╌ MN dâng GC 60.76 m
               </div>
             </div>
             <div class="chart-box"><canvas id="comboChart"></canvas></div>
@@ -1612,104 +1579,29 @@
                 </div>
               </div>
             </div>
+
+            <!-- PHÂN TÍCH THEO KỲ -->
+            <div class="water-level-section">
+              <div class="section-title">
+                <i class="fas fa-calendar-alt"></i> PHÂN TÍCH THEO KỲ
+              </div>
+              
+              <!-- Nút chọn kỳ phân tích -->
+              <div class="period-selector">
+                <button class="period-btn active" data-period="7">7 ngày qua</button>
+                <button class="period-btn" data-period="30">30 ngày qua</button>
+                <button class="period-btn" data-period="90">90 ngày qua</button>
+              </div>
+            </div>
             
-        </div>
-
-        <!-- PHÂN TÍCH THEO KỲ -->
-        <div class="water-level-section">
-          <div class="section-title">
-            <i class="fas fa-calendar-alt"></i> PHÂN TÍCH THEO KỲ
-          </div>
-          
-          <div class="period-analysis-grid">
-            <!-- Phân tích 7 ngày -->
-            <div class="period-analysis-card">
-              <h4>7 ngày qua</h4>
-              <div class="period-metrics">
-                <div class="metric">
-                  <span class="metric-label">Trung bình:</span>
-                  <span class="metric-value" id="avg7d">--</span>
-                </div>
-                <div class="metric">
-                  <span class="metric-label">Cao nhất:</span>
-                  <span class="metric-value" id="max7d">--</span>
-                </div>
-                <div class="metric">
-                  <span class="metric-label">Thấp nhất:</span>
-                  <span class="metric-value" id="min7d">--</span>
-                </div>
-                <div class="metric">
-                  <span class="metric-label">Xu hướng:</span>
-                  <span class="metric-trend" id="trend7d">
-                    <i class="fas fa-minus trend-icon stable"></i>
-                    <span class="trend-text stable">Ổn định</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Phân tích 30 ngày -->
-            <div class="period-analysis-card">
-              <h4>30 ngày qua</h4>
-              <div class="period-metrics">
-                <div class="metric">
-                  <span class="metric-label">Trung bình:</span>
-                  <span class="metric-value" id="avg30d">--</span>
-                </div>
-                <div class="metric">
-                  <span class="metric-label">Cao nhất:</span>
-                  <span class="metric-value" id="max30d">--</span>
-                </div>
-                <div class="metric">
-                  <span class="metric-label">Thấp nhất:</span>
-                  <span class="metric-value" id="min30d">--</span>
-                </div>
-                <div class="metric">
-                  <span class="metric-label">Xu hướng:</span>
-                  <span class="metric-trend" id="trend30d">
-                    <i class="fas fa-minus trend-icon stable"></i>
-                    <span class="trend-text stable">Ổn định</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Phân tích 90 ngày -->
-            <div class="period-analysis-card">
-              <h4>90 ngày qua</h4>
-              <div class="period-metrics">
-                <div class="metric">
-                  <span class="metric-label">Trung bình:</span>
-                  <span class="metric-value" id="avg90d">--</span>
-                </div>
-                <div class="metric">
-                  <span class="metric-label">Cao nhất:</span>
-                  <span class="metric-value" id="max90d">--</span>
-                </div>
-                <div class="metric">
-                  <span class="metric-label">Thấp nhất:</span>
-                  <span class="metric-value" id="min90d">--</span>
-                </div>
-                <div class="metric">
-                  <span class="metric-label">Xu hướng:</span>
-                  <span class="metric-trend" id="trend90d">
-                    <i class="fas fa-minus trend-icon stable"></i>
-                    <span class="trend-text stable">Ổn định</span>
-                  </span>
-                </div>
-              </div>
+            <!-- Biểu đồ -->
+            <div class="chart-container">
+              <canvas id="waterLevelChart"></canvas>
             </div>
           </div>
-        </div>
-        
-        <!-- Biểu đồ -->
-        <div class="chart-container">
-          <canvas id="waterLevelChart"></canvas>
         </div>
       </div>
     </div>
-  </div>
-</div>
   </div>
 
   <!-- Dashboard Settings Modal -->
@@ -2191,7 +2083,7 @@
       kpiCurrentVolume.textContent = currentVolume !== null ? nf2.format(currentVolume) : '0';
 
       /* Các ngưỡng mực nước */
-      const DEAD        = 50.6;
+      const DEAD        = 50.60;
       const LVL_YELLOW  = 58.78; // MN dâng BT
       const LVL_ORANGE  = 59.77; // trung gian
       const LVL_RED     = 60.76; // MN dâng GC
@@ -2455,7 +2347,7 @@
         if (toast.parentNode) {
           toast.parentNode.removeChild(toast);
         }
-      }, 300);
+    }, 300);
     }
 
     // --- IndexedDB for Caching ---
@@ -2542,27 +2434,6 @@
           resolve();
         };
       });
-    }
-
-    // --- Data Loading with Progressive Enhancement ---
-    function showLoading(show = true, text = 'Đang tải dữ liệu...', progress = 0) {
-      if (show) {
-        loadingOverlay.style.display = 'flex';
-        loadingText.textContent = text;
-        loadingProgressBar.style.width = `${progress}%`;
-      } else {
-        loadingOverlay.style.display = 'none';
-      }
-    }
-
-    // Show data update indicator
-    function showDataUpdateIndicator(show = true, text = 'Đang cập nhật dữ liệu mới...') {
-      if (show) {
-        dataUpdateText.textContent = text;
-        dataUpdateIndicator.classList.add('show');
-      } else {
-        dataUpdateIndicator.classList.remove('show');
-      }
     }
 
     // Combine data without duplicates
@@ -2890,18 +2761,90 @@
     // Load settings on page load
     document.addEventListener('DOMContentLoaded', loadDashboardSettings);
 
-    /* CẬP NHẬT PHÂN TÍCH MỨC NƯỚC */
-        /* CẬP NHẬT PHÂN TÍCH MỨC NƯỚC */
-        function updateWaterAnalysis() {
+    /* ===== KHỞI TẠO BIẾN VÀ PLUGIN ===== */
+    let selectedPeriod = 7; // Kỳ được chọn, mặc định là 7 ngày
+
+    // Plugin để vẽ KPI lên biểu đồ
+    const chartKpiPlugin = {
+      id: 'chartKpiPlugin',
+      afterDraw(chart, args, options) {
+        const { ctx, chartArea: { top, right, bottom, left, width, height } } = chart;
+        const kpis = options.kpis;
+
+        if (!kpis || kpis.avg === null) return;
+
+        ctx.save();
+        
+        // Cấu hình hộp KPI
+        const boxPadding = 10;
+        const boxWidth = 180;
+        const lineHeight = 20;
+        const fontSize = 13;
+        const startX = right - boxWidth - boxPadding;
+        let startY = top + boxPadding;
+
+        // Vẽ nền hộp
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.fillRect(startX, startY, boxWidth, 4 * lineHeight + boxPadding * 1.5);
+        
+        // Vẽ viền
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(startX, startY, boxWidth, 4 * lineHeight + boxPadding * 1.5);
+
+        // Vẽ tiêu đề
+        ctx.fillStyle = '#0f172a';
+        ctx.font = `bold ${fontSize + 1}px Inter, "Segoe UI", Roboto, Arial, sans-serif`;
+        ctx.fillText(`Phân tích ${options.period} ngày qua`, startX + boxPadding, startY + lineHeight);
+
+        // Cấu hình văn bản KPI
+        ctx.fillStyle = '#374151';
+        ctx.font = `${fontSize}px Inter, "Segoe UI", Roboto, Arial, sans-serif`;
+
+        // Hàm để vẽ một dòng văn bản
+        const drawLine = (text, y) => {
+          ctx.fillText(text, startX + boxPadding, y);
+        };
+
+        // Vẽ các chỉ số KPI
+        drawLine(`Trung bình: ${kpis.avg} m`, startY + lineHeight * 2);
+        drawLine(`Cao nhất: ${kpis.max} m`, startY + lineHeight * 3);
+        drawLine(`Thấp nhất: ${kpis.min} m`, startY + lineHeight * 4);
+        
+        // Vẽ xu hướng với biểu tượng
+        let trendText = 'Ổn định';
+        let trendIcon = '—';
+        if (kpis.trend === 'up') {
+          trendText = 'Tăng';
+          trendIcon = '↑';
+          ctx.fillStyle = '#ef4444'; // đỏ cho tăng
+        } else if (kpis.trend === 'down') {
+          trendText = 'Giảm';
+          trendIcon = '↓';
+          ctx.fillStyle = '#22c55e'; // xanh cho giảm
+        } else {
+          ctx.fillStyle = '#64748b'; // xám cho ổn định
+        }
+        drawLine(`Xu hướng: ${trendIcon} ${trendText}`, startY + lineHeight * 5);
+
+        ctx.restore();
+      }
+    };
+    // Đăng ký plugin
+    Chart.register(chartKpiPlugin);
+
+    /* ===== CÁC HÀM XỬ LÝ CHÍNH ===== */
+
+    // Hàm chính cập nhật toàn bộ phần phân tích
+    function updateWaterAnalysis() {
       // Cập nhật timestamp
       const now = new Date();
       waterAnalysisTimestamp.textContent = `Cập nhật: ${fmtDateTimeVN(now)}`;
 
-      // Cập nhật mực nước hiện tại
+      // Cập nhật mực nước hiện tại và chỉ báo
       currentWaterLevel.textContent = nf2.format(currentWaterLevelValue);
       
-      // ... (phần code cũ tính toán vị trí chỉ báo mực nước) ...
-      const safeMax = 58.78; // Dựa trên ngưỡng mới
+      const safeMax = 58.78;
       const theoryMax = 59.77;
       const warningMax = 60.76;
       
@@ -2929,179 +2872,83 @@
         levelIndicator.style.backgroundColor = '#a855f7';
       }
       
-      // --- BẮT ĐẦU PHẦN MỚI: PHÂN TÍCH THEO KỲ ---
-      const periods = [7, 30, 90]; // Các kỳ cần phân tích
-      
-      periods.forEach(periodDays => {
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - periodDays);
-        
-        // Lọc dữ liệu trong kỳ
-        const periodData = filtered.filter(r => r.__d && r.__d >= startDate);
-        
-        // Reset giá trị hiển thị nếu không có dữ liệu
-        document.getElementById(`avg${periodDays}d`).textContent = '--';
-        document.getElementById(`max${periodDays}d`).textContent = '--';
-        document.getElementById(`min${periodDays}d`).textContent = '--';
-        document.getElementById(`trend${periodDays}d`).innerHTML = '<i class="fas fa-minus trend-icon stable"></i><span class="trend-text stable">Không đủ dữ liệu</span>';
-
-        if (periodData.length === 0) {
-          return; // Bỏ qua nếu không có dữ liệu cho kỳ này
-        }
-
-        // Lấy các giá trị mực nước hợp lệ
-        const levels = periodData.map(r => Number(r.mucNuoc)).filter(l => !isNaN(l));
-        
-        if (levels.length === 0) {
-            return;
-        }
-
-        // Tính toán các chỉ số
-        const avg = levels.reduce((a, b) => a + b, 0) / levels.length;
-        const max = Math.max(...levels);
-        const min = Math.min(...levels);
-
-        // Cập nhật giao diện
-        document.getElementById(`avg${periodDays}d`).textContent = nf2.format(avg);
-        document.getElementById(`max${periodDays}d`).textContent = nf2.format(max);
-        document.getElementById(`min${periodDays}d`).textContent = nf2.format(min);
-
-        // Tính toán xu hướng (so sánh nửa đầu và nửa cuối kỳ)
-        const midPoint = Math.floor(levels.length / 2);
-        const firstHalf = levels.slice(0, midPoint);
-        const secondHalf = levels.slice(midPoint);
-        
-        if (firstHalf.length > 0 && secondHalf.length > 0) {
-          const avgFirstHalf = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
-          const avgSecondHalf = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
-          const diff = avgSecondHalf - avgFirstHalf;
-          const threshold = 0.05; // Ngưỡng để xác định "ổn định"
-
-          let trendHtml = '';
-          if (Math.abs(diff) < threshold) {
-            trendHtml = '<i class="fas fa-minus trend-icon stable"></i><span class="trend-text stable">Ổn định</span>';
-          } else if (diff > 0) {
-            trendHtml = '<i class="fas fa-arrow-up trend-icon up"></i><span class="trend-text up">Tăng</span>';
-          } else {
-            trendHtml = '<i class="fas fa-arrow-down trend-icon down"></i><span class="trend-text down">Giảm</span>';
-          }
-          document.getElementById(`trend${periodDays}d`).innerHTML = trendHtml;
-        }
-      });
-      // --- KẾT THÚC PHẦN MỚI ---
-
-      // ... (phần code cũ tính toán dự báo 24h và cập nhật biểu đồ) ...
-      // (Phần này bạn giữ nguyên như cũ)
-      if (filtered.length > 0) {
-        // Tính mực nước trung bình cho toàn bộ dữ liệu đã lọc
-        let sumLevel = 0;
-        let countLevel = 0;
-        filtered.forEach(r => {
-          const level = Number(r.mucNuoc);
-          if (!Number.isNaN(level)) {
-            sumLevel += level;
-            countLevel++;
-          }
-        });
-        
-        const avgLevel = countLevel > 0 ? sumLevel / countLevel : 0;
-        avgWaterLevel.textContent = nf2.format(avgLevel);
-        
-        // Tính xu hướng (so sánh với 7 ngày trước)
-        if (filtered.length >= 7) {
-          const sortedByDate = [...filtered].sort((a, b) => a.__d - b.__d);
-          const recent7Days = sortedByDate.slice(-7);
-          
-          let sumRecent = 0;
-          let countRecent = 0;
-          recent7Days.forEach(r => {
-            const level = Number(r.mucNuoc);
-            if (!Number.isNaN(level)) {
-              sumRecent += level;
-              countRecent++;
-            }
-          });
-          
-          const avgRecent = countRecent > 0 ? sumRecent / countRecent : 0;
-          const difference = avgLevel - avgRecent;
-          
-          // Cập nhật xu hướng
-          if (Math.abs(difference) < 0.05) {
-            waterTrend.innerHTML = '<i class="fas fa-minus trend-icon" style="color: #64748b;"></i><span>Ổn định</span>';
-          } else if (difference > 0) {
-            waterTrend.innerHTML = '<i class="fas fa-arrow-up trend-icon up"></i><span>Tăng</span>';
-          } else {
-            waterTrend.innerHTML = '<i class="fas fa-arrow-down trend-icon down"></i><span>Giảm</span>';
-          }
-          
-          // Cập nhật thông tin "7 ngày"
-          const trendText = document.querySelector('.analysis-trend .trend-text');
-          if (trendText) {
-            if (difference > 0) {
-              trendText.textContent = `${nf2.format(Math.abs(difference))}m trong 7 ngày`;
-              trendText.className = 'trend-text up';
-            } else {
-              trendText.textContent = `${nf2.format(Math.abs(difference))}m trong 7 ngày`;
-              trendText.className = 'trend-text down';
-            }
-          }
-        }
-        
-        // Dự báo 24h (giả sử xu hướng tiếp tục)
-        const sortedByDate = [...filtered].sort((a, b) => a.__d - b.__d);
-        const latestRecord = sortedByDate[sortedByDate.length - 1];
-        
-        if (latestRecord && latestRecord.mucNuoc) {
-          const latestLevel = Number(latestRecord.mucNuoc);
-          
-          // Tính toán dự báo đơn giản (dựa trên xu hướng gần đây)
-          let forecast = latestLevel;
-          
-          if (filtered.length >= 3) {
-            const recent3 = sortedByDate.slice(-3);
-            let sumChange = 0;
-            
-            for (let i = 1; i < recent3.length; i++) {
-              const prevLevel = Number(recent3[i-1].mucNuoc);
-              const currLevel = Number(recent3[i].mucNuoc);
-              if (!Number.isNaN(prevLevel) && !Number.isNaN(currLevel)) {
-                sumChange += (currLevel - prevLevel);
-              }
-            }
-            
-            const avgChange = sumChange / (recent3.length - 1);
-            forecast = latestLevel + avgChange;
-          }
-          
-          forecast24h.textContent = nf2.format(forecast);
-        }
-        
-        // Cập nhật biểu đồ
-        updateWaterLevelChart();
-      }
+      // Gọi hàm cập nhật biểu đồ, hàm này sẽ tính toán và vẽ KPI
+      updateWaterLevelChartForPeriod(selectedPeriod);
     }
 
-    function updateWaterLevelChart() {
+    // Hàm tính toán các chỉ số thống kê cho một kỳ
+    function calculatePeriodStats(periodDays) {
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - periodDays);
+      
+      // QUAN TRỌNG: Sử dụng allData để tránh xung đột với bộ lọc ở tab khác
+      const periodData = allData.filter(r => r.__d && r.__d >= startDate);
+      
+      if (periodData.length === 0) {
+        return { avg: null, max: null, min: null, trend: 'stable' };
+      }
+
+      const levels = periodData.map(r => Number(r.mucNuoc)).filter(l => !isNaN(l));
+      
+      if (levels.length === 0) {
+          return { avg: null, max: null, min: null, trend: 'stable' };
+      }
+
+      const avg = levels.reduce((a, b) => a + b, 0) / levels.length;
+      const max = Math.max(...levels);
+      const min = Math.min(...levels);
+
+      // Tính xu hướng
+      const midPoint = Math.floor(levels.length / 2);
+      const firstHalf = levels.slice(0, midPoint);
+      const secondHalf = levels.slice(midPoint);
+      let trend = 'stable';
+      
+      if (firstHalf.length > 0 && secondHalf.length > 0) {
+        const avgFirstHalf = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+        const avgSecondHalf = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+        const diff = avgSecondHalf - avgFirstHalf;
+        const threshold = 0.05; // Ngưỡng để xác định "ổn định"
+
+        if (Math.abs(diff) >= threshold) {
+          trend = diff > 0 ? 'up' : 'down';
+        }
+      }
+      
+      return { 
+        avg: nf2.format(avg), 
+        max: nf2.format(max), 
+        min: nf2.format(min), 
+        trend: trend 
+      };
+    }
+
+    // Hàm cập nhật biểu đồ cho một kỳ cụ thể
+    function updateWaterLevelChartForPeriod(periodDays) {
       const ctx = document.getElementById('waterLevelChart');
       if (!ctx) return;
 
       if (waterLevelChart) waterLevelChart.destroy();
 
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - periodDays);
+      
+      // Lọc dữ liệu trong kỳ từ allData
+      const periodData = allData.filter(r => r.__d && r.__d >= startDate);
+
       // Chuẩn bị dữ liệu cho biểu đồ
       const levelByDay = new Map();
       const rainByDay = new Map();
 
-      filtered.forEach(r => {
+      periodData.forEach(r => {
         const d = r.__d;
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         
-        // Lưu mực nước cuối cùng trong ngày
         const level = Number(r.mucNuoc);
         if (!Number.isNaN(level)) {
           levelByDay.set(key, level);
         }
         
-        // Tổng lượng mưa trong ngày
         rainByDay.set(key, (rainByDay.get(key) || 0) + (Number(r.luongMua) || 0));
       });
 
@@ -3115,21 +2962,23 @@
       const rainData = dayKeys.map(k => rainByDay.get(k) || 0);
 
       // Tính toán các ngưỡng
-      const safeMax = 28.00;
-      const theoryMax = 29.50;
-      const warningMax = 30.50;
+      const safeMax = 58.78;
+      const theoryMax = 59.77;
+      const warningMax = 60.76;
 
       const safeLine = dayKeys.map(() => safeMax);
       const theoryLine = dayKeys.map(() => theoryMax);
       const warningLine = dayKeys.map(() => warningMax);
 
-      // Tính toán min/max cho trục Y
       const validLevels = levelData.filter(v => v !== null);
       const minLevel = validLevels.length > 0 ? Math.min(...validLevels) : 25;
       const maxLevel = validLevels.length > 0 ? Math.max(...validLevels) : 32;
       const padding = (maxLevel - minLevel) * 0.1 || 1;
 
       const chartCtx = ctx.getContext('2d');
+      
+      // Tính toán KPI để truyền vào plugin
+      const kpis = calculatePeriodStats(periodDays);
 
       waterLevelChart = new Chart(chartCtx, {
         type: 'line',
@@ -3220,55 +3069,34 @@
                   return label;
                 }
               }
+            },
+            // Truyền KPI và kỳ vào plugin
+            chartKpiPlugin: {
+              kpis: kpis,
+              period: periodDays
             }
           },
           scales: {
             x: {
-              grid: {
-                display: false
-              },
+              grid: { display: false },
               ticks: {
                 maxTicksLimit: 12,
-                font: {
-                  size: 11
-                }
+                font: { size: 11 }
               }
             },
             y: {
               position: 'left',
               min: minLevel - padding,
               max: maxLevel + padding,
-              title: {
-                display: true,
-                text: 'Mực nước (m)',
-                font: {
-                  size: 12
-                }
-              },
-              ticks: {
-                font: {
-                  size: 11
-                }
-              }
+              title: { display: true, text: 'Mực nước (m)', font: { size: 12 } },
+              ticks: { font: { size: 11 } }
             },
             yRain: {
               position: 'right',
               beginAtZero: true,
-              title: {
-                display: true,
-                text: 'Lượng mưa (mm)',
-                font: {
-                  size: 12
-                }
-              },
-              grid: {
-                drawOnChartArea: false
-              },
-              ticks: {
-                font: {
-                  size: 11
-                }
-              }
+              title: { display: true, text: 'Lượng mưa (mm)', font: { size: 12 } },
+              grid: { drawOnChartArea: false },
+              ticks: { font: { size: 11 } }
             }
           }
         }
@@ -3346,20 +3174,6 @@
         populateWeeks(allData);
       }
       applyFilters();
-    });
-
-    /* Initialize data loading on page load */
-    document.addEventListener('DOMContentLoaded', () => {
-      // Load data with progressive enhancement
-      loadDataWithProgressiveEnhancement();
-
-      // Set up periodic data refresh (every 5 minutes)
-      setInterval(() => {
-        // Only refresh if page is visible
-        if (!document.hidden) {
-          fetchFreshDataInBackground();
-        }
-      }, 5 * 60 * 1000);
     });
 
     /* Xuất Excel (toàn bộ dữ liệu sau lọc) */
@@ -3495,37 +3309,7 @@
       }
     });
 
-    // Handle page visibility changes
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        // Page became visible again, check if we need to refresh data
-        const lastRefreshTime = localStorage.getItem('lastDataRefresh');
-        const now = new Date().getTime();
-        
-        // If it's been more than 5 minutes since last refresh, refresh data
-        if (!lastRefreshTime || (now - parseInt(lastRefreshTime)) > 5 * 60 * 1000) {
-          showToast('Đang làm mới dữ liệu...', 'info', 2000);
-          fetchFreshDataInBackground();
-        }
-      }
-    });
-
-    // Network status handling
-    window.addEventListener('online', () => {
-      showToast('Đã kết nối lại mạng', 'success', 3000);
-      fetchFreshDataInBackground();
-    });
-
-    window.addEventListener('offline', () => {
-      showToast('Mất kết nối mạng, đang sử dụng dữ liệu đã lưu', 'warning', 5000);
-    });
-
-    // Update last refresh time
-    function updateLastRefreshTime() {
-      localStorage.setItem('lastDataRefresh', new Date().getTime().toString());
-    }
-
-    // Initialize the application
+    // Final initialization
     document.addEventListener('DOMContentLoaded', () => {
       // Load data with cache-first approach
       loadDataWithProgressiveEnhancement();
@@ -3537,446 +3321,25 @@
           fetchFreshDataInBackground();
         }
       }, 5 * 60 * 1000);
-    });
-
-    // Performance optimization: Debounce scroll events
-    let scrollTimeout;
-    window.addEventListener('scroll', () => {
-      if (scrollTimeout) {
-        window.cancelAnimationFrame(scrollTimeout);
-      }
-
-      scrollTimeout = window.requestAnimationFrame(() => {
-        // Handle scroll-based lazy loading if needed in the future
+      
+      // Thêm sự kiện cho nút chọn kỳ
+      const periodButtons = document.querySelectorAll('.period-btn');
+      periodButtons.forEach(button => {
+          button.addEventListener('click', () => {
+              // Xóa class 'active' khỏi tất cả các nút
+              periodButtons.forEach(btn => btn.classList.remove('active'));
+              
+              // Thêm class 'active' vào nút được click
+              button.classList.add('active');
+              
+              // Cập nhật biến selectedPeriod
+              selectedPeriod = parseInt(button.dataset.period);
+              
+              // Gọi lại hàm cập nhật để làm mới dữ liệu và biểu đồ
+              updateWaterAnalysis();
+          });
       });
     });
-
-    // Performance optimization: Debounce resize events
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-      if (resizeTimeout) {
-        clearTimeout(resizeTimeout);
-      }
-
-      resizeTimeout = setTimeout(() => {
-        // Handle responsive layout changes
-        if (comboChart) {
-          comboChart.resize();
-        }
-        if (waterLevelChart) {
-          waterLevelChart.resize();
-        }
-      }, 250);
-    });
-
-    // Add keyboard shortcuts for better UX
-    document.addEventListener('keydown', (event) => {
-      // Ctrl/Cmd + R: Refresh data
-      if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
-        event.preventDefault();
-        fetchFreshData();
-      }
-
-      // Ctrl/Cmd + E: Export to Excel
-      if ((event.ctrlKey || event.metaKey) && event.key === 'e') {
-        event.preventDefault();
-        document.getElementById('btnExcel').click();
-      }
-
-      // Ctrl/Cmd + P: Print
-      if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
-        event.preventDefault();
-        window.print();
-      }
-
-      // Escape: Close modals
-      if (event.key === 'Escape') {
-        if (dashboardSettingsModal.style.display === 'block') {
-          dashboardSettingsModal.style.display = 'none';
-        }
-        if (customTimePanel.style.display === 'block') {
-          customTimePanel.style.display = 'none';
-          btnCustomTime.innerHTML = '<i class="fas fa-clock"></i> Thời gian tùy chỉnh';
-        }
-      }
-
-      // Ctrl/Cmd + M: Toggle sidebar
-      if ((event.ctrlKey || event.metaKey) && event.key === 'm') {
-        event.preventDefault();
-        btnToggleSidebar.click();
-      }
-    });
-
-    // Add accessibility improvements
-    function addAccessibilityFeatures() {
-      // Add ARIA labels to interactive elements
-      document.querySelectorAll('button, .btn').forEach(button => {
-        if (!button.getAttribute('aria-label')) {
-          button.setAttribute('aria-label', button.textContent.trim());
-        }
-      });
-
-      // Add keyboard navigation to menu items
-      menuItems.forEach((item, index) => {
-        item.setAttribute('tabindex', '0');
-
-        item.addEventListener('keydown', (event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            item.click();
-          } else if (event.key === 'ArrowDown') {
-            event.preventDefault();
-            const nextItem = menuItems[(index + 1) % menuItems.length];
-            nextItem.focus();
-          } else if (event.key === 'ArrowUp') {
-            event.preventDefault();
-            const prevItem = menuItems[(index - 1 + menuItems.length) % menuItems.length];
-            prevItem.focus();
-          }
-        });
-      });
-    }
-
-    // Initialize accessibility features
-    document.addEventListener('DOMContentLoaded', addAccessibilityFeatures);
-
-    // Add analytics for performance monitoring (optional)
-    function trackPerformance() {
-      if ('performance' in window) {
-        window.addEventListener('load', () => {
-          setTimeout(() => {
-            const perfData = performance.getEntriesByType('navigation')[0];
-            if (perfData) {
-              console.log('Page load performance:', {
-                loadTime: perfData.loadEventEnd - perfData.loadEventStart,
-                domContentLoaded: perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart,
-                firstPaint: performance.getEntriesByType('paint')[0]?.startTime,
-                firstContentfulPaint: performance.getEntriesByType('paint')[1]?.startTime
-              });
-            }
-          }, 0);
-        });
-      }
-    }
-
-    // Initialize performance tracking
-    trackPerformance();
-
-    // Add feature detection for better browser compatibility
-    function detectFeatures() {
-      const features = {
-        indexedDB: 'indexedDB' in window,
-        serviceWorker: 'serviceWorker' in navigator,
-        notification: 'Notification' in window,
-        localStorage: 'localStorage' in window,
-        sessionStorage: 'sessionStorage' in window
-      };
-
-      console.log('Browser features:', features);
-
-      // Show warning if IndexedDB is not supported
-      if (!features.indexedDB) {
-        showToast('Trình duyệt không hỗ trợ IndexedDB. Một số tính năng có thể không hoạt động.', 'warning', 5000);
-      }
-    }
-
-    // Initialize feature detection
-    detectFeatures();
-
-    // Add dark mode support (optional enhancement)
-    function initDarkMode() {
-      const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-      function updateDarkMode(e) {
-        if (e.matches) {
-          document.body.classList.add('dark-mode');
-        } else {
-          document.body.classList.remove('dark-mode');
-        }
-      }
-
-      darkModeQuery.addListener(updateDarkMode);
-      updateDarkMode(darkModeQuery);
-    }
-
-    // Initialize dark mode
-    initDarkMode();
-
-    // Add progressive enhancement for better loading experience
-    function initProgressiveEnhancement() {
-      // Show a minimal version of the page while JavaScript loads
-      document.body.classList.add('js-loading');
-
-      window.addEventListener('load', () => {
-        setTimeout(() => {
-          document.body.classList.remove('js-loading');
-          document.body.classList.add('js-loaded');
-        }, 100);
-      });
-    }
-
-    // Initialize progressive enhancement
-    initProgressiveEnhancement();
-
-    // Add notification permission request (optional)
-    function requestNotificationPermission() {
-      if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            console.log('Notification permission granted');
-          }
-        });
-      }
-    }
-
-    // Request notification permission after page load
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        requestNotificationPermission();
-      }, 3000);
-    });
-
-    // Add notification function for critical alerts
-    function showNotification(title, body, icon = '/favicon.ico') {
-      if ('Notification' in window && Notification.permission === 'granted') {
-        const notification = new Notification(title, {
-          body: body,
-          icon: icon,
-          tag: 'ho-nuoc-ngot-alert'
-        });
-
-        notification.onclick = () => {
-          window.focus();
-          notification.close();
-        };
-
-        // Auto close after 5 seconds
-        setTimeout(() => {
-          notification.close();
-        }, 5000);
-      }
-    }
-
-    // Enhance water analysis with browser notifications
-    function enhanceWaterAnalysisWithNotifications() {
-      // Lưu hàm gốc
-      const originalUpdateWaterAnalysis = window.updateWaterAnalysis;
-      
-      // Tạo hàm mới với thông báo
-      window.updateWaterAnalysis = function() {
-        // Gọi hàm gốc
-        originalUpdateWaterAnalysis.call(this);
-        
-        // Show browser notification for critical alerts
-        if (currentWaterLevelValue > 30.50) {
-          showNotification(
-            'Cảnh báo mực nước cao - Hồ chứa nước ngọt',
-            `Mực nước hiện tại: ${nf2.format(currentWaterLevelValue)}m. Vượt ngưỡng cảnh báo!`,
-            '/favicon.ico'
-          );
-        }
-      };
-    }
-
-    // Khởi tạo sau khi page load
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-        enhanceWaterAnalysisWithNotifications();
-      }, 2000);
-    });
-
-    // Override the original updateWaterAnalysis function to include notifications
-    const originalUpdateWaterAnalysis = updateWaterAnalysis;
-    updateWaterAnalysis = enhanceWaterAnalysisWithNotification;
-
-    // Add periodic health check
-    function performHealthCheck() {
-      // Check if data is recent (within last 24 hours)
-      const lastRefreshTime = localStorage.getItem('lastDataRefresh');
-      const now = new Date().getTime();
-      
-      if (lastRefreshTime) {
-        const hoursSinceRefresh = (now - parseInt(lastRefreshTime)) / (1000 * 60 * 60);
-        
-        if (hoursSinceRefresh > 24) {
-          showToast('Dữ liệu đã cũ hơn 24 giờ. Vui lòng làm mới dữ liệu.', 'warning', 5000);
-        }
-      }
-      
-      // Check if charts are rendered correctly
-      if (comboChart && comboChart.ctx && comboChart.ctx.canvas) {
-        try {
-          // Test if chart is responsive
-          const chartWidth = comboChart.ctx.canvas.width;
-          if (chartWidth === 0) {
-            console.warn('Chart width is 0, there might be a rendering issue');
-          }
-        } catch (error) {
-          console.error('Error checking chart health:', error);
-        }
-      }
-    }
-
-    // Perform health check every hour
-    setInterval(performHealthCheck, 60 * 60 * 1000);
-
-    // Add data export to JSON (for debugging)
-    function exportDataToJSON() {
-      if (!allData || allData.length === 0) {
-        showToast('Không có dữ liệu để xuất', 'warning', 3000);
-        return;
-      }
-
-      const dataStr = JSON.stringify(allData, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-      
-      const exportFileDefaultName = `ho-nuoc-ngot-data-${new Date().toISOString().slice(0,10)}.json`;
-      
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportFileDefaultName);
-      linkElement.click();
-      
-      showToast('Đã xuất dữ liệu JSON thành công', 'success', 3000);
-    }
-
-    // Add keyboard shortcut for JSON export (Ctrl/Cmd + J)
-    document.addEventListener('keydown', (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === 'j') {
-        event.preventDefault();
-        exportDataToJSON();
-      }
-    });
-
-    // Add help modal (optional)
-    function createHelpModal() {
-      const helpModal = document.createElement('div');
-      helpModal.className = 'modal';
-      helpModal.id = 'helpModal';
-      
-      helpModal.innerHTML = `
-        <div class="modal-content">
-          <div class="modal-header">
-            <h2>Trợ giúp & Phím tắt</h2>
-            <span class="close-btn" id="closeHelpModal">&times;</span>
-          </div>
-          <div class="modal-body">
-            <h3>Phím tắt</h3>
-            <ul>
-              <li><kbd>Ctrl</kbd> + <kbd>R</kbd> - Làm mới dữ liệu</li>
-              <li><kbd>Ctrl</kbd> + <kbd>E</kbd> - Xuất Excel</li>
-              <li><kbd>Ctrl</kbd> + <kbd>P</kbd> - In</li>
-              <li><kbd>Ctrl</kbd> + <kbd>M</kbd> - Hiển/ẩn menu</li>
-              <li><kbd>Ctrl</kbd> + <kbd>J</kbd> - Xuất dữ liệu JSON</li>
-              <li><kbd>Esc</kbd> - Đóng các hộp thoại</li>
-            </ul>
-            
-            <h3>Điều hướng</h3>
-            <ul>
-              <li>Sử dụng phím mũi tên để điều hướng giữa các tab</li>
-              <li>Nhấn <kbd>Enter</kbd> hoặc <kbd>Space</kbd> để chọn</li>
-            </ul>
-            
-            <h3>Tính năng</h3>
-            <ul>
-              <li>Thanh gợi ý menu sẽ xuất hiện khi menu bị ẩn</li>
-              <li>Di chuột vào thanh gợi ý hoặc nhấn nút Menu để hiện lại</li>
-              <li>Dữ liệu được tự động làm mới mỗi 5 phút</li>
-              <li>Hệ thống cảnh báo thông minh với phân tích mực nước</li>
-            </ul>
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(helpModal);
-      
-      // Add event listeners
-      document.getElementById('closeHelpModal').onclick = () => {
-        helpModal.style.display = 'none';
-      };
-      
-      window.onclick = (event) => {
-        if (event.target == helpModal) {
-          helpModal.style.display = 'none';
-        }
-      };
-      
-      return helpModal;
-    }
-
-    // Create help modal on page load
-    let helpModal;
-    document.addEventListener('DOMContentLoaded', () => {
-      helpModal = createHelpModal();
-    });
-
-    // Add help button to toolbar
-    function addHelpButton() {
-      const helpButton = document.createElement('button');
-      helpButton.className = 'btn';
-      helpButton.id = 'btnHelp';
-      helpButton.innerHTML = '<i class="fas fa-question-circle"></i> Trợ giúp';
-      
-      // Insert before the settings button
-      const settingsButton = document.getElementById('btnDashboardSettings');
-      settingsButton.parentNode.insertBefore(helpButton, settingsButton);
-      
-      helpButton.onclick = () => {
-        helpModal.style.display = 'block';
-      };
-    }
-
-    // Add help button after page loads
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        addHelpButton();
-      }, 1000);
-    });
-
-    // Add help keyboard shortcut (F1 or Ctrl/Cmd + ?)
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'F1' || ((event.ctrlKey || event.metaKey) && event.key === '?')) {
-        event.preventDefault();
-        helpModal.style.display = 'block';
-      }
-    });
-
-    // Add CSS for keyboard shortcuts display
-    const style = document.createElement('style');
-    style.textContent = `
-      kbd {
-        background-color: #f1f5f9;
-        border: 1px solid #d1d5db;
-        border-radius: 4px;
-        box-shadow: 0 1px 1px rgba(0,0,0,0.1);
-        color: #374151;
-        display: inline-block;
-        font-family: monospace;
-        font-size: 0.8em;
-        line-height: 1;
-        padding: 0.2em 0.4em;
-        white-space: nowrap;
-      }
-      
-      .modal-body ul {
-        margin-bottom: 1rem;
-        padding-left: 1.5rem;
-      }
-      
-      .modal-body li {
-        margin-bottom: 0.5rem;
-      }
-      
-      .modal-body h3 {
-        margin-top: 1.5rem;
-        margin-bottom: 0.5rem;
-        color: var(--ink);
-      }
-    `;
-    document.head.appendChild(style);
-
-    // Final initialization
-    console.log('Đã khởi tạo thành công hệ thống phân tích mực nước');
   </script>
 </body>
 </html>
