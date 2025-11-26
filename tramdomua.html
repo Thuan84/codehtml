@@ -74,7 +74,7 @@
     /* Nút full màn hình */
     .fullscreen-btn {
       position: absolute;
-      top: 50px;
+      top: 100px;
       right: 10px;
       z-index: 1001;
       padding: 5px 10px;
@@ -116,8 +116,11 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.45);
       font-size: 11px;
       width: 320px; /* rộng hơn */
+      max-height: 400px;
       color: #e5e7eb;
       border: 1px solid rgba(148,163,184,0.5);
+      display: flex;
+      flex-direction: column;
     }
     .station-title {
       margin-bottom: 4px;
@@ -146,7 +149,8 @@
       margin-top: 4px;
       border-radius: 12px;
       border: none;
-      overflow: visible;
+      overflow-y: auto;
+      max-height: 300px;
     }
     table.station-table {
       width: 100%;
@@ -213,6 +217,7 @@
       display: flex;
       flex-direction: column;
       width: 340px;
+      max-height: 450px; /* Thêm chiều cao tối đa cho card */
     }
     .commune-header {
       display: flex;
@@ -242,7 +247,8 @@
       background: #fecaca;
     }
     .commune-table-wrapper {
-      overflow-y: visible;
+      overflow-y: auto; /* Thêm thanh cuộn dọc khi cần */
+      max-height: 380px; /* Giới hạn chiều cao của bảng */
       margin-top: 4px;
       border-radius: 8px;
       border: 1px solid #e5e7eb;
@@ -321,6 +327,59 @@
       padding: 0 !important;
       margin: 0 !important;
     }
+
+    /* ===== BỔ SUNG: LABEL CHO TẤT CẢ CÁC ICON ===== */
+    .marker-label {
+      position: absolute;
+      bottom: -22px; /* Đặt label bên dưới icon */
+      left: 50%;
+      transform: translateX(-50%); /* Căn giữa label */
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      white-space: nowrap; /* Ngắt dòng */
+      font-weight: bold;
+      z-index: 1000; /* Đảm bảo label hiển thị trên các lớp khác */
+      pointer-events: none; /* Cho phép click qua label đến bản đồ */
+    }
+
+    /* Icon cờ Việt Nam cho các đảo */
+    .vietnam-flag {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.8);
+      background-color: #da251d;
+      position: relative;
+    }
+    .vietnam-flag::before {
+      content: "★";
+      color: #ffcd00;
+      font-size: 18px;
+      position: absolute;
+    }
+    .flag-label {
+      /* Sử dụng chung class .marker-label để đồng bộ */
+      position: absolute;
+      bottom: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      white-space: nowrap;
+      font-weight: bold;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
 
     /* ===== MENU LAYER THỜI TIẾT KIỂU WINDY (bên phải) ===== */
     .weather-layer-menu {
@@ -468,7 +527,7 @@
     );
 
     const rainLayer = L.layerGroup().addTo(map);
-    osm.addTo(map);
+    satellite.addTo(map); // <-- ĐÃ THAY ĐỔI THÀNH NÀY
 
     const baseMaps = {
       "Nền đường phố (OSM)": osm,
@@ -483,19 +542,19 @@
     const owmLayers = {
       radar: L.tileLayer(
         `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`,
-        { opacity: 0.95, zIndex: 500 }
+        { opacity: 20.0, zIndex: 500 }
       ),
       clouds: L.tileLayer(
         `https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`,
-        { opacity: 0.7, zIndex: 490 }
+        { opacity: 20.0, zIndex: 490 }
       ),
       wind: L.tileLayer(
         `https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`,
-        { opacity: 0.9, zIndex: 480 }
+        { opacity: 20.0, zIndex: 480 }
       ),
       temp: L.tileLayer(
         `https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`,
-        { opacity: 0.9, zIndex: 480 }
+        { opacity: 20.0, zIndex: 480 }
       )
     };
 
@@ -590,7 +649,7 @@
           { name: "Phường Mỹ Hải",    lat: 11.5826, lon: 108.9912 },
           { name: "Phường Mỹ Hương",  lat: 11.5826, lon: 108.9912 },
           { name: "Phường Phủ Hà",    lat: 11.5826, lon: 108.9912 },
-          { name: "Phường Phước Mỹ",  lat: 11.5826, lon: 108.9912 },
+          { name: "Phường Phước Mỹ",  lat: 11.588380, lon: 108.971142 },
           { name: "Phường Tấn Tài",   lat: 11.5826, lon: 108.9912 },
           { name: "Phường Thanh Sơn", lat: 11.5826, lon: 108.9912 },
           { name: "Phường Văn Hải",   lat: 11.5826, lon: 108.9912 },
@@ -703,12 +762,12 @@
       { id: "ho_thanh_son", type: "reservoir", name: "Hồ Thành Sơn", lat: 11.741500, lon: 109.031680 },
       { id: "ho_ong_kinh",  type: "reservoir", name: "Hồ Ông Kinh",  lat: 11.607557, lon: 109.124561 },
       { id: "ho_nuoc_ngot", type: "reservoir", name: "Hồ Nước Ngọt", lat: 11.689060, lon: 109.162849 },
-      { id: "truong_sa", type: "reservoir", name: "Đảo Trường Sa lớn", lat: 8.646076, lon: 111.919844 },
-      { id: "hoang_sa", type: "reservoir", name: "Đảo Hoàng Sa", lat: 16.5000, lon: 112.0000 },
-      { id: "son_ca", type: "reservoir", name: "Đảo Hoàng Sa", lat: 10.375, lon: 114.48 },
-      { id: "son_tu_tay", type: "reservoir", name: "Đảo Song Tử Tây", lat: 11.429444, lon: 114.331389 },
-      { id: "nam_yet", type: "reservoir", name: "Đảo Nam Yết", lat: 10.179444, lon: 114.366667 },
-      { id: "phu_lam", type: "reservoir", name: "Đảo Nam Yết", lat: 16.835278, lon: 112.338056 }
+      { id: "truong_sa", type: "island", name: "Đảo Trường Sa lớn", lat: 8.646076, lon: 111.919844 },
+      { id: "hoang_sa", type: "island", name: "Đảo Hoàng Sa", lat: 16.5000, lon: 112.0000 },
+      { id: "son_ca", type: "island", name: "Đảo Sơn Ca", lat: 10.375, lon: 114.48 },
+      { id: "son_tu_tay", type: "island", name: "Đảo Song Tử Tây", lat: 11.429444, lon: 114.331389 },
+      { id: "nam_yet", type: "island", name: "Đảo Nam Yết", lat: 10.179444, lon: 114.366667 },
+      { id: "phu_lam", type: "island", name: "Đảo Phú Lâm", lat: 16.835278, lon: 112.338056 }
     ];
 
     const stationLayers = [];
@@ -800,21 +859,32 @@
     }
 
     // ===== 4. Icon =====
-    function createDistrictIcon() {
+    // ===== CẬP NHẬT: Thêm tham số name vào các hàm tạo icon =====
+    function createDistrictIcon(name) {
       return L.divIcon({
         className: '',
-        html: '<div class="marker-icon marker-district">H</div>',
-        iconSize: [26, 26],
-        iconAnchor: [13, 13]
+        html: `<div class="marker-icon marker-district">H</div><div class="marker-label">${name}</div>`,
+        iconSize: [100, 48], // Tăng chiều rộng để chứa tên dài
+        iconAnchor: [50, 26] // Điểm neo ở giữa đáy của icon tròn
       });
     }
 
-    function createReservoirIcon() {
+    function createReservoirIcon(name) {
       return L.divIcon({
         className: '',
-        html: '<div class="marker-icon marker-reservoir">💧</div>',
-        iconSize: [26, 26],
-        iconAnchor: [13, 13]
+        html: `<div class="marker-icon marker-reservoir">💧</div><div class="marker-label">${name}</div>`,
+        iconSize: [100, 48], // Tăng chiều rộng để chứa tên dài
+        iconAnchor: [50, 26] // Điểm neo ở giữa đáy của icon tròn
+      });
+    }
+
+    // Icon cờ Việt Nam cho các đảo
+    function createIslandIcon(name) {
+      return L.divIcon({
+        className: '',
+        html: `<div class="vietnam-flag"></div><div class="flag-label">${name}</div>`,
+        iconSize: [100, 54], // Tăng chiều rộng để chứa tên dài
+        iconAnchor: [50, 32] // Điểm neo ở giữa đáy của cờ
       });
     }
 
@@ -913,7 +983,17 @@
         }
 
         const cls = classifyRain(rainMm);
-        const icon = station.type === "reservoir" ? createReservoirIcon() : createDistrictIcon();
+        
+        // ===== CẬP NHẬT: Chọn icon phù hợp và truyền tên vào =====
+        let icon;
+        if (station.type === "island") {
+          icon = createIslandIcon(station.name);
+        } else if (station.type === "reservoir") {
+          icon = createReservoirIcon(station.name);
+        } else {
+          icon = createDistrictIcon(station.name);
+        }
+        
         const marker = L.marker([station.lat, station.lon], { icon }).addTo(rainLayer);
         stationLayers[index] = { marker };
 
@@ -978,7 +1058,7 @@
               <button class="commune-close" onclick="hideCommunePanel()">✕</button>
             </div>
             <div style="font-size:11px;color:#6b7280;">
-              Điểm này là hồ chứa, chưa khai báo danh sách xã chi tiết.
+              ${st && st.type === "island" ? "Đảo thuộc chủ quyền Việt Nam" : "Điểm này là hồ chứa, chưa khai báo danh sách xã chi tiết."}
             </div>
           </div>
         `;
@@ -1001,7 +1081,7 @@
           <div class="commune-header">
             <div>
               <div class="commune-title">Xã / Phường thuộc ${st.name}</div>
-              <div class="commune-subtitle">Mưa ngày 24h (mm)</div>
+              <div class="commune-subtitle">Thông tin thời tiết hiện tại</div>
             </div>
             <button class="commune-close" onclick="hideCommunePanel()">✕</button>
           </div>
@@ -1009,8 +1089,8 @@
             <table class="commune-table">
               <thead>
                 <tr>
-                  <th style="width:55%;">Xã / Phường</th>
-                  <th style="width:45%;">Mưa ngày</th>
+                  <th style="width:45%;">Xã / Phường</th>
+                  <th style="width:55%;">Thông tin thời tiết</th>
                 </tr>
               </thead>
               <tbody id="commune-tbody">
@@ -1033,19 +1113,50 @@
           `https://api.open-meteo.com/v1/forecast` +
           `?latitude=${commune.lat}` +
           `&longitude=${commune.lon}` +
-          `&daily=rain_sum,precipitation_sum,temperature_2m_max,temperature_2m_min` +
-          `&hourly=temperature_2m,rain,precipitation,relative_humidity_2m,wind_speed_10m` +
+          `&current_weather=true` + // Thêm dòng này để lấy thời tiết hiện tại
+          `&hourly=temperature_2m,rain,precipitation,relative_humidity_2m,wind_speed_10m,weather_code` + // Dữ liệu theo giờ
+          `&daily=rain_sum,precipitation_sum,temperature_2m_max,temperature_2m_min` + // Giữ lại dữ liệu ngày nếu cần
           `&timezone=auto&forecast_days=1`;
 
         try {
           const res = await fetch(url);
           const data = await res.json();
-          const daily = data.daily || {};
-          const arr = daily.precipitation_sum || [];
-          const mm = typeof arr[0] === "number" ? arr[0] : null;
 
-          const cls = classifyDailyRain(mm);
-          const mmText = mm === null ? "—" : mm.toFixed(1).replace(".", ",");
+          // Lấy dữ liệu thời tiết hiện tại
+          const cw = data.current_weather || {};
+          const currentTemp = (typeof cw.temperature === "number") ? cw.temperature : null;
+          const windSpeed = (typeof cw.windspeed === "number") ? cw.windspeed : null;
+          const weatherCode = (typeof cw.weathercode === "number") ? cw.weathercode : null;
+          const weatherDesc = describeWeatherCode(weatherCode);
+          const windInfo = classifyWind(windSpeed);
+
+          // Lấy dữ liệu mưa của giờ hiện tại
+          const hourly = data.hourly || {};
+          const times = hourly.time || [];
+          const rainArr = (hourly.rain && hourly.rain.length ? hourly.rain : hourly.precipitation) || [];
+          
+          let rainMm = null;
+          if (times.length && rainArr.length) {
+            const now = new Date();
+            let minDiff = Infinity;
+            let idxClosest = -1;
+            for (let i = 0; i < times.length; i++) {
+              const t = new Date(times[i]);
+              const diff = Math.abs(t - now);
+              if (diff < minDiff) {
+                minDiff = diff;
+                idxClosest = i;
+              }
+            }
+            if (idxClosest >= 0) {
+              rainMm = typeof rainArr[idxClosest] === "number" ? rainArr[idxClosest] : null;
+            }
+          }
+          
+          const rainCls = classifyRain(rainMm);
+          const rainText = rainMm === null ? "—" : rainMm.toFixed(2).replace(".", ",");
+          const tempText = currentTemp === null ? "—" : currentTemp.toFixed(1).replace(".", ",");
+          const windText = windSpeed === null ? "—" : windSpeed.toFixed(1).replace(".", ",");
 
           const row = tbody.querySelector(`tr[data-cindex="${idx}"]`);
           if (!row) return;
@@ -1054,14 +1165,25 @@
 
           cell.classList.remove("value-loading", "value-error");
           cell.innerHTML = `
-            <div class="rain-badge" style="border-color:${cls.color};">
-              <span class="rain-badge-dot" style="background:${cls.color};"></span>
-              <span>${cls.label}</span>
+            <div style="font-size:11px;">
+              <div style="font-weight:600; margin-bottom:3px; color: #1f2937;">${weatherDesc}</div>
+              <div class="rain-badge" style="border-color:${rainCls.color}; margin-bottom: 3px;">
+                <span class="rain-badge-dot" style="background:${rainCls.color};"></span>
+                <span>${rainCls.label}</span>
+              </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 10px;">
+                <span>Mưa:</span><span>${rainText} mm/giờ</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 10px;">
+                <span>Nhiệt độ:</span><span>${tempText}°C</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 10px;">
+                <span>Gió:</span><span>${windText} km/h</span>
+              </div>
             </div>
-            <div style="font-size:11px;margin-top:2px;">${mmText} mm/ngày</div>
           `;
         } catch (err) {
-          console.error("Lỗi mưa ngày cho xã", commune.name, err);
+          console.error("Lỗi lấy thời tiết cho xã", commune.name, err);
           const row = tbody.querySelector(`tr[data-cindex="${idx}"]`);
           if (!row) return;
           const cell = row.querySelector(".commune-rain-cell");
