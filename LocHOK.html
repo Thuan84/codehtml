@@ -8,6 +8,7 @@
     <!-- Thư viện -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 
     <style>
         :root {
@@ -40,6 +41,12 @@
             --sidebar-bg: #1a2b3d;
             --sidebar-text: #ffffff;
             --sidebar-active: #0ea5e9;
+            --safe-level: #22c55e;
+            --theory-level: #3b82f6;
+            --warning-level: #f59e0b;
+            --emergency-level: #ef4444;
+            --trend-primary: #8b5cf6;
+            --trend-secondary: #ec4899;
         }
 
         body {
@@ -245,6 +252,14 @@
             color: #fff;
             background: #7c3aed;
             border-color: #7c3aed
+        }
+
+        #btn-dashboard-settings {
+            color: #fff;
+            background: #3b82f6;
+            border-color: #3b82f6;
+            font-size: 14pt;
+            padding: 8px 10px;
         }
 
         .controls-container {
@@ -823,7 +838,7 @@
             color: #64748b;
         }
 
-        /* Smart Warning System Styles */
+        /* Smart Warning System Styles - Updated */
         .warning-system-container {
             margin: 20px 0;
             border: 1px solid #e5e7eb;
@@ -860,38 +875,122 @@
             min-height: 200px;
         }
 
-        .warning-levels {
+        .water-level-indicator {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             margin-bottom: 20px;
         }
 
-        .warning-level {
-            flex: 1;
+        .water-level-scale {
+            position: relative;
+            height: 30px;
+            background: linear-gradient(to right, 
+                var(--safe-level) 0%, 
+                var(--safe-level) 25%, 
+                var(--theory-level) 25%, 
+                var(--theory-level) 50%, 
+                var(--warning-level) 50%, 
+                var(--warning-level) 75%, 
+                var(--emergency-level) 75%, 
+                var(--emergency-level) 100%);
+            border-radius: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .water-level-markers {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            position: relative;
+        }
+
+        .water-level-marker {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 25%;
+        }
+
+        .water-level-marker::before {
+            content: '';
+            position: absolute;
+            top: -35px;
+            width: 2px;
+            height: 10px;
+            background-color: #333;
+        }
+
+        .water-level-marker-label {
+            font-size: 12pt;
+            font-weight: bold;
             text-align: center;
-            padding: 10px;
+            margin-top: 5px;
+        }
+
+        .water-level-marker-value {
+            font-size: 11pt;
+            color: #555;
+        }
+
+        .current-water-level {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            padding: 15px;
             border-radius: 8px;
-            margin: 0 5px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid #e5e7eb;
         }
 
-        .warning-level.normal {
+        .current-water-level-value {
+            font-size: 18pt;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .current-water-level-label {
+            font-size: 14pt;
+        }
+
+        .warning-levels {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .warning-level {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .warning-level:hover {
+            transform: translateY(-5px);
+        }
+
+        .warning-level.safe {
             background-color: rgba(34, 197, 94, 0.2);
-            border: 1px solid var(--warning-normal);
+            border: 2px solid var(--safe-level);
         }
 
-        .warning-level.watch {
+        .warning-level.theory {
+            background-color: rgba(59, 130, 246, 0.2);
+            border: 2px solid var(--theory-level);
+        }
+
+        .warning-level.warning {
             background-color: rgba(245, 158, 11, 0.2);
-            border: 1px solid var(--warning-watch);
+            border: 2px solid var(--warning-level);
         }
 
-        .warning-level.danger {
+        .warning-level.emergency {
             background-color: rgba(239, 68, 68, 0.2);
-            border: 1px solid var(--warning-danger);
-        }
-
-        .warning-level.critical {
-            background-color: rgba(153, 27, 27, 0.2);
-            border: 1px solid var(--warning-critical);
+            border: 2px solid var(--emergency-level);
         }
 
         .warning-level-title {
@@ -904,11 +1003,17 @@
             font-size: 12pt;
         }
 
+        .warning-level-range {
+            font-size: 11pt;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
         .current-status {
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 20px;
+            margin: 20px 0;
             padding: 15px;
             border-radius: 8px;
         }
@@ -938,21 +1043,21 @@
             }
         }
 
-        .status-indicator.normal {
-            background-color: var(--warning-normal);
+        .status-indicator.safe {
+            background-color: var(--safe-level);
             animation: none;
         }
 
-        .status-indicator.watch {
-            background-color: var(--warning-watch);
+        .status-indicator.theory {
+            background-color: var(--theory-level);
         }
 
-        .status-indicator.danger {
-            background-color: var(--warning-danger);
+        .status-indicator.warning {
+            background-color: var(--warning-level);
         }
 
-        .status-indicator.critical {
-            background-color: var(--warning-critical);
+        .status-indicator.emergency {
+            background-color: var(--emergency-level);
         }
 
         .warning-settings {
@@ -1022,8 +1127,8 @@
             color: white;
         }
 
-        /* Dashboard Customization Styles */
-        .dashboard-customization-container {
+        /* Trend Analysis Styles - New */
+        .trend-analysis-container {
             margin: 20px 0;
             border: 1px solid #e5e7eb;
             border-radius: 12px;
@@ -1031,8 +1136,8 @@
             box-shadow: 0 1px 6px rgba(0, 0, 0, .04);
         }
 
-        .dashboard-customization-header {
-            background: linear-gradient(135deg, var(--dashboard-primary), #2563eb);
+        .trend-analysis-header {
+            background: linear-gradient(135deg, var(--trend-primary), var(--trend-secondary));
             color: white;
             padding: 12px 20px;
             display: flex;
@@ -1040,7 +1145,7 @@
             align-items: center;
         }
 
-        .dashboard-customization-title {
+        .trend-analysis-title {
             font-size: 16pt;
             font-weight: bold;
             margin: 0;
@@ -1049,13 +1154,166 @@
             gap: 8px;
         }
 
-        .dashboard-customization-icon {
+        .trend-analysis-icon {
             font-size: 20px;
         }
 
-        .dashboard-customization-content {
+        .trend-analysis-content {
             padding: 20px;
             background: #f9fafb;
+        }
+
+        .trend-period-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .trend-period-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--trend-primary);
+            background: white;
+            color: var(--trend-primary);
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14pt;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .trend-period-btn:hover {
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .trend-period-btn.active {
+            background: var(--trend-primary);
+            color: white;
+        }
+
+        .trend-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .trend-stat {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .trend-stat-label {
+            font-size: 12pt;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+
+        .trend-stat-value {
+            font-size: 18pt;
+            font-weight: bold;
+            color: var(--trend-primary);
+        }
+
+        .trend-chart-container {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .trend-chart-wrap {
+            position: relative;
+            width: 100%;
+            height: 400px;
+        }
+
+        /* Dashboard Customization Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--dashboard-primary), #2563eb);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-close {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .modal-close:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
         }
 
         .customization-section {
@@ -1100,11 +1358,13 @@
             flex-grow: 1;
         }
 
-        .customization-actions {
+        .modal-footer {
+            padding: 15px 20px;
+            background: #f3f4f6;
             display: flex;
             justify-content: flex-end;
             gap: 10px;
-            margin-top: 20px;
+            border-top: 1px solid #e5e7eb;
         }
 
         .customization-button {
@@ -1211,6 +1471,87 @@
             font-size: 16px;
         }
 
+        /* Chart improvement styles */
+        .chart-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .chart-control-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            background: white;
+            cursor: pointer;
+            font-size: 12pt;
+            transition: all 0.2s;
+        }
+
+        .chart-control-btn:hover {
+            background-color: #f3f4f6;
+        }
+
+        .chart-control-btn.active {
+            background-color: var(--dashboard-primary);
+            color: white;
+            border-color: var(--dashboard-primary);
+        }
+
+        .chart-comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .chart-comparison-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-comparison-title {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            color: #334155;
+        }
+
+        .chart-comparison-wrap {
+            position: relative;
+            width: 100%;
+            height: 300px;
+        }
+
+        .chart-stats-panel {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .chart-stat-item {
+            text-align: center;
+        }
+
+        .chart-stat-label {
+            font-size: 11pt;
+            color: #64748b;
+        }
+
+        .chart-stat-value {
+            font-size: 14pt;
+            font-weight: bold;
+            color: var(--dashboard-primary);
+        }
+
         @media print {
     body {
         background: #fff;
@@ -1241,6 +1582,7 @@
     #toast-container,
     .ai-analysis-container,
     .warning-system-container,
+    .trend-analysis-container,
     .dashboard-customization-container {
         display: none !important
     }
@@ -1338,6 +1680,18 @@
             .kpi-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr))
             }
+            
+            .warning-levels {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .trend-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .chart-comparison-container {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width:768px) {
@@ -1363,13 +1717,9 @@
             }
             
             .warning-levels {
-                flex-direction: column;
+                grid-template-columns: 1fr;
             }
             
-            .warning-level {
-                margin: 5px 0;
-            }
-
             .customization-options {
                 grid-template-columns: 1fr;
             }
@@ -1377,6 +1727,24 @@
             .rain-gauge-map-container {
                 height: calc(100vh - 120px); /* Adjust for smaller screens */
                 min-height: 400px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10px auto;
+            }
+            
+            .trend-period-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .trend-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-controls {
+                flex-wrap: wrap;
             }
         }
     </style>
@@ -1422,7 +1790,7 @@
                 <h1>TRẠM ĐO MƯA</h1>
                 <div class="rain-gauge-container">
                     <div class="rain-gauge-content">
-                        <!-- Only the map card remains -->
+                        <!-- Only map card remains -->
                         <div class="rain-gauge-card">
                             
                             <div class="rain-gauge-map-container">
@@ -1450,6 +1818,7 @@
                     <button id="export-excel">Xuất Excel</button>
                     <button id="btn-print-portrait">In dọc</button>
                     <button id="btn-print-landscape">In ngang</button>
+                    <button id="btn-dashboard-settings">⚙️</button>
                 </div>
 
                 <div class="controls-container">
@@ -1570,15 +1939,15 @@
                                 </span>
                                 <span class="legend-item">
                                     <span class="legend-box legend-safe"></span>
-                                    <span>Vùng an toàn</span>
+                                    <span>An toàn</span>
                                 </span>
                                 <span class="legend-item">
                                     <span class="legend-box legend-watch"></span>
-                                    <span>Vùng theo dõi</span>
+                                    <span>Lý thuyết</span>
                                 </span>
                                 <span class="legend-item">
                                     <span class="legend-box legend-danger"></span>
-                                    <span>Vùng cảnh báo cao</span>
+                                    <span>Cảnh báo</span>
                                 </span>
                             </div>
 
@@ -1693,88 +2062,12 @@
             <div class="container">
                 <h1>CẢNH BÁO VÀ PHÂN TÍCH</h1>
 
-                <!-- Dashboard Customization -->
-                <div class="dashboard-customization-container" id="dashboard-customization-container">
-                    <div class="dashboard-customization-header">
-                        <h2 class="dashboard-customization-title">
-                            <span class="dashboard-customization-icon">🎨</span>
-                            Tùy chỉnh Dashboard
-                        </h2>
-                        <button id="btn-toggle-customization" class="ai-analysis-button">
-                            <span>⚙️</span>
-                            Hiển thị
-                        </button>
-                    </div>
-                    <div class="dashboard-customization-content" id="dashboard-customization-content" style="display: none;">
-                        <div class="customization-section">
-                            <div class="customization-section-title">Chọn các chỉ số KPI muốn hiển thị</div>
-                            <div class="customization-options">
-                                <div class="customization-option">
-                                    <input type="checkbox" id="kpi-k5" checked>
-                                    <label for="kpi-k5">Mực nước hiện tại</label>
-                                </div>
-                                <div class="customization-option">
-                                    <input type="checkbox" id="kpi-k6" checked>
-                                    <label for="kpi-k6">Dung tích hiện tại</label>
-                                </div>
-                                <div class="customization-option">
-                                    <input type="checkbox" id="kpi-k7" checked>
-                                    <label for="kpi-k7">Lượng mưa (Ngày)</label>
-                                </div>
-                                <div class="customization-option">
-                                    <input type="checkbox" id="kpi-k1" checked>
-                                    <label for="kpi-k1">Tổng lượng mưa (kỳ lọc)</label>
-                                </div>
-                                <div class="customization-option">
-                                    <input type="checkbox" id="kpi-k2" checked>
-                                    <label for="kpi-k2">Ngày có mưa / Tổng ngày</label>
-                                </div>
-                                <div class="customization-option">
-                                    <input type="checkbox" id="kpi-k3" checked>
-                                    <label for="kpi-k3">Mưa lớn nhất</label>
-                                </div>
-                                <div class="customization-option">
-                                    <input type="checkbox" id="kpi-k4" checked>
-                                    <label for="kpi-k4">Q tràn tự do lớn nhất</label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="customization-section">
-                            <div class="customization-section-title">Chọn các phần khác muốn hiển thị</div>
-                            <div class="customization-options">
-                                <div class="customization-option">
-                                    <input type="checkbox" id="show-warning-system" checked>
-                                    <label for="show-warning-system">Hệ thống cảnh báo thông minh</label>
-                                </div>
-                                <div class="customization-option">
-                                    <input type="checkbox" id="show-ai-analysis" checked>
-                                    <label for="show-ai-analysis">Phân tích AI</label>
-                                </div>
-                                <div class="customization-option">
-                                    <input type="checkbox" id="show-main-chart" checked>
-                                    <label for="show-main-chart">Biểu đồ Lượng mưa & Mực nước</label>
-                                </div>
-                                <div class="customization-option">
-                                    <input type="checkbox" id="show-data-table" checked>
-                                    <label for="show-data-table">Bảng dữ liệu chi tiết</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="customization-actions">
-                            <button id="save-customization" class="customization-button save-customization">Lưu cài đặt</button>
-                            <button id="reset-customization" class="customization-button reset-customization">Khôi phục mặc định</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Smart Warning System -->
+                <!-- Smart Warning System - Updated -->
                 <div class="warning-system-container" id="warning-system-container">
                     <div class="warning-system-header">
                         <h2 class="warning-system-title">
                             <span class="warning-system-icon">⚠️</span>
-                            Hệ thống cảnh báo thông minh
+                            MỨC AN TOÀN VÀ PHÂN TÍCH XU HƯỚNG MỨC NƯỚC NĂNG CAO
                         </h2>
                         <button id="btn-warning-settings" class="ai-analysis-button">
                             <span>⚙️</span>
@@ -1782,53 +2075,128 @@
                         </button>
                     </div>
                     <div class="warning-system-content">
-                        <div class="warning-levels">
-                            <div class="warning-level normal">
-                                <div class="warning-level-title">Bình thường</div>
-                                <div class="warning-level-desc">Mực nước an toàn</div>
+                        <!-- Water Level Indicator -->
+                        <div class="water-level-indicator">
+                            <div class="water-level-scale"></div>
+                            <div class="water-level-markers">
+                                <div class="water-level-marker">
+                                    <div class="water-level-marker-label">Mực nước chết</div>
+                                    <div class="water-level-marker-value">+42.50 m</div>
+                                </div>
+                                <div class="water-level-marker">
+                                    <div class="water-level-marker-label">Mực nước dâng BT</div>
+                                    <div class="water-level-marker-value">+47.70 m</div>
+                                </div>
+                                <div class="water-level-marker">
+                                    <div class="water-level-marker-label">Mực nước lũ thiết kế</div>
+                                    <div class="water-level-marker-value">+49.35 m</div>
+                                </div>
+                                <div class="water-level-marker">
+                                    <div class="water-level-marker-label">Cao trình đỉnh đập</div>
+                                    <div class="water-level-marker-value">+50.20 m</div>
+                                </div>
                             </div>
-                            <div class="warning-level watch">
-                                <div class="warning-level-title">Theo dõi</div>
-                                <div class="warning-level-desc">Mực nước cao</div>
-                            </div>
-                            <div class="warning-level danger">
-                                <div class="warning-level-title">Nguy hiểm</div>
-                                <div class="warning-level-desc">Cần hành động</div>
-                            </div>
-                            <div class="warning-level critical">
-                                <div class="warning-level-title">Khẩn cấp</div>
-                                <div class="warning-level-desc">Nguy cơ cao</div>
+                            
+                            <div class="current-water-level">
+                                <div class="current-water-level-value" id="current-water-level-value">56.80 m</div>
+                                <div class="current-water-level-label">Mực nước hiện tại</div>
                             </div>
                         </div>
                         
-                        <div id="current-warning-status" class="current-status normal">
-                            <div class="status-indicator normal"></div>
-                            <div class="status-text">Trạng thái hiện tại: Bình thường</div>
+                        <!-- Warning Levels -->
+                        <div class="warning-levels">
+                            <div class="warning-level safe">
+                                <div class="warning-level-title">An toàn</div>
+                                <div class="warning-level-desc">Mực nước an toàn</div>
+                                <div class="warning-level-range">+42.50 m đến +47.70 m</div>
+                            </div>
+                            <div class="warning-level theory">
+                                <div class="warning-level-title">Lý thuyết</div>
+                                <div class="warning-level-desc">Mực nước lý thuyết</div>
+                                <div class="warning-level-range">+47.70 m đến +49.35 m</div>
+                            </div>
+                            <div class="warning-level warning">
+                                <div class="warning-level-title">Cảnh báo</div>
+                                <div class="warning-level-desc">Mực nước cảnh báo</div>
+                                <div class="warning-level-range">+49.35 m đến +49.54 m</div>
+                            </div>
+                            <div class="warning-level emergency">
+                                <div class="warning-level-title">Khẩn cấp</div>
+                                <div class="warning-level-desc">Mực nước khẩn cấp</div>
+                                <div class="warning-level-range">+49.54 m đến +50.20 m</div>
+                            </div>
+                        </div>
+                        
+                        <div id="current-warning-status" class="current-status safe">
+                            <div class="status-indicator safe"></div>
+                            <div class="status-text">Trạng thái hiện tại: An toàn</div>
                         </div>
                         
                         <div class="warning-settings" id="warning-settings" style="display: none;">
                             <div class="warning-settings-title">Cài đặt ngưỡng cảnh báo (m)</div>
                             <div class="warning-thresholds">
                                 <div class="threshold-input">
-                                    <label for="threshold-watch">Ngưỡng theo dõi:</label>
-                                    <input type="number" id="threshold-watch" step="0.01" value="47.70">
+                                    <label for="threshold-safe">Ngưỡng an toàn (tối đa):</label>
+                                    <input type="number" id="threshold-safe" step="0.01" value="47.70">
                                 </div>
                                 <div class="threshold-input">
-                                    <label for="threshold-danger">Ngưỡng nguy hiểm:</label>
-                                    <input type="number" id="threshold-danger" step="0.01" value="48.50">
+                                    <label for="threshold-theory">Ngưỡng lý thuyết (tối đa):</label>
+                                    <input type="number" id="threshold-theory" step="0.01" value="49.35">
                                 </div>
                                 <div class="threshold-input">
-                                    <label for="threshold-critical">Ngưỡng khẩn cấp:</label>
-                                    <input type="number" id="threshold-critical" step="0.01" value="49.35">
+                                    <label for="threshold-warning">Ngưỡng cảnh báo (tối đa):</label>
+                                    <input type="number" id="threshold-warning" step="0.01" value="49.54">
                                 </div>
                                 <div class="threshold-input">
-                                    <label for="threshold-rain">Ngưỡng lượng mưa (mm):</label>
-                                    <input type="number" id="threshold-rain" step="1" value="50">
+                                    <label for="threshold-emergency">Ngưỡng khẩn cấp (tối đa):</label>
+                                    <input type="number" id="threshold-emergency" step="0.01" value="50.20">
                                 </div>
                             </div>
                             <div class="threshold-actions">
                                 <button id="save-thresholds" class="threshold-button save-thresholds">Lưu cài đặt</button>
                                 <button id="reset-thresholds" class="threshold-button reset-thresholds">Đặt lại mặc định</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trend Analysis Section - New -->
+                <div class="trend-analysis-container" id="trend-analysis-container">
+                    <div class="trend-analysis-header">
+                        <h2 class="trend-analysis-title">
+                            <span class="trend-analysis-icon">📈</span>
+                            Phân tích xu hướng mực nước
+                        </h2>
+                    </div>
+                    <div class="trend-analysis-content">
+                        <div class="trend-period-selector">
+                            <button class="trend-period-btn" data-period="7">7 ngày</button>
+                            <button class="trend-period-btn active" data-period="30">30 ngày</button>
+                            <button class="trend-period-btn" data-period="90">90 ngày</button>
+                        </div>
+                        
+                        <div class="trend-stats" id="trend-stats">
+                            <div class="trend-stat">
+                                <div class="trend-stat-label">Mực nước trung bình</div>
+                                <div class="trend-stat-value" id="trend-avg-level">0 m</div>
+                            </div>
+                            <div class="trend-stat">
+                                <div class="trend-stat-label">Mực nước cao nhất</div>
+                                <div class="trend-stat-value" id="trend-max-level">0 m</div>
+                            </div>
+                            <div class="trend-stat">
+                                <div class="trend-stat-label">Mực nước thấp nhất</div>
+                                <div class="trend-stat-value" id="trend-min-level">0 m</div>
+                            </div>
+                            <div class="trend-stat">
+                                <div class="trend-stat-label">Biến động</div>
+                                <div class="trend-stat-value" id="trend-variance">0 m</div>
+                            </div>
+                        </div>
+                        
+                        <div class="trend-chart-container">
+                            <div class="trend-chart-wrap">
+                                <canvas id="trendChart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -1860,6 +2228,84 @@
         </section>
     </main>
 
+    <!-- Dashboard Customization Modal -->
+    <div id="dashboard-customization-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <span>⚙️</span>
+                    Tùy chỉnh Dashboard
+                </h2>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="customization-section">
+                    <div class="customization-section-title">Chọn các chỉ số KPI muốn hiển thị</div>
+                    <div class="customization-options">
+                        <div class="customization-option">
+                            <input type="checkbox" id="kpi-k5" checked>
+                            <label for="kpi-k5">Mực nước hiện tại</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="kpi-k6" checked>
+                            <label for="kpi-k6">Dung tích hiện tại</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="kpi-k7" checked>
+                            <label for="kpi-k7">Lượng mưa (Ngày)</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="kpi-k1" checked>
+                            <label for="kpi-k1">Tổng lượng mưa (kỳ lọc)</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="kpi-k2" checked>
+                            <label for="kpi-k2">Ngày có mưa / Tổng ngày</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="kpi-k3" checked>
+                            <label for="kpi-k3">Mưa lớn nhất</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="kpi-k4" checked>
+                            <label for="kpi-k4">Q tràn tự do lớn nhất</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="customization-section">
+                    <div class="customization-section-title">Chọn các phần khác muốn hiển thị</div>
+                    <div class="customization-options">
+                        <div class="customization-option">
+                            <input type="checkbox" id="show-warning-system" checked>
+                            <label for="show-warning-system">Hệ thống cảnh báo thông minh</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="show-trend-analysis" checked>
+                            <label for="show-trend-analysis">Phân tích xu hướng mực nước</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="show-ai-analysis" checked>
+                            <label for="show-ai-analysis">Phân tích AI</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="show-main-chart" checked>
+                            <label for="show-main-chart">Biểu đồ Lượng mưa & Mực nước</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="show-data-table" checked>
+                            <label for="show-data-table">Bảng dữ liệu chi tiết</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="reset-customization" class="customization-button reset-customization">Khôi phục mặc định</button>
+                <button id="save-customization" class="customization-button save-customization">Lưu cài đặt</button>
+            </div>
+        </div>
+    </div>
+
     <!-- PHẦN JAVASCRIPT TIẾP THEO Ở FILE PART 2 -->
     <script>
         // ====== API ======
@@ -1869,23 +2315,32 @@
         const CACHE_KEY = 'HoOngKinh_Data_v1';
         const DASHBOARD_PREFS_KEY = 'HoOngKinh_DashboardPrefs';
 
-        const LVL_DEAD = 42.50;
-        const LVL_BT = 47.70;
-        const LVL_GC = 49.35;
-        const LVL_MID = (LVL_BT + LVL_GC) / 2;
+        // Updated water level thresholds
+        const LVL_DEAD = 42.50;      // Mực nước chết
+        const LVL_BT = 47.70;        // Mực nước dâng bình thường
+        const LVL_DESIGN = 49.35;    // Mực nước lũ thiết kế
+        const LVL_CHECK = 49.54;     // Mực nước lũ kiểm tra
+        const LVL_DSF = 49.72;       // Mực nước lũ kiểm tra (DSF) (P=0,1%)
+        const LVL_DAM = 50.20;       // Cao trình Đỉnh đập
 
         // Warning thresholds (default values)
         let warningThresholds = {
-            watch: LVL_BT,
-            danger: 48.50,
-            critical: LVL_GC,
-            rain: 50
+            safe: LVL_BT,
+            theory: LVL_DESIGN,
+            warning: LVL_CHECK,
+            emergency: LVL_DAM
         };
         
         // Default dashboard preferences
         const defaultDashboardPrefs = {
             kpis: { k5: true, k6: true, k7: true, k1: true, k2: true, k3: true, k4: true },
-            sections: { 'warning-system-container': true, 'ai-analysis-container': true, 'main-chart-container': true, 'data-table-container': true }
+            sections: { 
+                'warning-system-container': true, 
+                'trend-analysis-container': true, 
+                'ai-analysis-container': true, 
+                'main-chart-container': true, 
+                'data-table-container': true 
+            }
         };
 
         let dashboardPrefs = JSON.parse(JSON.stringify(defaultDashboardPrefs));
@@ -1898,11 +2353,14 @@
 
         const LVL_DEAD_TXT = formatMeter(LVL_DEAD, 2);
         const LVL_BT_TXT = formatMeter(LVL_BT, 2);
-        const LVL_GC_TXT = formatMeter(LVL_GC, 2);
+        const LVL_DESIGN_TXT = formatMeter(LVL_DESIGN, 2);
+        const LVL_CHECK_TXT = formatMeter(LVL_CHECK, 2);
+        const LVL_DAM_TXT = formatMeter(LVL_DAM, 2);
 
         let allData = [];
         let filteredData = [];
         let customTimeRange = null;
+        let selectedTrendPeriod = 30; // Default to 30 days
 
         const yearFilter = document.getElementById('year-filter');
         const quarterFilter = document.getElementById('quarter-filter');
@@ -1941,17 +2399,26 @@
         // Warning System Elements
         const btnWarningSettings = document.getElementById('btn-warning-settings');
         const warningSettings = document.getElementById('warning-settings');
-        const thresholdWatch = document.getElementById('threshold-watch');
-        const thresholdDanger = document.getElementById('threshold-danger');
-        const thresholdCritical = document.getElementById('threshold-critical');
-        const thresholdRain = document.getElementById('threshold-rain');
+        const thresholdSafe = document.getElementById('threshold-safe');
+        const thresholdTheory = document.getElementById('threshold-theory');
+        const thresholdWarning = document.getElementById('threshold-warning');
+        const thresholdEmergency = document.getElementById('threshold-emergency');
         const saveThresholdsBtn = document.getElementById('save-thresholds');
         const resetThresholdsBtn = document.getElementById('reset-thresholds');
         const currentWarningStatus = document.getElementById('current-warning-status');
+        const currentWaterLevelValue = document.getElementById('current-water-level-value');
 
-        // Dashboard Customization Elements
-        const btnToggleCustomization = document.getElementById('btn-toggle-customization');
-        const dashboardCustomizationContent = document.getElementById('dashboard-customization-content');
+        // Trend Analysis Elements - New
+        const trendPeriodBtns = document.querySelectorAll('.trend-period-btn');
+        const trendAvgLevel = document.getElementById('trend-avg-level');
+        const trendMaxLevel = document.getElementById('trend-max-level');
+        const trendMinLevel = document.getElementById('trend-min-level');
+        const trendVariance = document.getElementById('trend-variance');
+
+        // Dashboard Customization Modal Elements
+        const btnDashboardSettings = document.getElementById('btn-dashboard-settings');
+        const dashboardModal = document.getElementById('dashboard-customization-modal');
+        const modalClose = document.getElementById('modal-close');
         const saveCustomizationBtn = document.getElementById('save-customization');
         const resetCustomizationBtn = document.getElementById('reset-customization');
 
@@ -1965,6 +2432,7 @@
         const contentSections = document.querySelectorAll('.content-section');
 
         let comboChart;
+        let trendChart;
 
         function showToast(message) {
             const container = document.getElementById('toast-container');
@@ -2195,6 +2663,9 @@
                 // Update current water level
                 const currentWaterLevel = latestData._mucNuoc || 0;
                 document.getElementById('kpi-current-water-level').textContent = `${formatNumber(currentWaterLevel, 2)} m`;
+                
+                // Update current water level in warning system
+                currentWaterLevelValue.textContent = `${formatNumber(currentWaterLevel, 2)} m`;
 
                 // Update current capacity
                 const currentCapacity = latestData._dungTich || 0;
@@ -2235,31 +2706,40 @@
                 document.getElementById('kpi-rainfall-change').textContent = '~ 0% so với hôm qua';
                 
                 // Set warning status to normal if no data
-                updateWarningStatus('normal', 'Không có dữ liệu để xác định trạng thái cảnh báo.');
+                updateWarningStatus('safe', 'Không có dữ liệu để xác định trạng thái cảnh báo.');
             }
         }
 
-        // Smart Warning System Functions
+        // Smart Warning System Functions - Updated
         function checkWarningStatus(waterLevel, rainfall, timestamp) {
-            let status = 'normal';
+            let status = 'safe';
             let message = 'Mực nước đang ở mức an toàn.';
             
-            if (waterLevel >= warningThresholds.critical) {
-                status = 'critical';
-                message = `Mực nước (${formatNumber(waterLevel, 2)} m) đã vượt ngưỡng khẩn cấp (${formatNumber(warningThresholds.critical, 2)} m). Cần hành động ngay lập tức!`;
-            } else if (waterLevel >= warningThresholds.danger) {
-                status = 'danger';
-                message = `Mực nước (${formatNumber(waterLevel, 2)} m) đã vượt ngưỡng nguy hiểm (${formatNumber(warningThresholds.danger, 2)} m). Cần theo dõi chặt chẽ và chuẩn bị hành động.`;
-            } else if (waterLevel >= warningThresholds.watch) {
-                status = 'watch';
-                message = `Mực nước (${formatNumber(waterLevel, 2)} m) đã vượt ngưỡng theo dõi (${formatNumber(warningThresholds.watch, 2)} m). Cần tăng cường giám sát.`;
+            if (waterLevel >= warningThresholds.emergency) {
+                status = 'emergency';
+                message = `Mực nước (${formatNumber(waterLevel, 2)} m) đã vượt ngưỡng khẩn cấp (${formatNumber(warningThresholds.emergency, 2)} m). Cần hành động ngay lập tức!`;
+            } else if (waterLevel >= warningThresholds.warning) {
+                status = 'warning';
+                message = `Mực nước (${formatNumber(waterLevel, 2)} m) đã vượt ngưỡng cảnh báo (${formatNumber(warningThresholds.warning, 2)} m). Cần theo dõi chặt chẽ và chuẩn bị hành động.`;
+            } else if (waterLevel >= warningThresholds.theory) {
+                status = 'theory';
+                message = `Mực nước (${formatNumber(waterLevel, 2)} m) đã vượt ngưỡng lý thuyết (${formatNumber(warningThresholds.theory, 2)} m). Cần tăng cường giám sát.`;
+            } else if (waterLevel >= warningThresholds.safe) {
+                status = 'safe';
+                message = `Mực nước (${formatNumber(waterLevel, 2)} m) nằm trong ngưỡng an toàn (tối đa ${formatNumber(warningThresholds.safe, 2)} m).`;
+            } else if (waterLevel >= LVL_DEAD) {
+                status = 'safe';
+                message = `Mực nước (${formatNumber(waterLevel, 2)} m) nằm trong vùng an toàn, cao hơn mực nước chết (${LVL_DEAD_TXT} m).`;
+            } else {
+                status = 'safe';
+                message = `Mực nước (${formatNumber(waterLevel, 2)} m) thấp hơn mực nước chết (${LVL_DEAD_TXT} m). Đây là tình trạng báo động.`;
             }
             
             // Check rainfall threshold
-            if (rainfall >= warningThresholds.rain) {
-                if (status === 'normal') {
-                    status = 'watch';
-                    message = `Lượng mưa (${formatNumber(rainfall, 1)} mm) đã vượt ngưỡng cảnh báo (${warningThresholds.rain} mm). Cần theo dõi chặt chẽ mực nước.`;
+            if (rainfall >= 50) {
+                if (status === 'safe') {
+                    status = 'warning';
+                    message = `Lượng mưa (${formatNumber(rainfall, 1)} mm) đã vượt ngưỡng cảnh báo. Cần theo dõi chặt chẽ mực nước.`;
                 } else {
                     message += ` Lượng mưa (${formatNumber(rainfall, 1)} mm) cũng đã vượt ngưỡng cảnh báo.`;
                 }
@@ -2267,8 +2747,8 @@
             
             updateWarningStatus(status, message, timestamp);
             
-            // Show toast notification for non-normal status
-            if (status !== 'normal') {
+            // Show toast notification for non-safe status
+            if (status !== 'safe') {
                 showToast(message);
             }
         }
@@ -2279,8 +2759,8 @@
             const textElement = statusElement.querySelector('.status-text');
             
             // Remove all status classes
-            statusElement.classList.remove('normal', 'watch', 'danger', 'critical');
-            indicatorElement.classList.remove('normal', 'watch', 'danger', 'critical');
+            statusElement.classList.remove('safe', 'theory', 'warning', 'emergency');
+            indicatorElement.classList.remove('safe', 'theory', 'warning', 'emergency');
             
             // Add current status class
             statusElement.classList.add(status);
@@ -2289,16 +2769,16 @@
             // Update status text
             let statusText = 'Trạng thái hiện tại: ';
             switch (status) {
-                case 'normal':
-                    statusText += 'Bình thường';
+                case 'safe':
+                    statusText += 'An toàn';
                     break;
-                case 'watch':
-                    statusText += 'Theo dõi';
+                case 'theory':
+                    statusText += 'Lý thuyết';
                     break;
-                case 'danger':
-                    statusText += 'Nguy hiểm';
+                case 'warning':
+                    statusText += 'Cảnh báo';
                     break;
-                case 'critical':
+                case 'emergency':
                     statusText += 'Khẩn cấp';
                     break;
             }
@@ -2306,16 +2786,16 @@
             textElement.textContent = statusText + '. ' + message;
         }
 
-        // Warning System Settings Functions
+        // Warning System Settings Functions - Updated
         function loadWarningThresholds() {
             const saved = localStorage.getItem('HoOngKinh_WarningThresholds');
             if (saved) {
                 try {
                     warningThresholds = JSON.parse(saved);
-                    thresholdWatch.value = warningThresholds.watch;
-                    thresholdDanger.value = warningThresholds.danger;
-                    thresholdCritical.value = warningThresholds.critical;
-                    thresholdRain.value = warningThresholds.rain;
+                    thresholdSafe.value = warningThresholds.safe;
+                    thresholdTheory.value = warningThresholds.theory;
+                    thresholdWarning.value = warningThresholds.warning;
+                    thresholdEmergency.value = warningThresholds.emergency;
                 } catch (e) {
                     console.error('Failed to load warning thresholds:', e);
                 }
@@ -2323,10 +2803,10 @@
         }
 
         function saveWarningThresholds() {
-            warningThresholds.watch = parseFloat(thresholdWatch.value);
-            warningThresholds.danger = parseFloat(thresholdDanger.value);
-            warningThresholds.critical = parseFloat(thresholdCritical.value);
-            warningThresholds.rain = parseFloat(thresholdRain.value);
+            warningThresholds.safe = parseFloat(thresholdSafe.value);
+            warningThresholds.theory = parseFloat(thresholdTheory.value);
+            warningThresholds.warning = parseFloat(thresholdWarning.value);
+            warningThresholds.emergency = parseFloat(thresholdEmergency.value);
             
             localStorage.setItem('HoOngKinh_WarningThresholds', JSON.stringify(warningThresholds));
             showToast('Cài đặt ngưỡng cảnh báo đã được lưu.');
@@ -2336,11 +2816,178 @@
         }
 
         function resetWarningThresholds() {
-            thresholdWatch.value = LVL_BT;
-            thresholdDanger.value = 48.50;
-            thresholdCritical.value = LVL_GC;
-            thresholdRain.value = 50;
+            thresholdSafe.value = LVL_BT;
+            thresholdTheory.value = LVL_DESIGN;
+            thresholdWarning.value = LVL_CHECK;
+            thresholdEmergency.value = LVL_DAM;
             saveWarningThresholds();
+        }
+        
+        // Trend Analysis Functions - New
+        function updateTrendAnalysis() {
+            // Get data for the selected period
+            const now = new Date();
+            const startDate = new Date();
+            startDate.setDate(now.getDate() - selectedTrendPeriod);
+            
+            const periodData = allData.filter(r => {
+                const d = r.__d;
+                return d && d >= startDate && d <= now;
+            });
+            
+            if (periodData.length === 0) {
+                trendAvgLevel.textContent = '0 m';
+                trendMaxLevel.textContent = '0 m';
+                trendMinLevel.textContent = '0 m';
+                trendVariance.textContent = '0 m';
+                
+                if (trendChart) {
+                    trendChart.destroy();
+                    trendChart = null;
+                }
+                return;
+            }
+            
+            // Calculate statistics
+            const waterLevels = periodData
+                .map(r => r._mucNuoc)
+                .filter(v => v != null && !Number.isNaN(v));
+                
+            const avgLevel = waterLevels.length ? 
+                waterLevels.reduce((sum, level) => sum + level, 0) / waterLevels.length : 0;
+            const maxLevel = waterLevels.length ? Math.max(...waterLevels) : 0;
+            const minLevel = waterLevels.length ? Math.min(...waterLevels) : 0;
+            const variance = maxLevel - minLevel;
+            
+            // Update statistics display
+            trendAvgLevel.textContent = `${formatNumber(avgLevel, 2)} m`;
+            trendMaxLevel.textContent = `${formatNumber(maxLevel, 2)} m`;
+            trendMinLevel.textContent = `${formatNumber(minLevel, 2)} m`;
+            trendVariance.textContent = `${formatNumber(variance, 2)} m`;
+            
+            // Prepare data for chart
+            const { labels, dailyRain, dailyLevel } = aggregateDaily(periodData);
+            
+            // Build trend chart
+            buildTrendChart(labels, dailyLevel);
+        }
+
+        function buildTrendChart(labels, dailyLevel) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            
+            if (trendChart) {
+                trendChart.destroy();
+            }
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+            gradient.addColorStop(0, 'rgba(139, 92, 246, 0.35)');
+            gradient.addColorStop(1, 'rgba(139, 92, 246, 0.00)');
+            
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Mực nước (m)',
+                            data: dailyLevel,
+                            borderColor: '#8b5cf6',
+                            backgroundColor: gradient,
+                            borderWidth: 2.2,
+                            pointRadius: 2.5,
+                            pointHoverRadius: 4,
+                            pointBackgroundColor: '#8b5cf6',
+                            pointBorderColor: '#ffffff',
+                            fill: true,
+                            tension: 0.35,
+                            spanGaps: true
+                        },
+                        {
+                            label: 'MN chết',
+                            data: labels.map(() => LVL_DEAD),
+                            borderColor: '#f97316',
+                            borderDash: [6, 4],
+                            borderWidth: 1.7,
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            label: 'MN dâng BT',
+                            data: labels.map(() => LVL_BT),
+                            borderColor: '#eab308',
+                            borderDash: [6, 4],
+                            borderWidth: 1.7,
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            label: 'MN lũ thiết kế',
+                            data: labels.map(() => LVL_DESIGN),
+                            borderColor: '#3b82f6',
+                            borderDash: [6, 4],
+                            borderWidth: 1.7,
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            label: 'MN lũ kiểm tra',
+                            data: labels.map(() => LVL_CHECK),
+                            borderColor: '#8b5cf6',
+                            borderDash: [6, 4],
+                            borderWidth: 1.7,
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            align: 'center',
+                            labels: {
+                                usePointStyle: false,
+                                boxWidth: 22,
+                                boxHeight: 10,
+                                padding: 14
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label(ctx) {
+                                    const v = ctx.parsed.y;
+                                    if (ctx.datasetIndex === 0) {
+                                        return `Mực nước: ${Number(v || 0).toLocaleString('vi-VN', { maximumFractionDigits: 2 })} m`;
+                                    }
+                                    return `${ctx.dataset.label}: ${Number(v || 0).toLocaleString('vi-VN', { maximumFractionDigits: 2 })} m`;
+                                }
+                            }
+                        }
+                    },
+                    interaction: { mode: 'nearest', intersect: false },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: Math.min(12, labels.length),
+                                maxRotation: 0
+                            }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            grid: { color: 'rgba(148,163,184,0.20)' },
+                            title: { display: true, text: 'Mực nước (m)' }
+                        }
+                    }
+                }
+            });
         }
         
         // Dashboard Customization Functions
@@ -2370,6 +3017,7 @@
             };
             dashboardPrefs.sections = {
                 'warning-system-container': document.getElementById('show-warning-system').checked,
+                'trend-analysis-container': document.getElementById('show-trend-analysis').checked,
                 'ai-analysis-container': document.getElementById('show-ai-analysis').checked,
                 'main-chart-container': document.getElementById('show-main-chart').checked,
                 'data-table-container': document.getElementById('show-data-table').checked
@@ -2422,6 +3070,7 @@
             document.getElementById('kpi-k4').checked = dashboardPrefs.kpis.k4;
 
             document.getElementById('show-warning-system').checked = dashboardPrefs.sections['warning-system-container'];
+            document.getElementById('show-trend-analysis').checked = dashboardPrefs.sections['trend-analysis-container'];
             document.getElementById('show-ai-analysis').checked = dashboardPrefs.sections['ai-analysis-container'];
             document.getElementById('show-main-chart').checked = dashboardPrefs.sections['main-chart-container'];
             document.getElementById('show-data-table').checked = dashboardPrefs.sections['data-table-container'];
@@ -2506,6 +3155,37 @@
             }
         });
 
+        // Dashboard Settings Modal Event Listeners
+        btnDashboardSettings.addEventListener('click', () => {
+            dashboardModal.style.display = 'block';
+        });
+
+        modalClose.addEventListener('click', () => {
+            dashboardModal.style.display = 'none';
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === dashboardModal) {
+                dashboardModal.style.display = 'none';
+            }
+        });
+
+        // Trend Analysis Event Listeners - New
+        trendPeriodBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active button
+                trendPeriodBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update selected period
+                selectedTrendPeriod = parseInt(btn.dataset.period);
+                
+                // Update trend analysis
+                updateTrendAnalysis();
+            });
+        });
+
         btnCustomTime.addEventListener('click', () => {
             const isVisible = customTimePanel.style.display !== 'none';
             customTimePanel.style.display = isVisible ? 'none' : 'block';
@@ -2527,7 +3207,6 @@
             quarterFilter.value = 'all';
             monthFilter.value = 'all';
             weekFilter.value = 'all';
-            dayNightFilter.value = 'all';
 
             applyFiltersAndRender();
         });
@@ -2599,14 +3278,13 @@
         resetThresholdsBtn.addEventListener('click', resetWarningThresholds);
 
         // Dashboard Customization Event Listeners
-        btnToggleCustomization.addEventListener('click', () => {
-            const isVisible = dashboardCustomizationContent.style.display !== 'none';
-            dashboardCustomizationContent.style.display = isVisible ? 'none' : 'block';
-            btnToggleCustomization.innerHTML = isVisible ? '<span>⚙️</span>Hiển thị' : '<span>⚙️</span>Ẩn';
+        saveCustomizationBtn.addEventListener('click', () => {
+            saveDashboardPrefs();
+            dashboardModal.style.display = 'none';
         });
-
-        saveCustomizationBtn.addEventListener('click', saveDashboardPrefs);
-        resetCustomizationBtn.addEventListener('click', resetDashboardPrefs);
+        resetCustomizationBtn.addEventListener('click', () => {
+            resetDashboardPrefs();
+        });
 
         // AI Analysis Event Listener
         btnGenerateAnalysis.addEventListener('click', generateAIAnalysis);
@@ -2843,10 +3521,14 @@
                 statusText += `Mực nước hiện tại đang thấp hơn mực nước chết (${LVL_DEAD_TXT} m), đây là tình trạng báo động và cần có biện pháp cấp nước khẩn cấp. `;
             } else if (currentWaterLevel < LVL_BT) {
                 statusText += `Mực nước hiện tại nằm trong vùng an toàn, cao hơn mực nước chết (${LVL_DEAD_TXT} m) nhưng thấp hơn mực nước dâng bình thường (${LVL_BT_TXT} m). `;
-            } else if (currentWaterLevel < LVL_GC) {
-                statusText += `Mực nước hiện tại nằm trong vùng theo dõi, cao hơn mực nước dâng bình thường (${LVL_BT_TXT} m) nhưng vẫn dưới mực nước dâng gia cường (${LVL_GC_TXT} m). `;
+            } else if (currentWaterLevel < LVL_DESIGN) {
+                statusText += `Mực nước hiện tại nằm trong vùng lý thuyết, cao hơn mực nước dâng bình thường (${LVL_BT_TXT} m) nhưng vẫn dưới mực nước lũ thiết kế (${LVL_DESIGN_TXT} m). `;
+            } else if (currentWaterLevel < LVL_CHECK) {
+                statusText += `Mực nước hiện tại nằm trong vùng cảnh báo, cao hơn mực nước lũ thiết kế (${LVL_DESIGN_TXT} m) nhưng vẫn dưới mực nước lũ kiểm tra (${LVL_CHECK_TXT} m). `;
+            } else if (currentWaterLevel < LVL_DAM) {
+                statusText += `Mực nước hiện tại nằm trong vùng khẩn cấp, cao hơn mực nước lũ kiểm tra (${LVL_CHECK_TXT} m) nhưng vẫn dưới cao trình đỉnh đập (${LVL_DAM_TXT} m). `;
             } else {
-                statusText += `Mực nước hiện tại đang ở mức cao, xấp xỉ hoặc vượt mực nước dâng gia cường thiết kế (${LVL_GC_TXT} m). Đây là tình trạng cần theo dõi chặt chẽ. `;
+                statusText += `Mực nước hiện tại đang ở mức cực kỳ nguy hiểm, xấp xỉ hoặc vượt cao trình đỉnh đập (${LVL_DAM_TXT} m). Đây là tình trạng nguy hiểm tối đa. `;
             }
             
             statusText += `Trong khoảng thời gian phân tích, mực nước dao động từ ${formatNumber(minLevel, 2)} m đến ${formatNumber(maxLevel, 2)} m, với mức trung bình là ${formatNumber(avgLevel, 2)} m. `;
@@ -2895,22 +3577,30 @@
                 recommendationsText = `1. <strong>Theo dõi định kỳ:</strong> Tiếp tục theo dõi chặt chẽ mực nước hồ chứa ít nhất 2 lần/ngày.<br>`;
                 recommendationsText += `2. <strong>Lập kế hoạch dự trữ:</strong> Xem xét kế hoạch trữ nước để chuẩn bị cho mùa khô sắp tới.<br>`;
                 recommendationsText += `3. <strong>Tối ưu hóa vận hành:</strong> Tối ưu hóa việc sử dụng nước cho các mục đích khác nhau để đảm bảo hiệu quả.<br>`;
-            } else if (currentWaterLevel < LVL_GC) {
+            } else if (currentWaterLevel < LVL_DESIGN) {
                 recommendationsText = `1. <strong>Tăng cường giám sát:</strong> Tăng tần suất quan trắc mực nước lên 3-4 lần/ngày.<br>`;
                 recommendationsText += `2. <strong>Chuẩn bị xả tràn:</strong> Kiểm tra và đảm bảo các thiết bị xả tràn hoạt động tốt.<br>`;
                 recommendationsText += `3. <strong>Phòng ngừa lũ:</strong> Xây dựng kịch bản phòng ngừa lũ lụt cho hạ du.<br>`;
-            } else {
+            } else if (currentWaterLevel < LVL_CHECK) {
                 recommendationsText = `1. <strong>Vận hành an toàn:</strong> Sẵn sàng vận hành xả tràn theo quy trình đã được phê duyệt.<br>`;
                 recommendationsText += `2. <strong>Cảnh báo hạ du:</strong> Cảnh báo sớm cho các khu vực hạ du về khả năng xả lũ.<br>`;
                 recommendationsText += `3. <strong>Theo dõi liên tục:</strong> Quan trắc liên tục 24/24 và báo cáo tình hình cho các cơ quan chức năng.<br>`;
+            } else if (currentWaterLevel < LVL_DAM) {
+                recommendationsText = `1. <strong>Vận hành khẩn cấp:</strong> Vận hành xả lũ ở mức tối đa theo quy trình khẩn cấp.<br>`;
+                recommendationsText += `2. <strong>Di dời dân cư:</strong> Cân nhắc di dời dân cư ở khu vực hạ du nếu cần thiết.<br>`;
+                recommendationsText += `3. <strong>Báo cáo cấp cao:</strong> Báo cáo ngay lập tức cho các cơ quan quản lý cấp cao nhất.<br>`;
+            } else {
+                recommendationsText = `1. <strong>Phản ứng khẩn cấp tối đa:</strong> Triển khai tất cả các biện pháp ứng phó khẩn cấp tối đa.<br>`;
+                recommendationsText += `2. <strong>Đánh giá an toàn đập:</strong> Tiến hành đánh giá an toàn đập ngay lập tức.<br>`;
+                recommendationsText += `3. <strong>Phương án dự phòng:</strong> Chuẩn bị phương án xử lý tình huống xấu nhất.<br>`;
             }
             
             if (totalRain > 100) {
                 recommendationsText += `4. <strong>Đối phó với mưa lớn:</strong> Tổng lượng mưa lớn (${formatNumber(totalRain, 1)} mm) trong khoảng thời gian này đòi hỏi cần có kế hoạch đối phó với khả năng mưa lớn trong tương lai.<br>`;
             }
             
-            if (maxWaterLevel > LVL_GC) {
-                recommendationsText += `5. <strong>Đánh giá an toàn đập:</strong> Mực nước đã vượt mực nước dâng gia cường, cần tiến hành đánh giá an toàn đập ngay lập tức.<br>`;
+            if (maxWaterLevel > LVL_DESIGN) {
+                recommendationsText += `5. <strong>Đánh giá an toàn đập:</strong> Mực nước đã vượt mực nước lũ thiết kế, cần tiến hành đánh giá an toàn đập ngay lập tức.<br>`;
             }
             
             return recommendationsText;
@@ -3075,7 +3765,8 @@
         function buildComboChartAndStatus(labels, dailyRain, dailyLevel) {
             const deadLine = labels.map(() => LVL_DEAD);
             const btLine = labels.map(() => LVL_BT);
-            const gcLine = labels.map(() => LVL_GC);
+            const designLine = labels.map(() => LVL_DESIGN);
+            const checkLine = labels.map(() => LVL_CHECK);
 
             const maxRain = Math.max(0, ...dailyRain);
             const stepRain = maxRain > 50 ? 10 : 5;
@@ -3083,7 +3774,7 @@
 
             const lvlVals = dailyLevel.filter(v => v != null && !Number.isNaN(v));
             const lvlMin = lvlVals.length ? Math.min(...lvlVals) : LVL_DEAD;
-            const lvlMax = lvlVals.length ? Math.max(...lvlVals) : LVL_GC + 1;
+            const lvlMax = lvlVals.length ? Math.max(...lvlVals) : LVL_DAM + 1;
             const pad = 0.1;
             const yMinLvl = lvlMin - pad;
             const yMaxLvl = lvlMax + pad;
@@ -3151,10 +3842,21 @@
                         },
                         {
                             type: 'line',
-                            label: 'MN dâng GC',
-                            data: gcLine,
+                            label: 'MN lũ thiết kế',
+                            data: designLine,
                             yAxisID: 'yLevel',
-                            borderColor: '#0f766e',
+                            borderColor: '#3b82f6',
+                            borderDash: [6, 4],
+                            borderWidth: 1.7,
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            type: 'line',
+                            label: 'MN lũ kiểm tra',
+                            data: checkLine,
+                            yAxisID: 'yLevel',
+                            borderColor: '#8b5cf6',
                             borderDash: [6, 4],
                             borderWidth: 1.7,
                             pointRadius: 0,
@@ -3197,8 +3899,9 @@
                             bands: [
                                 { from: yMinLvl, to: LVL_DEAD, color: 'rgba(254,249,195,0.5)' },
                                 { from: LVL_DEAD, to: LVL_BT, color: 'rgba(187,247,208,0.65)' },
-                                { from: LVL_BT, to: LVL_GC, color: 'rgba(254,240,138,0.6)' },
-                                { from: LVL_GC, to: yMaxLvl, color: 'rgba(254,202,202,0.7)' }
+                                { from: LVL_BT, to: LVL_DESIGN, color: 'rgba(219,234,254,0.6)' },
+                                { from: LVL_DESIGN, to: LVL_CHECK, color: 'rgba(254,240,138,0.6)' },
+                                { from: LVL_CHECK, to: yMaxLvl, color: 'rgba(254,202,202,0.7)' }
                             ]
                         }
                     },
@@ -3257,10 +3960,12 @@
                     zoneText = 'dưới mực nước chết, dưới vùng làm việc bình thường.';
                 } else if (lastVal < LVL_BT) {
                     zoneText = `VÙNG AN TOÀN – dưới mực nước dâng bình thường (${LVL_BT_TXT} m).`;
-                } else if (lastVal < LVL_GC) {
-                    zoneText = `VÙNG THEO DÕI – từ mực nước dâng bình thường đến mực nước dâng gia cường (${LVL_GC_TXT} m).`;
+                } else if (lastVal < LVL_DESIGN) {
+                    zoneText = `VÙNG LÝ THUYẾT – từ mực nước dâng bình thường đến mực nước lũ thiết kế (${LVL_DESIGN_TXT} m).`;
+                } else if (lastVal < LVL_CHECK) {
+                    zoneText = `VÙNG CẢNH BÁO – từ mực nước lũ thiết kế đến mực nước lũ kiểm tra (${LVL_CHECK_TXT} m).`;
                 } else {
-                    zoneText = `VÙNG CẢNH BÁO CAO – xấp xỉ hoặc vượt mực nước dâng gia cường thiết kế (${LVL_GC_TXT} m).`;
+                    zoneText = `VÙNG KHẨN CẤP – xấp xỉ hoặc vượt mực nước lũ kiểm tra (${LVL_CHECK_TXT} m).`;
                 }
 
                 waterStatusEl.textContent = `${baseText}. Trạng thái: ${zoneText}`;
@@ -3271,6 +3976,7 @@
             const { labels, dailyRain, dailyLevel } = aggregateDaily(filteredData);
             updateKPIs(labels, dailyRain);
             buildComboChartAndStatus(labels, dailyRain, dailyLevel);
+            updateTrendAnalysis();
         }
 
         function updateSubtitle() {
