@@ -682,33 +682,39 @@
   
   <!-- Main Content -->
   <div class="main-content" id="main-content">
-    <div class="content-header">
-      <div class="header-left">
-        <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" title="Ẩn/Hiện thanh sidebar">☰</button>
-        <h2 id="content-title">Trạm đo</h2>
-      </div>
-      <div>
-        <button id="toggle-fullscreen" title="Bật/Tắt toàn màn hình">Toàn màn hình</button>
-      </div>
-    </div>
-    
     <!-- Station Content -->
     <div class="content-body active" id="station-content">
-      <div class="container">
-        <h1>BẢN ĐỒ TRẠM ĐO HỒ CHỨA THÀNH SƠN</h1>
-        <div class="subtitle">Vị trí các trạm đo mực nước và lượng mưa</div>
+      <div class="container" style="padding: 0; height: 100vh; display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; background: #1EA48D; color: white; flex-shrink: 0;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" title="Ẩn/Hiện thanh sidebar" style="margin: 0;">☰</button>
+            <h2 style="margin: 0; font-size: 15pt; font-weight: bold;">BẢN ĐỒ TRẠM ĐO HỒ CHỨA THÀNH SƠN</h2>
+          </div>
+          <button id="toggle-fullscreen" title="Bật/Tắt toàn màn hình" style="padding: 6px 12px; font-size: 12pt;">⛶ Toàn màn hình</button>
+        </div>
         
-        <div style="height: 600px; margin-top: 20px;">
+        <div style="flex: 1; margin: 0;">
           <iframe src="https://thuan84.github.io/codehtml/tramdomua.html" 
-                  style="width: 100%; height: 100%; border: none; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                  style="width: 100%; height: 100%; border: none; display: block;">
           </iframe>
         </div>
       </div>
     </div>
     
     <!-- Monitoring Data Content -->
-    <div class="content-body" id="monitoring-content">
-      <div class="container">
+<div class="content-body" id="monitoring-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; background: #1EA48D; color: white; flex-shrink: 0;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="sidebar-toggle-btn" id="sidebar-toggle-btn-2" title="Ẩn/Hiện thanh sidebar" style="margin: 0;">☰</button>
+        <h2 style="margin: 0; font-size: 15pt; font-weight: bold;">NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC THÀNH SƠN</h2>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button id="export-excel" style="padding: 6px 12px; font-size: 12pt; background:#218838; color:#fff; border:none; border-radius:6px; cursor:pointer;">Xuất Excel</button>
+        <button id="print-page" style="padding: 6px 12px; font-size: 12pt; background:#c82333; color:#fff; border:none; border-radius:6px; cursor:pointer;">In</button>
+        <button id="toggle-fullscreen-2" title="Bật/Tắt toàn màn hình" style="padding: 6px 12px; font-size: 12pt; background:#0b5ed7; color:#fff; border:none; border-radius:6px; cursor:pointer;">⛶ Toàn màn hình</button>
+      </div>
+    </div>
+    <div class="container" style="overflow-y: auto; padding: 20px;">
         <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC THÀNH SƠN</h1>
         <div id="subtitle" class="subtitle"></div>
 
@@ -1937,7 +1943,14 @@
         }
       }
 
-      comboChart = new Chart(document.getElementById('waterComboChart').getContext('2d'), {
+      // Đảm bảo canvas tồn tại
+const canvasEl = document.getElementById('waterComboChart');
+if (!canvasEl) {
+  console.error('Canvas element not found');
+  return;
+}
+
+comboChart = new Chart(canvasEl.getContext('2d'), {
         type:'bar',
         data:{
           labels: shortLabels,
@@ -2179,8 +2192,14 @@
             populateWeekFilter(allData);
             filteredData = clientFilter(allData);
             drawTableWithPagination();
-            renderRainStats();
-            requestAnimationFrame(() => setTimeout(updateCharts, 0));
+renderRainStats();
+
+// Chỉ vẽ chart nếu đang ở tab monitoring
+if (currentContent === 'monitoring') {
+  setTimeout(() => {
+    updateCharts();
+  }, 100);
+}
           }
           
           // Thông báo cho người dùng
@@ -2464,22 +2483,42 @@
     /* ================== INIT ================== */
         /* ================== INIT ================== */
         (function init(){
-      yearFilter.value = 'all';
-      quarterFilter.value = 'all';
-      monthFilter.value = 'all';
-      weekFilter.value = 'all';
-      dayNightFilter.value = 'all';
-      
-      customFromTime.value = '00:00:00';
-      customToTime.value = '23:59:59';
-      
-      currentPage = 1;
-      
-      // Khôi phục trạng thái sidebar
-      restoreSidebarState();
-      
-      // Tải dữ liệu ban đầu
-      fetchAndRender();
+  yearFilter.value = 'all';
+  quarterFilter.value = 'all';
+  monthFilter.value = 'all';
+  weekFilter.value = 'all';
+  dayNightFilter.value = 'all';
+  
+  customFromTime.value = '00:00:00';
+  customToTime.value = '23:59:59';
+  
+  currentPage = 1;
+  
+  // Khôi phục trạng thái sidebar
+  restoreSidebarState();
+  
+  // Đặt tab mặc định là "Dữ liệu quan trắc"
+  currentContent = 'monitoring';
+  
+  // Cập nhật UI
+  menuItems.forEach(item => {
+    if (item.getAttribute('data-content') === 'monitoring') {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+  
+  contentBodies.forEach(body => {
+    if (body.id === 'monitoring-content') {
+      body.classList.add('active');
+    } else {
+      body.classList.remove('active');
+    }
+  });
+  
+  // Tải dữ liệu ban đầu
+  fetchAndRender();
       
       // Bắt đầu tải dữ liệu mới ngầm sau 10 giây
       setTimeout(loadNewDataInBackground, 10 * 1000);
