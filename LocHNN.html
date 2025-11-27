@@ -2836,92 +2836,148 @@
     /* ===== CÁC HÀM XỬ LÝ CHÍNH ===== */
 
     // Hàm chính cập nhật toàn bộ phần phân tích
-    function updateWaterAnalysis() {
-      // Cập nhật timestamp
-      const now = new Date();
-      waterAnalysisTimestamp.textContent = `Cập nhật: ${fmtDateTimeVN(now)}`;
+    // Tìm hàm updateWaterAnalysis và thay thế bằng phiên bản mới này
+function updateWaterAnalysis() {
+  // Cập nhật timestamp
+  const now = new Date();
+  waterAnalysisTimestamp.textContent = `Cập nhật: ${fmtDateTimeVN(now)}`;
 
-      // Cập nhật mực nước hiện tại và chỉ báo
-      currentWaterLevel.textContent = nf2.format(currentWaterLevelValue);
-      
-      const safeMax = 58.78;
-      const theoryMax = 59.77;
-      const warningMax = 60.76;
-      
-      let positionPercent = 0;
-      if (currentWaterLevelValue <= safeMax) {
-        positionPercent = (currentWaterLevelValue / safeMax) * 25;
-      } else if (currentWaterLevelValue <= theoryMax) {
-        positionPercent = 25 + ((currentWaterLevelValue - safeMax) / (theoryMax - safeMax)) * 25;
-      } else if (currentWaterLevelValue <= warningMax) {
-        positionPercent = 50 + ((currentWaterLevelValue - theoryMax) / (warningMax - theoryMax)) * 25;
-      } else {
-        positionPercent = 75 + Math.min(((currentWaterLevelValue - warningMax) / 5), 1) * 25;
-      }
-      
-      levelIndicator.style.left = `${positionPercent}%`;
-      levelIndicator.setAttribute('data-value', `${nf2.format(currentWaterLevelValue)}m`);
-      
-      if (currentWaterLevelValue <= safeMax) {
-        levelIndicator.style.backgroundColor = '#22c55e';
-      } else if (currentWaterLevelValue <= theoryMax) {
-        levelIndicator.style.backgroundColor = '#f59e0b';
-      } else if (currentWaterLevelValue <= warningMax) {
-        levelIndicator.style.backgroundColor = '#ef4444';
-      } else {
-        levelIndicator.style.backgroundColor = '#a855f7';
-      }
-      
-      // Gọi hàm cập nhật biểu đồ, hàm này sẽ tính toán và vẽ KPI
-      updateWaterLevelChartForPeriod(selectedPeriod);
+  // Cập nhật mực nước hiện tại và chỉ báo
+  currentWaterLevel.textContent = nf2.format(currentWaterLevelValue);
+  
+  const safeMax = 58.78;
+  const theoryMax = 59.77;
+  const warningMax = 60.76;
+  
+  let positionPercent = 0;
+  if (currentWaterLevelValue <= safeMax) {
+    positionPercent = (currentWaterLevelValue / safeMax) * 25;
+  } else if (currentWaterLevelValue <= theoryMax) {
+    positionPercent = 25 + ((currentWaterLevelValue - safeMax) / (theoryMax - safeMax)) * 25;
+  } else if (currentWaterLevelValue <= warningMax) {
+    positionPercent = 50 + ((currentWaterLevelValue - theoryMax) / (warningMax - theoryMax)) * 25;
+  } else {
+    positionPercent = 75 + Math.min(((currentWaterLevelValue - warningMax) / 5), 1) * 25;
+  }
+  
+  levelIndicator.style.left = `${positionPercent}%`;
+  levelIndicator.setAttribute('data-value', `${nf2.format(currentWaterLevelValue)}m`);
+  
+  if (currentWaterLevelValue <= safeMax) {
+    levelIndicator.style.backgroundColor = '#22c55e';
+  } else if (currentWaterLevelValue <= theoryMax) {
+    levelIndicator.style.backgroundColor = '#f59e0b';
+  } else if (currentWaterLevelValue <= warningMax) {
+    levelIndicator.style.backgroundColor = '#ef4444';
+  } else {
+    levelIndicator.style.backgroundColor = '#a855f7';
+  }
+  
+  // Tính toán các chỉ số cho kỳ được chọn
+  const stats = calculatePeriodStats(selectedPeriod);
+  
+  // Cập nhật mực nước trung bình
+  if (stats.avg !== null) {
+    avgWaterLevel.textContent = stats.avg;
+  } else {
+    avgWaterLevel.textContent = '0.00';
+  }
+  
+  // Cập nhật dự báo 24h
+  if (stats.forecast !== null) {
+    forecast24h.textContent = stats.forecast;
+  } else {
+    forecast24h.textContent = '0.00';
+  }
+  
+  // Cập nhật xu hướng mực nước
+  if (stats.trend === 'up') {
+    waterTrend.innerHTML = '<i class="fas fa-arrow-up trend-icon up"></i><span>Tăng</span>';
+  } else if (stats.trend === 'down') {
+    waterTrend.innerHTML = '<i class="fas fa-arrow-down trend-icon down"></i><span>Giảm</span>';
+  } else {
+    waterTrend.innerHTML = '<i class="fas fa-minus trend-icon" style="color: #64748b;"></i><span>Ổn định</span>';
+  }
+  
+  // Cập nhật xu hướng trong 7 ngày (hiển thị dưới mực nước trung bình)
+  const trendElement = document.querySelector('.analysis-trend');
+  if (trendElement) {
+    if (stats.trend === 'up') {
+      trendElement.innerHTML = '<i class="fas fa-arrow-up trend-icon up"></i><span class="trend-text up">Tăng trong ' + selectedPeriod + ' ngày</span>';
+    } else if (stats.trend === 'down') {
+      trendElement.innerHTML = '<i class="fas fa-arrow-down trend-icon down"></i><span class="trend-text down">Giảm trong ' + selectedPeriod + ' ngày</span>';
+    } else {
+      trendElement.innerHTML = '<i class="fas fa-minus trend-icon" style="color: #64748b;"></i><span class="trend-text" style="color: #64748b;">Ổn định trong ' + selectedPeriod + ' ngày</span>';
     }
+  }
+  
+  // Gọi hàm cập nhật biểu đồ
+  updateWaterLevelChartForPeriod(selectedPeriod);
+}
 
     // Hàm tính toán các chỉ số thống kê cho một kỳ
-    function calculatePeriodStats(periodDays) {
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - periodDays);
-      
-      // QUAN TRỌNG: Sử dụng allData để tránh xung đột với bộ lọc ở tab khác
-      const periodData = allData.filter(r => r.__d && r.__d >= startDate);
-      
-      if (periodData.length === 0) {
-        return { avg: null, max: null, min: null, trend: 'stable' };
-      }
+    // Tìm hàm calculatePeriodStats và thay thế bằng phiên bản mới này
+function calculatePeriodStats(periodDays) {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - periodDays);
+  
+  // Sử dụng allData để tránh xung đột với bộ lọc ở tab khác
+  const periodData = allData.filter(r => r.__d && r.__d >= startDate);
+  
+  if (periodData.length === 0) {
+    return { avg: null, max: null, min: null, trend: 'stable', forecast: null };
+  }
 
-      const levels = periodData.map(r => Number(r.mucNuoc)).filter(l => !isNaN(l));
-      
-      if (levels.length === 0) {
-          return { avg: null, max: null, min: null, trend: 'stable' };
-      }
+  const levels = periodData.map(r => Number(r.mucNuoc)).filter(l => !isNaN(l));
+  
+  if (levels.length === 0) {
+      return { avg: null, max: null, min: null, trend: 'stable', forecast: null };
+  }
 
-      const avg = levels.reduce((a, b) => a + b, 0) / levels.length;
-      const max = Math.max(...levels);
-      const min = Math.min(...levels);
+  const avg = levels.reduce((a, b) => a + b, 0) / levels.length;
+  const max = Math.max(...levels);
+  const min = Math.min(...levels);
 
-      // Tính xu hướng
-      const midPoint = Math.floor(levels.length / 2);
-      const firstHalf = levels.slice(0, midPoint);
-      const secondHalf = levels.slice(midPoint);
-      let trend = 'stable';
-      
-      if (firstHalf.length > 0 && secondHalf.length > 0) {
-        const avgFirstHalf = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
-        const avgSecondHalf = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
-        const diff = avgSecondHalf - avgFirstHalf;
-        const threshold = 0.05; // Ngưỡng để xác định "ổn định"
+  // Tính xu hướng
+  const midPoint = Math.floor(levels.length / 2);
+  const firstHalf = levels.slice(0, midPoint);
+  const secondHalf = levels.slice(midPoint);
+  let trend = 'stable';
+  
+  if (firstHalf.length > 0 && secondHalf.length > 0) {
+    const avgFirstHalf = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+    const avgSecondHalf = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+    const diff = avgSecondHalf - avgFirstHalf;
+    const threshold = 0.05; // Ngưỡng để xác định "ổn định"
 
-        if (Math.abs(diff) >= threshold) {
-          trend = diff > 0 ? 'up' : 'down';
-        }
-      }
-      
-      return { 
-        avg: nf2.format(avg), 
-        max: nf2.format(max), 
-        min: nf2.format(min), 
-        trend: trend 
-      };
+    if (Math.abs(diff) >= threshold) {
+      trend = diff > 0 ? 'up' : 'down';
     }
+  }
+  
+  // Tính dự báo 24h tiếp theo dựa trên xu hướng
+  let forecast = avg;
+  if (trend === 'up') {
+    // Dự báo tăng dựa trên mức tăng trung bình
+    const increaseRate = (levels[levels.length-1] - levels[0]) / levels.length;
+    forecast = levels[levels.length-1] + increaseRate;
+  } else if (trend === 'down') {
+    // Dự báo giảm dựa trên mức giảm trung bình
+    const decreaseRate = (levels[0] - levels[levels.length-1]) / levels.length;
+    forecast = levels[levels.length-1] - decreaseRate;
+  } else {
+    // Nếu ổn định, dự báo bằng giá trị gần nhất
+    forecast = levels[levels.length-1];
+  }
+  
+  return { 
+    avg: nf2.format(avg), 
+    max: nf2.format(max), 
+    min: nf2.format(min), 
+    trend: trend,
+    forecast: nf2.format(forecast)
+  };
+}
 
     // Hàm cập nhật biểu đồ cho một kỳ cụ thể
     function updateWaterLevelChartForPeriod(periodDays) {
