@@ -687,7 +687,7 @@
       <div class="container" style="padding: 0; height: 100vh; display: flex; flex-direction: column;">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; background: #1EA48D; color: white; flex-shrink: 0;">
           <div style="display: flex; align-items: center; gap: 12px;">
-            <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" title="Ẩn/Hiện thanh sidebar" style="margin: 0;">☰</button>
+            <button class="sidebar-toggle-btn sidebar-toggle-all" id="sidebar-toggle-btn" title="Ẩn/Hiện thanh sidebar" style="margin: 0;">☰</button>
             <h2 style="margin: 0; font-size: 15pt; font-weight: bold;">BẢN ĐỒ TRẠM ĐO HỒ CHỨA THÀNH SƠN</h2>
           </div>
           <button id="toggle-fullscreen" title="Bật/Tắt toàn màn hình" style="padding: 6px 12px; font-size: 12pt;">⛶ Toàn màn hình</button>
@@ -705,7 +705,7 @@
 <div class="content-body" id="monitoring-content">
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; background: #1EA48D; color: white; flex-shrink: 0;">
       <div style="display: flex; align-items: center; gap: 12px;">
-        <button class="sidebar-toggle-btn" id="sidebar-toggle-btn-2" title="Ẩn/Hiện thanh sidebar" style="margin: 0;">☰</button>
+        <button class="sidebar-toggle-btn sidebar-toggle-all" id="sidebar-toggle-btn-2" title="Ẩn/Hiện thanh sidebar" style="margin: 0;">☰</button>
         <h2 style="margin: 0; font-size: 15pt; font-weight: bold;">NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC THÀNH SƠN</h2>
       </div>
       <div style="display: flex; gap: 8px;">
@@ -899,9 +899,15 @@
     </div>
     
     <!-- Analysis Content -->
-    <div class="content-body" id="analysis-content">
-      <div class="container">
-        <h1>MỨC AN TOÀN VÀ PHÂN TÍCH XU HƯỚNG MỰC NƯỚC NÂNG CAO</h1>
+<div class="content-body" id="analysis-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; background: #1EA48D; color: white; flex-shrink: 0;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="sidebar-toggle-btn sidebar-toggle-all" id="sidebar-toggle-btn-3" title="Ẩn/Hiện thanh sidebar" style="margin: 0;">☰</button>
+        <h2 style="margin: 0; font-size: 15pt; font-weight: bold;">CẢNH BÁO VÀ PHÂN TÍCH</h2>
+      </div>
+    </div>
+    <div class="container">
+      <h1>MỨC AN TOÀN VÀ PHÂN TÍCH XU HƯỚNG MỰC NƯỚC NÂNG CAO</h1>
         <div class="subtitle">Theo dõi và cảnh báo các mức độ nguy hiểm của mực nước hồ</div>
         
         <!-- Smart Alert System -->
@@ -1115,15 +1121,7 @@
       sidebar.classList.toggle('open');
     });
 
-    // Toggle sidebar button for desktop and mobile
-    sidebarToggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('hidden');
-      mainContent.classList.toggle('expanded');
-      
-      // Save state to localStorage
-      const isHidden = sidebar.classList.contains('hidden');
-      localStorage.setItem('sidebar-hidden', isHidden);
-    });
+    
 
     // Restore sidebar state from localStorage
     function restoreSidebarState() {
@@ -2494,7 +2492,26 @@ if (currentContent === 'monitoring') {
   
   // Khôi phục trạng thái sidebar
   restoreSidebarState();
+  // === THÊM CODE MỚI TẠI ĐÂY ===
+  // Toggle sidebar button for desktop and mobile - áp dụng cho tất cả các nút
+  function toggleSidebar() {
+    sidebar.classList.toggle('hidden');
+    mainContent.classList.toggle('expanded');
+    
+    // Save state to localStorage
+    const isHidden = sidebar.classList.contains('hidden');
+    localStorage.setItem('sidebar-hidden', isHidden);
+  }
+
+  // Đăng ký sự kiện cho tất cả các nút có class "sidebar-toggle-all"
+  document.querySelectorAll('.sidebar-toggle-all').forEach(btn => {
+    btn.addEventListener('click', toggleSidebar);
+  });
+  // === KẾT THÚC CODE MỚI ===
   
+  // Đặt tab mặc định là "Dữ liệu quan trắc"
+  currentContent = 'monitoring';
+
   // Đặt tab mặc định là "Dữ liệu quan trắc"
   currentContent = 'monitoring';
   
