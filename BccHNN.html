@@ -1965,10 +1965,6 @@
     }
 
     function applyFiltersCore(){
-        // Đảm bảo dữ liệu đã được sắp xếp đúng
-  if (allData.length > 0) {
-    allData.sort((a, b) => b.__d - a.__d); // Mới nhất lên đầu
-  }
       const y=yearSel.value, q=quarterSel.value, m=monthSel.value;
       const w=weekSel.value, dn=dayNightSel.value;
       
@@ -2507,7 +2503,7 @@
         const dateB = parseVNDateTime(b.ngayGio);
         if (!dateA) return 1;
         if (!dateB) return -1;
-        return dateA - dateB;
+        return dateB - dateA;
       });
 
       console.log(`Combined data: ${existingData.length} existing + ${newData.length} new = ${combined.length} total`);
@@ -2599,180 +2595,77 @@ function showDataUpdateIndicator(show, message = 'Đang cập nhật dữ liệu
   }
 }
 
-// Thay thế hàm fetchFreshData và fetchFreshDataInBackground bằng các hàm này
-
 // ===== HÀM 2: TỰ ĐỘNG CẬP NHẬT NỀN (5 PHÚT/LẦN) =====
 async function fetchFreshDataInBackground() {
-    if (isRefreshing) {
-    console.log('⏳ Background refresh already in progress, skipping...');
-    return;
-  }
-  
+  if (isRefreshing) return;
   isRefreshing = true;
-  console.log('🔄 Starting background data refresh...');
   
   try {
     showDataUpdateIndicator(true, 'Đang kiểm tra dữ liệu mới...');
     
-    // Sử dụng JSONP để tránh lỗi CORS
-    const callbackName = 'callback_' + new Date().getTime();
-    const script = document.createElement('script');
-    script.src = `${API_URL}&t=${new Date().getTime()}&nocache=1&callback=${callbackName}`;
+    // Force fresh data with timestamp to prevent caching
+    const antiCacheURL = `${API_URL}&t=${new Date().getTime()}&nocache=1`;
+    const response = await fetch(antiCacheURL, {
+      method: 'GET',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
     
-    // Tạo hàm callback toàn cục
-    window[callbackName] = function(data) {
-      document.head.removeChild(script);
-      delete window[callbackName];
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Unknown error');
-      }
-      
-      console.log(`✅ Fetched ${data.data.length} records from server`);
-      
-      showDataUpdateIndicator(true, 'Đang xử lý dữ liệu...');
-      
-      const prevCount = allData.length;
-      
-      // Process and combine - NEW data will overwrite OLD data
-      const processedData = processData(data.data);
-      allData = combineData(allData, processedData);
-      
-      const newCount = allData.length;
-      console.log(`✅ Combined: ${prevCount} → ${newCount} records`);
-      
-      // Cache the updated data
-      showDataUpdateIndicator(true, 'Đang lưu cache...');
-      if (typeof cacheData === 'function') {
-          await cacheData(allData.map(item => {
-            const { __d, __y, __m, __q, __rowHTML, ...cleanItem } = item;
-            return cleanItem;
-          }));
-      }
-      
-      // Update UI with new data
-      showDataUpdateIndicator(true, 'Đang cập nhật giao diện...');
-      if (typeof syncAllTabsData === 'function') {
-          syncAllTabsData();
-      } else {
-          populateYears(allData);
-          populateWeeks(allData);
-          applyFiltersCore();
-          updateWaterAnalysis();
-      }
-      
-      showDataUpdateIndicator(false);
-      
-      if (newCount > prevCount) {
-           showToast(`Đã cập nhật ${newCount - prevCount} bản ghi mới`, 'success');
-      } else {
-           console.log('✅ Dữ liệu đã được đồng bộ với giá trị mới nhất');
-           showToast('Dữ liệu đã được làm mới', 'success', 2000);
-      }
-    };
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     
-    // Xử lý lỗi
-    script.onerror = function() {
-      document.head.removeChild(script);
-      delete window[callbackName];
-      throw new Error('Failed to load data from server');
-    };
+    const rawData = await response.json();
+    if (!Array.isArray(rawData) || !rawData.length) throw new Error('No data');
     
-    // Thêm script vào trang
-    document.head.appendChild(script);
+    console.log(`✅ Fetched ${rawData.length} records from server`);
+    
+    showDataUpdateIndicator(true, 'Đang xử lý dữ liệu...');
+    
+    const prevCount = allData.length;
+    
+    // Process and combine - NEW data will overwrite OLD data
+    const processedData = processData(rawData);
+    allData = combineData(allData, processedData);
+    
+    const newCount = allData.length;
+    console.log(`✅ Combined: ${prevCount} → ${newCount} records`);
+    
+    // Cache the updated data
+    showDataUpdateIndicator(true, 'Đang lưu cache...');
+    if (typeof cacheData === 'function') {
+        await cacheData(allData.map(item => {
+          const { __d, __y, __m, __q, __rowHTML, ...cleanItem } = item;
+          return cleanItem;
+        }));
+    }
+    
+    // Update UI with new data
+    showDataUpdateIndicator(true, 'Đang cập nhật giao diện...');
+    if (typeof syncAllTabsData === 'function') {
+        syncAllTabsData();
+    } else {
+        populateYears(allData);
+        populateWeeks(allData);
+        applyFiltersCore();
+        updateWaterAnalysis();
+    }
+    
+    showDataUpdateIndicator(false);
+    
+    if (newCount > prevCount) {
+         showToast(`Đã cập nhật ${newCount - prevCount} bản ghi mới`, 'success');
+    } else {
+         console.log('✅ Dữ liệu đã được đồng bộ với giá trị mới nhất');
+         showToast('Dữ liệu đã được làm mới', 'success', 2000);
+    }
 
   } catch (error) {
     console.error('❌ Background fetch error:', error);
     showDataUpdateIndicator(false);
-    showToast(`Lỗi tải dữ liệu: ${error.message}`, 'error', 5000);
   } finally {
     isRefreshing = false;
-    console.log('✅ Background refresh completed');
-  }
-}
-
-// ===== HÀM 3: NHẤN NÚT "LÀM MỚI DỮ LIỆU" =====
-async function fetchFreshData() {
-  if (isDataLoading) return;
-  isDataLoading = true;
-  
-  // Hiển thị loading
-  const overlay = document.getElementById('loadingOverlay');
-  const txt = document.getElementById('loadingText');
-  if(overlay) { overlay.style.display = 'flex'; }
-  if(txt) { txt.textContent = 'Đang tải dữ liệu mới nhất...'; }
-  
-  try {
-    // Sử dụng JSONP để tránh lỗi CORS
-    const callbackName = 'callback_' + new Date().getTime();
-    const script = document.createElement('script');
-    script.src = `${API_URL}&t=${new Date().getTime()}&nocache=1&rand=${Math.random()}&callback=${callbackName}`;
-    
-    // Tạo hàm callback toàn cục
-    window[callbackName] = function(data) {
-      document.head.removeChild(script);
-      delete window[callbackName];
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Unknown error');
-      }
-      
-      console.log(`✅ Đã tải ${data.data.length} bản ghi từ server`);
-      
-      // Process new data
-      const processedData = processData(data.data);
-      
-      const prevCount = allData.length;
-      
-      // Combine with existing data - NEW data overwrites OLD
-      allData = combineData(allData, processedData);
-      
-      const newCount = allData.length;
-      console.log(`✅ Đã gộp: ${prevCount} → ${newCount} bản ghi`);
-      
-      // Cache the updated data
-      if (typeof cacheData === 'function') {
-          cacheData(allData.map(item => {
-            const { __d, __y, __m, __q, __rowHTML, ...cleanItem } = item;
-            return cleanItem;
-          }));
-      }
-      
-      // Update all UI components
-      if (typeof syncAllTabsData === 'function') {
-          syncAllTabsData();
-      } else {
-          populateYears(allData);
-          populateWeeks(allData);
-          applyFiltersCore();
-          updateWaterAnalysis();
-      }
-      
-      if(overlay) { overlay.style.display = 'none'; }
-      
-      if (newCount > prevCount) {
-        showToast(`Đã tải ${newCount - prevCount} bản ghi mới`, 'success', 3000);
-      } else {
-        showToast('Dữ liệu đã được làm mới với giá trị mới nhất', 'success', 3000);
-      }
-    };
-    
-    // Xử lý lỗi
-    script.onerror = function() {
-      document.head.removeChild(script);
-      delete window[callbackName];
-      throw new Error('Failed to load data from server');
-    };
-    
-    // Thêm script vào trang
-    document.head.appendChild(script);
-
-  } catch (error) {
-    console.error('❌ Lỗi tải dữ liệu:', error);
-    if(overlay) { overlay.style.display = 'none'; }
-    showToast(`Lỗi: ${error.message}`, 'error', 5000);
-  } finally {
-    isDataLoading = false;
   }
 }
 
@@ -3109,9 +3002,8 @@ function calculatePeriodStats(periodDays) {
         return { avg: null, max: null, min: null, trend: 'stable', forecast: null };
       }
 
-      // ĐẢM BẢO sắp xếp mới nhất → cũ nhất cho tính toán
-  const sortedData = [...periodData].sort((a, b) => b.__d - a.__d);
-  const levels = sortedData.map(r => Number(r.mucNuoc)).filter(l => !isNaN(l));
+      // Lưu ý: Dữ liệu đang sắp xếp Mới nhất -> Cũ nhất (index 0 là hiện tại)
+      const levels = periodData.map(r => Number(r.mucNuoc)).filter(l => !isNaN(l));
       
       if (levels.length === 0) {
           return { avg: null, max: null, min: null, trend: 'stable', forecast: null };
