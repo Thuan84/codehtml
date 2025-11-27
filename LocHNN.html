@@ -2589,7 +2589,11 @@ function syncAllTabsData() {
         showDataUpdateIndicator(true, 'Đang kiểm tra dữ liệu mới...');
         
         // Fetch data from server
-        const response = await fetch(API_URL, { cache: 'no-store' });
+        
+    // Thêm tham số "&t=" + thời gian hiện tại để chống cache tuyệt đối
+    const antiCacheURL = `${API_URL}&t=${new Date().getTime()}`;
+    const response = await fetch(antiCacheURL);
+    // --------------------
         
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
