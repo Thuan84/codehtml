@@ -1,0 +1,4063 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nhật ký vận hành hồ chứa - Hồ Ông Kinh</title>
+
+    <!-- Thư viện -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+    <style>
+        :root {
+            --header-bg: #1EA48D;
+            --border-color: #d1d5db;
+            --hover-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --ink: #0f172a;
+            --kpi1: #e8f7f2;
+            --kpi2: #f0f5ff;
+            --kpi3: #fff7ed;
+            --kpi4: #fdf2f8;
+            --kpi5: #e0f2fe;
+            --kpi6: #f0fdf4;
+            --kpi7: #fef3c7;
+            --kpi1-accent: #10b981;
+            --kpi2-accent: #3b82f6;
+            --kpi3-accent: #f59e0b;
+            --kpi4-accent: #ec4899;
+            --kpi5-accent: #0ea5e9;
+            --kpi6-accent: #22c55e;
+            --kpi7-accent: #facc15;
+            --ai-primary: #6f42c1;
+            --ai-secondary: #9333ea;
+            --warning-normal: #22c55e;
+            --warning-watch: #f59e0b;
+            --warning-danger: #ef4444;
+            --warning-critical: #991b1b;
+            --dashboard-primary: #3b82f6;
+            --sidebar-bg: #1a2b3d;
+            --sidebar-text: #ffffff;
+            --sidebar-active: #0ea5e9;
+            --safe-level: #22c55e;
+            --theory-level: #3b82f6;
+            --warning-level: #f59e0b;
+            --emergency-level: #ef4444;
+            --trend-primary: #8b5cf6;
+            --trend-secondary: #ec4899;
+        }
+
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background: #f4f6f8;
+            color: var(--ink);
+            margin: 0;
+            padding: 0;
+            font-size: 14pt;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 20px 0;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            transition: transform 0.3s ease, width 0.3s ease;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-100%);
+            width: 0;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 18pt;
+            font-weight: bold;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            color: var(--sidebar-text);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .sidebar-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 5px;
+        }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 12px 20px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            transition: background-color 0.2s;
+            font-size: 14pt;
+        }
+
+        .sidebar-menu a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-menu a.active {
+            background-color: var(--sidebar-active);
+            font-weight: bold;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        /* Show Sidebar Button - Thêm mới */
+        .show-sidebar-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 101;
+            background: var(--sidebar-bg);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 16px;
+            display: none;
+            transition: all 0.3s ease;
+        }
+
+        .show-sidebar-btn.visible {
+            display: block;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .06);
+            position: relative;
+            padding-bottom: 80px;
+        }
+
+        h1 {
+            font-size: 16pt;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+            margin: 0 0 6px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14pt;
+            margin-bottom: 10px;
+        }
+
+        .top-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            padding-top: 6px;
+            padding-bottom: 6px;
+            background: linear-gradient(to bottom, #ffffff 85%, rgba(255, 255, 255, 0));
+        }
+
+        .top-actions button {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 13pt;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #btn-custom-time {
+            color: #fff;
+            background: #6f42c1;
+            border-color: #6f42c1
+        }
+
+        #export-excel {
+            color: #fff;
+            background: #22c55e;
+            border-color: #22c55e
+        }
+
+        #btn-print-portrait {
+            color: #fff;
+            background: #0b5ed7;
+            border-color: #0b5ed7
+        }
+
+        #btn-print-landscape {
+            color: #fff;
+            background: #7c3aed;
+            border-color: #7c3aed
+        }
+
+        #btn-dashboard-settings {
+            color: #fff;
+            background: #3b82f6;
+            border-color: #3b82f6;
+            font-size: 14pt;
+            padding: 8px 10px;
+        }
+
+        .controls-container {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+            padding: 14px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+        }
+
+        .filters {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        .filters label {
+            font-weight: bold
+        }
+
+        .filters select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 13pt;
+            cursor: pointer;
+        }
+
+        .custom-time-panel {
+            display: none;
+            padding: 16px;
+            background: #f8f9fa;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .custom-time-panel .time-inputs {
+            display: flex;
+            gap: 20px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+
+        .custom-time-panel .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .custom-time-panel label {
+            font-weight: bold;
+            font-size: 12pt;
+        }
+
+        .custom-time-panel input {
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 13pt;
+        }
+
+        .custom-time-panel button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13pt;
+        }
+
+        #btn-apply-custom {
+            background: #1EA48D;
+            color: #fff;
+        }
+
+        #btn-clear-custom {
+            background: #6c757d;
+            color: #fff;
+        }
+
+        .kpi-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin: 14px 0 6px;
+            justify-content: space-between;
+        }
+
+        .kpi {
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 14px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, .04);
+            flex: 1 1 150px; /* Cho phép các thẻ co giãn đều nhau */
+            min-width: 150px; /* Đảm bảo chiều rộng tối thiểu */
+            max-width: 220px; /* Đặt chiều rộng tối đa để tránh quá rộng */
+        }
+
+        .kpi::before {
+            content: "";
+            position: absolute;
+            inset: auto 0 0 0;
+            height: 6px;
+            border-bottom-left-radius: 14px;
+            border-bottom-right-radius: 14px;
+        }
+
+        .kpi .label {
+            font-size: 11.5pt;
+            color: #334155;
+            margin-bottom: 6px;
+            line-height: 1.25
+        }
+
+        .kpi .value {
+            font-weight: 700;
+            font-size: 18pt;
+            letter-spacing: .2px
+        }
+
+        .kpi .comparison {
+            font-size: 10pt;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .kpi .icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .kpi.k1 {
+            background: var(--kpi1)
+        }
+
+        .kpi.k1::before {
+            background: var(--kpi1-accent)
+        }
+
+        .kpi.k2 {
+            background: var(--kpi2)
+        }
+
+        .kpi.k2::before {
+            background: var(--kpi2-accent)
+        }
+
+        .kpi.k3 {
+            background: var(--kpi3)
+        }
+
+        .kpi.k3::before {
+            background: var(--kpi3-accent)
+        }
+
+        .kpi.k4 {
+            background: var(--kpi4)
+        }
+
+        .kpi.k4::before {
+            background: var(--kpi4-accent)
+        }
+
+        .kpi.k5 {
+            background: var(--kpi5)
+        }
+
+        .kpi.k5::before {
+            background: var(--kpi5-accent)
+        }
+
+        .kpi.k6 {
+            background: var(--kpi6)
+        }
+
+        .kpi.k6::before {
+            background: var(--kpi6-accent)
+        }
+
+        .kpi.k7 {
+            background: var(--kpi7)
+        }
+
+        .kpi.k7::before {
+            background: var(--kpi7-accent)
+        }
+
+        .charts {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .chart-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, .04);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .chart-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+
+        .chart-title {
+            font-weight: bold;
+            margin: 0;
+            font-size: 14pt;
+            text-align: center;
+        }
+
+        .chart-legend-hint {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            font-size: 11pt;
+            color: #111827;
+        }
+
+        .chart-legend-hint .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chart-legend-hint .legend-box {
+            width: 14px;
+            height: 10px;
+            border-radius: 2px;
+            border: 1px solid rgba(148, 163, 184, 0.7);
+        }
+
+        .legend-below {
+            background: #fef9c3;
+        }
+
+        .legend-safe {
+            background: #bbf7d0;
+        }
+
+        .legend-watch {
+            background: #fef3c7;
+        }
+
+        .legend-danger {
+            background: #fecaca;
+        }
+
+        .water-status {
+            font-size: 11.5pt;
+            font-weight: bold;
+            color: #111827;
+            text-align: center;
+            margin-top: 2px;
+        }
+
+        .chart-wrap {
+            position: relative;
+            width: 100%;
+            height: 360px
+        }
+
+        .data-table-container {
+            margin-top: 10px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 13pt;
+        }
+
+        th,
+        td {
+            border: 1px solid #e5e7eb;
+            padding: 8px 10px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        th {
+            background: var(--header-bg);
+            color: #000;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            border: 1px solid #fff;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #fff
+        }
+
+        tbody tr:hover {
+            background: var(--hover-bg)
+        }
+
+        .pagination-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            position: absolute;
+            right: 20px;
+            bottom: 10px;
+            background: #ffffff;
+            padding: 6px 14px;
+            border-radius: 999px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+        }
+
+        .pager-left,
+        .pager-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pagination-bar button {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            cursor: pointer;
+            font-size: 12pt;
+        }
+
+        .pagination-bar button:disabled {
+            opacity: .5;
+            cursor: not-allowed
+        }
+
+        .pagination-bar select {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            font-size: 12pt;
+        }
+
+        .status-message {
+            color: #555;
+            padding: 40px;
+            text-align: center;
+            font-style: italic;
+            font-size: 14pt
+        }
+
+        .error-message {
+            color: #b91c1c;
+            padding: 15px;
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            margin-top: 15px;
+            border-radius: 10px
+        }
+
+        .loader-container {
+            padding: 50px;
+            text-align: center
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-bottom: 10px
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0)
+            }
+
+            100% {
+                transform: rotate(360deg)
+            }
+        }
+
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .toast {
+            background: #333;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 13pt;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        #data-table col.col-stt {
+            width: 60px
+        }
+
+        #data-table col.col-ngay {
+            width: 140px
+        }
+
+        #data-table col.col-gio {
+            width: 120px
+        }
+
+        #data-table col.col-mucnuoc {
+            width: 140px
+        }
+
+        #data-table col.col-dungtich {
+            width: 160px
+        }
+
+        #data-table col.col-luongmua {
+            width: 150px
+        }
+
+        #data-table col.col-htran {
+            width: 140px
+        }
+
+        #data-table col.col-qtran {
+            width: 170px
+        }
+
+        #data-table col.col-vanhanh {
+            width: 220px
+        }
+
+        #data-table col.col-sign {
+            width: 220px
+        }
+
+        #print-table {
+            display: none;
+        }
+
+        /* AI Analysis Styles */
+        .ai-analysis-container {
+            margin: 20px 0;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, .04);
+        }
+
+        .ai-analysis-header {
+            background: linear-gradient(135deg, var(--ai-primary), var(--ai-secondary));
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-analysis-title {
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-analysis-icon {
+            font-size: 20px;
+        }
+
+        .ai-analysis-content {
+            padding: 20px;
+            background: #f9fafb;
+            min-height: 200px;
+        }
+
+        .ai-analysis-section {
+            margin-bottom: 20px;
+        }
+
+        .ai-analysis-section-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: var(--ai-primary);
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 5px;
+        }
+
+        .ai-analysis-text {
+            font-size: 13pt;
+            line-height: 1.5;
+            color: #334155;
+        }
+
+        .ai-analysis-footer {
+            padding: 10px 20px;
+            background: #f3f4f6;
+            text-align: right;
+            font-size: 11pt;
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .ai-analysis-button {
+            background: var(--ai-primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13pt;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .ai-analysis-button:hover {
+            background: var(--ai-secondary);
+        }
+
+        .ai-analysis-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .ai-analysis-loading-text {
+            margin-top: 15px;
+            font-size: 14pt;
+            color: #64748b;
+        }
+
+        /* Smart Warning System Styles - Updated */
+        .warning-system-container {
+            margin: 20px 0;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, .04);
+        }
+
+        .warning-system-header {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .warning-system-title {
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .warning-system-icon {
+            font-size: 20px;
+        }
+
+        .warning-system-content {
+            padding: 20px;
+            background: #f9fafb;
+            min-height: 200px;
+        }
+
+        .water-level-indicator {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        .water-level-scale {
+            position: relative;
+            height: 30px;
+            background: linear-gradient(to right, 
+                var(--safe-level) 0%, 
+                var(--safe-level) 25%, 
+                var(--theory-level) 25%, 
+                var(--theory-level) 50%, 
+                var(--warning-level) 50%, 
+                var(--warning-level) 75%, 
+                var(--emergency-level) 75%, 
+                var(--emergency-level) 100%);
+            border-radius: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .water-level-markers {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            position: relative;
+        }
+
+        .water-level-marker {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 25%;
+        }
+
+        .water-level-marker::before {
+            content: '';
+            position: absolute;
+            top: -35px;
+            width: 2px;
+            height: 10px;
+            background-color: #333;
+        }
+
+        .water-level-marker-label {
+            font-size: 12pt;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .water-level-marker-value {
+            font-size: 11pt;
+            color: #555;
+        }
+
+        .current-water-level {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid #e5e7eb;
+        }
+
+        .current-water-level-value {
+            font-size: 18pt;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .current-water-level-label {
+            font-size: 14pt;
+        }
+
+        .warning-levels {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .warning-level {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .warning-level:hover {
+            transform: translateY(-5px);
+        }
+
+        .warning-level.safe {
+            background-color: rgba(34, 197, 94, 0.2);
+            border: 2px solid var(--safe-level);
+        }
+
+        .warning-level.theory {
+            background-color: rgba(59, 130, 246, 0.2);
+            border: 2px solid var(--theory-level);
+        }
+
+        .warning-level.warning {
+            background-color: rgba(245, 158, 11, 0.2);
+            border: 2px solid var(--warning-level);
+        }
+
+        .warning-level.emergency {
+            background-color: rgba(239, 68, 68, 0.2);
+            border: 2px solid var(--emergency-level);
+        }
+
+        .warning-level-title {
+            font-weight: bold;
+            font-size: 14pt;
+            margin-bottom: 5px;
+        }
+
+        .warning-level-desc {
+            font-size: 12pt;
+        }
+
+        .warning-level-range {
+            font-size: 11pt;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .current-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+            
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        .status-indicator.safe {
+            background-color: var(--safe-level);
+            animation: none;
+        }
+
+        .status-indicator.theory {
+            background-color: var(--theory-level);
+        }
+
+        .status-indicator.warning {
+            background-color: var(--warning-level);
+        }
+
+        .status-indicator.emergency {
+            background-color: var(--emergency-level);
+        }
+
+        .warning-settings {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .warning-settings-title {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 5px;
+        }
+
+        .warning-thresholds {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .threshold-input {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .threshold-input label {
+            font-weight: bold;
+            font-size: 12pt;
+        }
+
+        .threshold-input input {
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            font-size: 13pt;
+        }
+
+        .threshold-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .threshold-button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13pt;
+        }
+
+        .save-thresholds {
+            background: #22c55e;
+            color: white;
+        }
+
+        .reset-thresholds {
+            background: #6c757d;
+            color: white;
+        }
+
+        /* Trend Analysis Styles - New */
+        .trend-analysis-container {
+            margin: 20px 0;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, .04);
+        }
+
+        .trend-analysis-header {
+            background: linear-gradient(135deg, var(--trend-primary), var(--trend-secondary));
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .trend-analysis-title {
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .trend-analysis-icon {
+            font-size: 20px;
+        }
+
+        .trend-analysis-content {
+            padding: 20px;
+            background: #f9fafb;
+        }
+
+        .trend-period-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .trend-period-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--trend-primary);
+            background: white;
+            color: var(--trend-primary);
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14pt;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .trend-period-btn:hover {
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .trend-period-btn.active {
+            background: var(--trend-primary);
+            color: white;
+        }
+
+        .trend-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .trend-stat {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .trend-stat-label {
+            font-size: 12pt;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+
+        .trend-stat-value {
+            font-size: 18pt;
+            font-weight: bold;
+            color: var(--trend-primary);
+        }
+
+        .trend-chart-container {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .trend-chart-wrap {
+            position: relative;
+            width: 100%;
+            height: 400px;
+        }
+
+        /* Dashboard Customization Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--dashboard-primary), #2563eb);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-close {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .modal-close:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .customization-section {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .customization-section-title {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--dashboard-primary);
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 5px;
+        }
+
+        .customization-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+        }
+
+        .customization-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .customization-option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .customization-option label {
+            font-size: 13pt;
+            cursor: pointer;
+            flex-grow: 1;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            background: #f3f4f6;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .customization-button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13pt;
+            transition: background-color 0.2s;
+        }
+
+        .save-customization {
+            background: var(--dashboard-primary);
+            color: white;
+        }
+
+        .save-customization:hover {
+            background: #2563eb;
+        }
+
+        .reset-customization {
+            background: #6c757d;
+            color: white;
+        }
+
+        .reset-customization:hover {
+            background: #5a6268;
+        }
+
+        /* Rain Gauge Station Styles */
+        .rain-gauge-container {
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .rain-gauge-title {
+            font-size: 16pt;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #0ea5e9;
+        }
+
+        .rain-gauge-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .rain-gauge-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .rain-gauge-card-title {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #334155;
+        }
+
+        .rain-gauge-placeholder {
+            padding: 40px;
+            text-align: center;
+            color: #64748b;
+            font-style: italic;
+        }
+
+        /* Map Container Styles - Updated for full height */
+        .rain-gauge-map-container {
+            margin-top: 10px;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 8px;
+            height: calc(100vh - 200px); /* Full height minus header and margins */
+            min-height: 600px; /* Minimum height for smaller screens */
+        }
+
+        .rain-gauge-map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+
+        /* Mobile Responsive */
+        .menu-toggle-btn {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 101;
+            background: var(--sidebar-bg);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Chart improvement styles */
+        .chart-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .chart-control-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            background: white;
+            cursor: pointer;
+            font-size: 12pt;
+            transition: all 0.2s;
+        }
+
+        .chart-control-btn:hover {
+            background-color: #f3f4f6;
+        }
+
+        .chart-control-btn.active {
+            background-color: var(--dashboard-primary);
+            color: white;
+            border-color: var(--dashboard-primary);
+        }
+
+        .chart-comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .chart-comparison-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-comparison-title {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            color: #334155;
+        }
+
+        .chart-comparison-wrap {
+            position: relative;
+            width: 100%;
+            height: 300px;
+        }
+
+        .chart-stats-panel {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .chart-stat-item {
+            text-align: center;
+        }
+
+        .chart-stat-label {
+            font-size: 11pt;
+            color: #64748b;
+        }
+
+        .chart-stat-value {
+            font-size: 14pt;
+            font-weight: bold;
+            color: var(--dashboard-primary);
+        }
+
+        @media print {
+    body {
+        background: #fff;
+        padding: 0;
+        font-size: 12pt;
+    }
+
+    @page {
+        margin: 12mm;
+    }
+
+    .sidebar,
+    .menu-toggle-btn,
+    .show-sidebar-btn {
+        display: none !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+    }
+
+    .top-actions,
+    .controls-container,
+    .kpi-grid,
+    .charts,
+    .pagination-bar,
+    .custom-time-panel,
+    #toast-container,
+    .ai-analysis-container,
+    .warning-system-container,
+    .trend-analysis-container,
+    .dashboard-customization-container {
+        display: none !important
+    }
+            .container {
+                box-shadow: none;
+                padding: 0
+            }
+
+            .data-table-container {
+                display: block !important;
+            }
+
+            #data-table {
+                display: none !important;
+            }
+
+            #print-table {
+                display: table !important;
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 12pt;
+                margin-top: 8px;
+            }
+
+            #print-table thead {
+                display: table-row-group;
+            }
+
+            #print-table th,
+            #print-table td {
+                border: 1px solid #000 !important;
+                padding: 6px 8px;
+            }
+
+            #print-table th {
+                color: #000 !important;
+                background: #fff !important;
+                font-weight: 900 !important;
+                position: static !important;
+            }
+
+            #print-table tr {
+                page-break-inside: avoid;
+                page-break-after: auto
+            }
+
+            #print-table col.col-stt {
+                width: 14mm
+            }
+
+            #print-table col.col-ngay {
+                width: 28mm
+            }
+
+            #print-table col.col-gio {
+                width: 18mm
+            }
+
+            #print-table col.col-mucnuoc {
+                width: 22mm
+            }
+
+            #print-table col.col-dungtich {
+                width: 28mm
+            }
+
+            #print-table col.col-luongmua {
+                width: 24mm
+            }
+
+            #print-table col.col-htran {
+                width: 22mm
+            }
+
+            #print-table col.col-qtran {
+                width: 28mm
+            }
+
+            #print-table col.col-vanhanh {
+                width: 40mm
+            }
+
+            #print-table col.col-sign {
+                width: 58mm
+            }
+        }
+
+        @media (max-width:1400px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr))
+            }
+        }
+
+        @media (max-width:900px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr))
+            }
+            
+            .warning-levels {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .trend-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .chart-comparison-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width:768px) {
+            .menu-toggle-btn {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 60px 10px 10px;
+            }
+
+            .top-actions {
+                justify-content: flex-start;
+            }
+            
+            .warning-levels {
+                grid-template-columns: 1fr;
+            }
+            
+            .customization-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .rain-gauge-map-container {
+                height: calc(100vh - 120px); /* Adjust for smaller screens */
+                min-height: 400px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10px auto;
+            }
+            
+            .trend-period-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .trend-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-controls {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>NGUYỄN NGỌC THUẬN</h2>
+            <button class="sidebar-toggle" id="sidebar-toggle">✕</button>
+        </div>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="#" data-section="rain-gauge" class="active">
+                    <span>🌧️ Trạm mưa</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" data-section="monitoring-data">
+                    <span>📊 Dữ liệu quan trắc</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" data-section="alerts-analysis">
+                    <span>⚠️ Cảnh báo và phân tích</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Show Sidebar Button - Thêm mới -->
+    <button class="show-sidebar-btn" id="show-sidebar-btn">☰ Menu</button>
+
+    <!-- Mobile Menu Toggle Button -->
+    <button class="menu-toggle-btn" id="menu-toggle-btn">☰</button>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <!-- Rain Gauge Station Section -->
+        <section class="content-section active" id="rain-gauge-section">
+            <div class="container">
+                <h1>TRẠM ĐO MƯA</h1>
+                <div class="rain-gauge-container">
+                    <div class="rain-gauge-content">
+                        <!-- Only map card remains -->
+                        <div class="rain-gauge-card">
+                            
+                            <div class="rain-gauge-map-container">
+                                <iframe src="https://thuan84.github.io/codehtml/tramdomua.html" 
+                                        width="100%" 
+                                        height="100%" 
+                                        frameborder="0" 
+                                        style="border: 1px solid #e5e7eb; border-radius: 8px;">
+                                </iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Monitoring Data Section -->
+        <section class="content-section" id="monitoring-data-section">
+            <div class="container">
+                <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC ÔNG KINH</h1>
+                <div id="subtitle" class="subtitle"></div>
+
+                <div class="top-actions">
+                    <button id="btn-custom-time">⏱️ Thời gian tùy chỉnh</button>
+                    <button id="export-excel">Xuất Excel</button>
+                    <button id="btn-print-portrait">In dọc</button>
+                    <button id="btn-print-landscape">In ngang</button>
+                    <button id="btn-dashboard-settings">⚙️</button>
+                </div>
+
+                <div class="controls-container">
+                    <div class="filters">
+                        <label for="year-filter">Năm:</label>
+                        <select id="year-filter">
+                            <option value="all">Tất cả</option>
+                        </select>
+
+                        <label for="quarter-filter">Quý:</label>
+                        <select id="quarter-filter">
+                            <option value="all">Tất cả</option>
+                            <option value="1">Quý 1</option>
+                            <option value="2">Quý 2</option>
+                            <option value="3">Quý 3</option>
+                            <option value="4">Quý 4</option>
+                        </select>
+
+                        <label for="month-filter">Tháng:</label>
+                        <select id="month-filter">
+                            <option value="all">Tất cả</option>
+                            <script>for (let i = 1; i <= 12; i++)document.write(`<option value="${i}">Tháng ${i}</option>`);</script>
+                        </select>
+
+                        <label for="week-filter">Tuần:</label>
+                        <select id="week-filter">
+                            <option value="all">Tất cả</option>
+                        </select>
+
+                        <label for="daynight-filter">Ngày/Đêm:</label>
+                        <select id="daynight-filter">
+                            <option value="all">Tất cả</option>
+                            <option value="day">Ngày (7h-19h)</option>
+                            <option value="night">Đêm (19h-7h)</option>
+                        </select>
+
+                        <label for="q-filter">Q tràn (m³/s):</label>
+                        <select id="q-filter" title="Bộ lọc Q tràn tự do">
+                            <option value="all">Tất cả</option>
+                            <option value="zero">= 0</option>
+                            <option value="positive">&gt; 0</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="custom-time-panel" id="custom-time-panel">
+                    <div class="time-inputs">
+                        <div class="input-group">
+                            <label>Từ ngày:</label>
+                            <input type="date" id="custom-from-date">
+                        </div>
+                        <div class="input-group">
+                            <label>Giờ:phút:giây</label>
+                            <input type="time" id="custom-from-time" step="1" value="00:00:00">
+                        </div>
+                        <div class="input-group">
+                            <label>Đến ngày:</label>
+                            <input type="date" id="custom-to-date">
+                        </div>
+                        <div class="input-group">
+                            <label>Giờ:phút:giây</label>
+                            <input type="time" id="custom-to-time" step="1" value="23:59:59">
+                        </div>
+                        <button id="btn-apply-custom">Áp dụng</button>
+                        <button id="btn-clear-custom">Xóa</button>
+                    </div>
+                </div>
+
+                <!-- NEW KPI CARDS -->
+                <div class="kpi-grid" id="kpi-grid">
+                    <div class="kpi k5" data-kpi="k5">
+                        <div class="icon">💧</div>
+                        <div class="label">Mực nước hiện tại</div>
+                        <div id="kpi-current-water-level" class="value">0 m</div>
+                    </div>
+                    <div class="kpi k6" data-kpi="k6">
+                        <div class="icon">🌊</div>
+                        <div class="label">Dung tích hiện tại</div>
+                        <div id="kpi-current-capacity" class="value">0.234 triệu m³</div>
+                    </div>
+                    <div class="kpi k7" data-kpi="k7">
+                        <div class="icon">🌧️</div>
+                        <div class="label">Lượng mưa (Ngày)</div>
+                        <div id="kpi-daily-rainfall" class="value">0 mm</div>
+                        <div id="kpi-rainfall-change" class="comparison">~ 0% so với hôm qua</div>
+                    </div>
+                    <div class="kpi k1" data-kpi="k1">
+                        <div class="icon">💦</div>
+                        <div class="label">Tổng lượng mưa (kỳ lọc) (mm)</div>
+                        <div id="kpi-total" class="value">0</div>
+                    </div>
+                    <div class="kpi k2" data-kpi="k2">
+                        <div class="icon">📅</div>
+                        <div class="label">Ngày có mưa / Tổng ngày</div>
+                        <div id="kpi-days" class="value">0 / 0</div>
+                    </div>
+                    <div class="kpi k3" data-kpi="k3">
+                        <div class="icon">⛈️</div>
+                        <div class="label">Mưa lớn nhất (mm)</div>
+                        <div id="kpi-max" class="value">0</div>
+                    </div>
+                    <div class="kpi k4" data-kpi="k4">
+                        <div class="icon">💦</div>
+                        <div class="label">Q tràn tự do lớn nhất (m³/s)</div>
+                        <div id="kpi-qmax" class="value">0</div>
+                    </div>
+                </div>
+
+                <section class="charts" id="main-chart-container">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <p class="chart-title">Lượng mưa &amp; mực nước theo ngày – vùng cảnh báo mực nước</p>
+
+                            <div class="chart-legend-hint">
+                                <span class="legend-item">
+                                    <span class="legend-box legend-below"></span>
+                                    <span>Dưới MN chết</span>
+                                </span>
+                                <span class="legend-item">
+                                    <span class="legend-box legend-safe"></span>
+                                    <span>An toàn</span>
+                                </span>
+                                <span class="legend-item">
+                                    <span class="legend-box legend-watch"></span>
+                                    <span>Lý thuyết</span>
+                                </span>
+                                <span class="legend-item">
+                                    <span class="legend-box legend-danger"></span>
+                                    <span>Cảnh báo</span>
+                                </span>
+                            </div>
+
+                            <div id="water-status" class="water-status"></div>
+                        </div>
+
+                        <div class="chart-wrap">
+                            <canvas id="waterChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="data-table-container" id="data-table-container">
+                    <div class="pagination-bar">
+                        <div class="pager-left">
+                            <label for="page-size">Hiển thị:</label>
+                            <select id="page-size">
+                                <option value="20">20 dòng</option>
+                                <option value="50" selected>50 dòng</option>
+                                <option value="100">100 dòng</option>
+                            </select>
+                        </div>
+                        <div class="pager-right">
+                            <span id="page-info">Trang 1/1 — 0 dòng</span>
+                            <button id="prev-page">« Trước</button>
+                            <button id="next-page">Sau »</button>
+                        </div>
+                    </div>
+                    <table id="data-table">
+                        <colgroup>
+                            <col class="col-stt">
+                            <col class="col-ngay">
+                            <col class="col-gio">
+                            <col class="col-mucnuoc">
+                            <col class="col-dungtich">
+                            <col class="col-luongmua">
+                            <col class="col-htran">
+                            <col class="col-qtran">
+                            <col class="col-vanhanh">
+                            <col class="col-sign">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th rowspan="2">STT</th>
+                                <th rowspan="2">Ngày</th>
+                                <th rowspan="2">Giờ</th>
+                                <th rowspan="2">Mực nước (m)</th>
+                                <th rowspan="2">Dung tích (Triệu m³)</th>
+                                <th rowspan="2">Lượng mưa (mm)</th>
+                                <th colspan="2">Thông số vận hành tràn xả lũ</th>
+                                <th rowspan="2">Họ, tên người vận hành</th>
+                                <th rowspan="2">Ký tên</th>
+                            </tr>
+                            <tr>
+                                <th>H tràn (cm)</th>
+                                <th>Q tràn tự do (m³/s)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <tr>
+                                <td colspan="10">
+                                    <div class="loader-container">
+                                        <div class="spinner"></div>
+                                        <div class="status-message">Đang tải dữ liệu...</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <table id="print-table">
+                    <colgroup>
+                        <col class="col-stt">
+                        <col class="col-ngay">
+                        <col class="col-gio">
+                        <col class="col-mucnuoc">
+                        <col class="col-dungtich">
+                        <col class="col-luongmua">
+                        <col class="col-htran">
+                        <col class="col-qtran">
+                        <col class="col-vanhanh">
+                        <col class="col-sign">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th rowspan="2">STT</th>
+                            <th rowspan="2">Ngày</th>
+                            <th rowspan="2">Giờ</th>
+                            <th rowspan="2">Mực nước (m)</th>
+                            <th rowspan="2">Dung tích (Triệu m³)</th>
+                            <th rowspan="2">Lượng mưa (mm)</th>
+                            <th colspan="2">Thông số vận hành tràn xả lũ</th>
+                            <th rowspan="2">Họ, tên người vận hành</th>
+                            <th rowspan="2">Ký tên</th>
+                        </tr>
+                        <tr>
+                            <th>H tràn (cm)</th>
+                            <th>Q tràn tự do (m³/s)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="print-tbody"></tbody>
+                </table>
+
+                <div id="error-message" class="error-message" style="display:none;"></div>
+                <div id="toast-container"></div>
+            </div>
+        </section>
+
+        <!-- Alerts and Analysis Section -->
+        <section class="content-section" id="alerts-analysis-section">
+            <div class="container">
+                <h1>CẢNH BÁO VÀ PHÂN TÍCH</h1>
+
+                <!-- Smart Warning System - Updated -->
+                <div class="warning-system-container" id="warning-system-container">
+                    <div class="warning-system-header">
+                        <h2 class="warning-system-title">
+                            <span class="warning-system-icon">⚠️</span>
+                            MỨC AN TOÀN VÀ PHÂN TÍCH XU HƯỚNG MỨC NƯỚC NĂNG CAO
+                        </h2>
+                        <button id="btn-warning-settings" class="ai-analysis-button">
+                            <span>⚙️</span>
+                            Cài đặt
+                        </button>
+                    </div>
+                    <div class="warning-system-content">
+                        <!-- Water Level Indicator -->
+                        <div class="water-level-indicator">
+                            <div class="water-level-scale"></div>
+                            <div class="water-level-markers">
+                                <div class="water-level-marker">
+                                    <div class="water-level-marker-label">Mực nước chết</div>
+                                    <div class="water-level-marker-value">+42.50 m</div>
+                                </div>
+                                <div class="water-level-marker">
+                                    <div class="water-level-marker-label">Mực nước dâng BT</div>
+                                    <div class="water-level-marker-value">+47.70 m</div>
+                                </div>
+                                <div class="water-level-marker">
+                                    <div class="water-level-marker-label">Mực nước lũ thiết kế</div>
+                                    <div class="water-level-marker-value">+49.35 m</div>
+                                </div>
+                                <div class="water-level-marker">
+                                    <div class="water-level-marker-label">Cao trình đỉnh đập</div>
+                                    <div class="water-level-marker-value">+50.20 m</div>
+                                </div>
+                            </div>
+                            
+                            <div class="current-water-level">
+                                <div class="current-water-level-value" id="current-water-level-value">56.80 m</div>
+                                <div class="current-water-level-label">Mực nước hiện tại</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Warning Levels -->
+                        <div class="warning-levels">
+                            <div class="warning-level safe">
+                                <div class="warning-level-title">An toàn</div>
+                                <div class="warning-level-desc">Mực nước an toàn</div>
+                                <div class="warning-level-range">+42.50 m đến +47.70 m</div>
+                            </div>
+                            <div class="warning-level theory">
+                                <div class="warning-level-title">Lý thuyết</div>
+                                <div class="warning-level-desc">Mực nước lý thuyết</div>
+                                <div class="warning-level-range">+47.70 m đến +49.35 m</div>
+                            </div>
+                            <div class="warning-level warning">
+                                <div class="warning-level-title">Cảnh báo</div>
+                                <div class="warning-level-desc">Mực nước cảnh báo</div>
+                                <div class="warning-level-range">+49.35 m đến +49.54 m</div>
+                            </div>
+                            <div class="warning-level emergency">
+                                <div class="warning-level-title">Khẩn cấp</div>
+                                <div class="warning-level-desc">Mực nước khẩn cấp</div>
+                                <div class="warning-level-range">+49.54 m đến +50.20 m</div>
+                            </div>
+                        </div>
+                        
+                        <div id="current-warning-status" class="current-status safe">
+                            <div class="status-indicator safe"></div>
+                            <div class="status-text">Trạng thái hiện tại: An toàn</div>
+                        </div>
+                        
+                        <div class="warning-settings" id="warning-settings" style="display: none;">
+                            <div class="warning-settings-title">Cài đặt ngưỡng cảnh báo (m)</div>
+                            <div class="warning-thresholds">
+                                <div class="threshold-input">
+                                    <label for="threshold-safe">Ngưỡng an toàn (tối đa):</label>
+                                    <input type="number" id="threshold-safe" step="0.01" value="47.70">
+                                </div>
+                                <div class="threshold-input">
+                                    <label for="threshold-theory">Ngưỡng lý thuyết (tối đa):</label>
+                                    <input type="number" id="threshold-theory" step="0.01" value="49.35">
+                                </div>
+                                <div class="threshold-input">
+                                    <label for="threshold-warning">Ngưỡng cảnh báo (tối đa):</label>
+                                    <input type="number" id="threshold-warning" step="0.01" value="49.54">
+                                </div>
+                                <div class="threshold-input">
+                                    <label for="threshold-emergency">Ngưỡng khẩn cấp (tối đa):</label>
+                                    <input type="number" id="threshold-emergency" step="0.01" value="50.20">
+                                </div>
+                            </div>
+                            <div class="threshold-actions">
+                                <button id="save-thresholds" class="threshold-button save-thresholds">Lưu cài đặt</button>
+                                <button id="reset-thresholds" class="threshold-button reset-thresholds">Đặt lại mặc định</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trend Analysis Section - New -->
+                <div class="trend-analysis-container" id="trend-analysis-container">
+                    <div class="trend-analysis-header">
+                        <h2 class="trend-analysis-title">
+                            <span class="trend-analysis-icon">📈</span>
+                            Phân tích xu hướng mực nước
+                        </h2>
+                    </div>
+                    <div class="trend-analysis-content">
+                        <div class="trend-period-selector">
+                            <button class="trend-period-btn" data-period="7">7 ngày</button>
+                            <button class="trend-period-btn active" data-period="30">30 ngày</button>
+                            <button class="trend-period-btn" data-period="90">90 ngày</button>
+                        </div>
+                        
+                        <div class="trend-stats" id="trend-stats">
+                            <div class="trend-stat">
+                                <div class="trend-stat-label">Mực nước trung bình</div>
+                                <div class="trend-stat-value" id="trend-avg-level">0 m</div>
+                            </div>
+                            <div class="trend-stat">
+                                <div class="trend-stat-label">Mực nước cao nhất</div>
+                                <div class="trend-stat-value" id="trend-max-level">0 m</div>
+                            </div>
+                            <div class="trend-stat">
+                                <div class="trend-stat-label">Mực nước thấp nhất</div>
+                                <div class="trend-stat-value" id="trend-min-level">0 m</div>
+                            </div>
+                            <div class="trend-stat">
+                                <div class="trend-stat-label">Biến động</div>
+                                <div class="trend-stat-value" id="trend-variance">0 m</div>
+                            </div>
+                        </div>
+                        
+                        <div class="trend-chart-container">
+                            <div class="trend-chart-wrap">
+                                <canvas id="trendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Analysis Section -->
+                <div class="ai-analysis-container" id="ai-analysis-container">
+                    <div class="ai-analysis-header">
+                        <h2 class="ai-analysis-title">
+                            <span class="ai-analysis-icon">🤖</span>
+                            Phân tích AI
+                        </h2>
+                        <button id="btn-generate-analysis" class="ai-analysis-button">
+                            <span>🔄</span>
+                            Tạo phân tích
+                        </button>
+                    </div>
+                    <div class="ai-analysis-content" id="ai-analysis-content">
+                        <div class="ai-analysis-loading">
+                            <div class="spinner"></div>
+                            <div class="ai-analysis-loading-text">Nhấn "Tạo phân tích" để bắt đầu phân tích dữ liệu</div>
+                        </div>
+                    </div>
+                    <div class="ai-analysis-footer">
+                        Phân tích được tạo bởi AI dựa trên dữ liệu đã lọc
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Dashboard Customization Modal -->
+    <div id="dashboard-customization-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <span>⚙️</span>
+                    Tùy chỉnh Dashboard
+                </h2>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="customization-section">
+                    <div class="customization-section-title">Chọn các chỉ số KPI muốn hiển thị</div>
+                    <div class="customization-options">
+                        <div class="customization-option">
+                            <input type="checkbox" id="kpi-k5" checked>
+                            <label for="kpi-k5">Mực nước hiện tại</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="kpi-k6" checked>
+                            <label for="kpi-k6">Dung tích hiện tại</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="kpi-k7" checked>
+                            <label for="kpi-k7">Lượng mưa (Ngày)</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="kpi-k1" checked>
+                            <label for="kpi-k1">Tổng lượng mưa (kỳ lọc)</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="kpi-k2" checked>
+                            <label for="kpi-k2">Ngày có mưa / Tổng ngày</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="kpi-k3" checked>
+                            <label for="kpi-k3">Mưa lớn nhất</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="kpi-k4" checked>
+                            <label for="kpi-k4">Q tràn tự do lớn nhất</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="customization-section">
+                    <div class="customization-section-title">Chọn các phần khác muốn hiển thị</div>
+                    <div class="customization-options">
+                        <div class="customization-option">
+                            <input type="checkbox" id="show-warning-system" checked>
+                            <label for="show-warning-system">Hệ thống cảnh báo thông minh</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="show-trend-analysis" checked>
+                            <label for="show-trend-analysis">Phân tích xu hướng mực nước</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="show-ai-analysis" checked>
+                            <label for="show-ai-analysis">Phân tích AI</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="show-main-chart" checked>
+                            <label for="show-main-chart">Biểu đồ Lượng mưa & Mực nước</label>
+                        </div>
+                        <div class="customization-option">
+                            <input type="checkbox" id="show-data-table" checked>
+                            <label for="show-data-table">Bảng dữ liệu chi tiết</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="reset-customization" class="customization-button reset-customization">Khôi phục mặc định</button>
+                <button id="save-customization" class="customization-button save-customization">Lưu cài đặt</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PHẦN JAVASCRIPT TIẾP THEO Ở FILE PART 2 -->
+    <script>
+        // ====== API ======
+        const EXEC_URL = "https://script.google.com/macros/s/AKfycbwCz4UxT1XoFe3nJtVxGn0w6N1Nf8JKZ1B6DjKVPLfzB7jz9CFidYG3Ks0hbOZqI23I/exec";
+        const SHEET = "HoOngKinh";
+        const API_URL = `${EXEC_URL}?sheet=${encodeURIComponent(SHEET)}`;
+        const CACHE_KEY = 'HoOngKinh_Data_v1';
+        const DASHBOARD_PREFS_KEY = 'HoOngKinh_DashboardPrefs';
+
+        // Updated water level thresholds
+        const LVL_DEAD = 42.50;      // Mực nước chết
+        const LVL_BT = 47.70;        // Mực nước dâng bình thường
+        const LVL_DESIGN = 49.35;    // Mực nước lũ thiết kế
+        const LVL_CHECK = 49.54;     // Mực nước lũ kiểm tra
+        const LVL_DSF = 49.72;       // Mực nước lũ kiểm tra (DSF) (P=0,1%)
+        const LVL_DAM = 50.20;       // Cao trình Đỉnh đập
+
+        // Warning thresholds (default values)
+        let warningThresholds = {
+            safe: LVL_BT,
+            theory: LVL_DESIGN,
+            warning: LVL_CHECK,
+            emergency: LVL_DAM
+        };
+        
+        // Default dashboard preferences
+        const defaultDashboardPrefs = {
+            kpis: { k5: true, k6: true, k7: true, k1: true, k2: true, k3: true, k4: true },
+            sections: { 
+                'warning-system-container': true, 
+                'trend-analysis-container': true, 
+                'ai-analysis-container': true, 
+                'main-chart-container': true, 
+                'data-table-container': true 
+            }
+        };
+
+        let dashboardPrefs = JSON.parse(JSON.stringify(defaultDashboardPrefs));
+
+        function formatMeter(value, digits = 2) {
+            const num = Number(value);
+            if (Number.isNaN(num)) return '';
+            return num.toLocaleString('vi-VN', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+        }
+
+        const LVL_DEAD_TXT = formatMeter(LVL_DEAD, 2);
+        const LVL_BT_TXT = formatMeter(LVL_BT, 2);
+        const LVL_DESIGN_TXT = formatMeter(LVL_DESIGN, 2);
+        const LVL_CHECK_TXT = formatMeter(LVL_CHECK, 2);
+        const LVL_DAM_TXT = formatMeter(LVL_DAM, 2);
+
+        let allData = [];
+        let filteredData = [];
+        let customTimeRange = null;
+        let selectedTrendPeriod = 30; // Default to 30 days
+
+        const yearFilter = document.getElementById('year-filter');
+        const quarterFilter = document.getElementById('quarter-filter');
+        const monthFilter = document.getElementById('month-filter');
+        const weekFilter = document.getElementById('week-filter');
+        const dayNightFilter = document.getElementById('daynight-filter');
+        const qFilter = document.getElementById('q-filter');
+        const tableBody = document.getElementById('table-body');
+        const printTbody = document.getElementById('print-tbody');
+        const errorDiv = document.getElementById('error-message');
+        const subtitleDiv = document.getElementById('subtitle');
+        const totalColumns = 10;
+
+        const waterStatusEl = document.getElementById('water-status');
+
+        const customTimePanel = document.getElementById('custom-time-panel');
+        const customFromDate = document.getElementById('custom-from-date');
+        const customFromTime = document.getElementById('custom-from-time');
+        const customToDate = document.getElementById('custom-to-date');
+        const customToTime = document.getElementById('custom-to-time');
+        const btnCustomTime = document.getElementById('btn-custom-time');
+        const btnApplyCustom = document.getElementById('btn-apply-custom');
+        const btnClearCustom = document.getElementById('btn-clear-custom');
+
+        const pageSizeEl = document.getElementById('page-size');
+        const pageInfoEl = document.getElementById('page-info');
+        const prevBtn = document.getElementById('prev-page');
+        const nextBtn = document.getElementById('next-page');
+        let page = 1;
+        let pageSize = Number(pageSizeEl.value);
+
+        // AI Analysis Elements
+        const btnGenerateAnalysis = document.getElementById('btn-generate-analysis');
+        const aiAnalysisContent = document.getElementById('ai-analysis-content');
+
+        // Warning System Elements
+        const btnWarningSettings = document.getElementById('btn-warning-settings');
+        const warningSettings = document.getElementById('warning-settings');
+        const thresholdSafe = document.getElementById('threshold-safe');
+        const thresholdTheory = document.getElementById('threshold-theory');
+        const thresholdWarning = document.getElementById('threshold-warning');
+        const thresholdEmergency = document.getElementById('threshold-emergency');
+        const saveThresholdsBtn = document.getElementById('save-thresholds');
+        const resetThresholdsBtn = document.getElementById('reset-thresholds');
+        const currentWarningStatus = document.getElementById('current-warning-status');
+        const currentWaterLevelValue = document.getElementById('current-water-level-value');
+
+        // Trend Analysis Elements - New
+        const trendPeriodBtns = document.querySelectorAll('.trend-period-btn');
+        const trendAvgLevel = document.getElementById('trend-avg-level');
+        const trendMaxLevel = document.getElementById('trend-max-level');
+        const trendMinLevel = document.getElementById('trend-min-level');
+        const trendVariance = document.getElementById('trend-variance');
+
+        // Dashboard Customization Modal Elements
+        const btnDashboardSettings = document.getElementById('btn-dashboard-settings');
+        const dashboardModal = document.getElementById('dashboard-customization-modal');
+        const modalClose = document.getElementById('modal-close');
+        const saveCustomizationBtn = document.getElementById('save-customization');
+        const resetCustomizationBtn = document.getElementById('reset-customization');
+
+        // Sidebar Elements
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle'); // Thêm mới
+        const showSidebarBtn = document.getElementById('show-sidebar-btn'); // Thêm mới
+        const mainContent = document.getElementById('main-content'); // Thêm mới
+        const menuToggleBtn = document.getElementById('menu-toggle-btn');
+        const sidebarLinks = document.querySelectorAll('.sidebar a[data-section]');
+        const contentSections = document.querySelectorAll('.content-section');
+
+        let comboChart;
+        let trendChart;
+
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            container.appendChild(toast);
+            void toast.offsetWidth;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            tableBody.innerHTML = `<tr><td colspan="${totalColumns}" class="status-message error-message">${message}</td></tr>`;
+            printTbody.innerHTML = '';
+        }
+
+        function formatNumber(value, maxFrac = 1) {
+            if (value === null || value === undefined || value === '') return '0';
+            const num = Number(value);
+            if (Number.isNaN(num)) return '0';
+            return num.toLocaleString('vi-VN', { maximumFractionDigits: maxFrac });
+        }
+
+        function formatNumberFlexible(value) {
+            if (value === null || value === undefined || value === '') return '';
+            const num = Number(value);
+            if (Number.isNaN(num)) return value;
+            return num.toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 3 });
+        }
+
+        function parseVNDateTime(s) {
+            if (!s || typeof s !== 'string') return null;
+            const [dpart, tpart = '00:00'] = s.split(' ');
+            const [dd, mm, yyyy] = dpart.split('/').map(n => parseInt(n, 10));
+            if (!dd || !mm || !yyyy) return null;
+            const [HH = '0', MM = '0'] = tpart.split(':').map(n => parseInt(n, 10));
+            const date = new Date(yyyy, mm - 1, dd, HH, MM);
+            return Number.isNaN(date.getTime()) ? null : date;
+        }
+        function toDayStr(date) {
+            const dd = String(date.getDate()).padStart(2, '0');
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const yyyy = date.getFullYear();
+            return `${dd}/${mm}/${yyyy}`;
+        }
+        function toTimeStr(date) {
+            const HH = String(date.getHours()).padStart(2, '0');
+            const MM = String(date.getMinutes()).padStart(2, '0');
+            return `${HH}:${MM}`;
+        }
+
+        function getWeekNumber(date) {
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return weekNo;
+        }
+
+        function isDayTime(date) {
+            const hour = date.getHours();
+            return hour >= 7 && hour < 19;
+        }
+        function isNightTime(date) {
+            const hour = date.getHours();
+            return hour >= 19 || hour < 7;
+        }
+
+        function rowHtml(row, idx) {
+            const dayStr = row.__dayStr || '';
+            const timeStr = row.__timeStr || '';
+            return `
+        <td>${idx}</td>
+        <td>${dayStr}</td>
+        <td>${timeStr}</td>
+        <td>${formatNumberFlexible(row.mucNuoc)}</td>
+        <td>${formatNumberFlexible(row.dungTich)}</td>
+        <td>${formatNumberFlexible(row.luongMua)}</td>
+        <td>${formatNumberFlexible(row.hTran)}</td>
+        <td>${formatNumberFlexible(row.qTranTuDo)}</td>
+        <td>${row.nguoiVanHanh || ''}</td>
+        <td></td>
+      `;
+        }
+
+        function renderTablePaged(data) {
+            const total = data.length;
+            const totalPages = Math.max(1, Math.ceil(total / pageSize));
+            if (page > totalPages) page = totalPages;
+            const start = (page - 1) * pageSize;
+            const end = Math.min(start + pageSize, total);
+
+            if (total === 0) {
+                tableBody.innerHTML = `<tr><td colspan="${totalColumns}" class="status-message">Không có dữ liệu phù hợp với bộ lọc.</td></tr>`;
+            } else {
+                let html = '';
+                for (let i = start; i < end; i++) {
+                    const r = data[i];
+                    html += `<tr>${rowHtml(r, i + 1)}</tr>`;
+                }
+                tableBody.innerHTML = html;
+            }
+
+            pageInfoEl.textContent = `Trang ${page}/${totalPages} — ${total} dòng`;
+            prevBtn.disabled = (page <= 1);
+            nextBtn.disabled = (page >= totalPages);
+        }
+
+        function populateYearFilter(data) {
+            const years = [...new Set(
+                data.map(r => r.__y).filter(Boolean)
+            )].sort((a, b) => b - a);
+
+            const currentVal = yearFilter.value;
+            yearFilter.innerHTML = '<option value="all">Tất cả</option>';
+            years.forEach(y => {
+                const op = document.createElement('option');
+                op.value = String(y);
+                op.textContent = `Năm ${y}`;
+                yearFilter.appendChild(op);
+            });
+            if (years.map(String).includes(currentVal)) {
+                yearFilter.value = currentVal;
+            }
+        }
+
+        function populateWeekFilter(data) {
+            const weeks = new Set(
+                data.map(r => r.__weekKey).filter(Boolean)
+            );
+
+            const currentVal = weekFilter.value;
+            weekFilter.innerHTML = '<option value="all">Tất cả</option>';
+
+            [...weeks].sort((a, b) => {
+                const [yearA, weekA] = a.split('-W').map(v => parseInt(v, 10));
+                const [yearB, weekB] = b.split('-W').map(v => parseInt(v, 10));
+                if (yearA !== yearB) return yearB - yearA;
+                return weekB - weekA;
+            }).forEach(w => {
+                const op = document.createElement('option');
+                op.value = w;
+                const [year, week] = w.split('-W');
+                op.textContent = `Tuần ${parseInt(week, 10)} (${year})`;
+                weekFilter.appendChild(op);
+            });
+            if ([...weeks].includes(currentVal)) {
+                weekFilter.value = currentVal;
+            }
+        }
+
+        function aggregateDaily(data) {
+            const map = new Map();
+            data.forEach(row => {
+                const d = row.__d;
+                if (!d) return;
+                const key = row.__dayKey;
+                if (!map.has(key)) {
+                    map.set(key, {
+                        rain: 0,
+                        lastLevel: null,
+                        lastDate: d
+                    });
+                }
+                const obj = map.get(key);
+                obj.rain += row._luongMua;
+                if (!Number.isNaN(row._mucNuoc)) {
+                    if (d >= obj.lastDate) {
+                        obj.lastLevel = row._mucNuoc;
+                        obj.lastDate = d;
+                    }
+                }
+            });
+
+            const entries = [...map.entries()].sort((a, b) => a[1].lastDate - b[1].lastDate);
+            const labels = [];
+            const dailyRain = [];
+            const dailyLevel = [];
+            entries.forEach(([day, obj]) => {
+                labels.push(day);
+                dailyRain.push(obj.rain);
+                dailyLevel.push(obj.lastLevel);
+            });
+            return { labels, dailyRain, dailyLevel };
+        }
+
+        function updateKPIs(labels, dailyRain) {
+            const totalDays = labels.length;
+            const totalRain = dailyRain.reduce((s, v) => s + (Number(v) || 0), 0);
+            const rainyDays = dailyRain.filter(v => (Number(v) || 0) > 0).length;
+
+            let maxVal = 0, maxIdx = -1;
+            dailyRain.forEach((v, i) => {
+                const nv = Number(v) || 0;
+                if (nv > maxVal) { maxVal = nv; maxIdx = i; }
+            });
+            const maxText = maxIdx >= 0
+                ? `${formatNumber(maxVal, 1)} mm (${labels[maxIdx]})`
+                : '0';
+
+            const qVals = filteredData
+                .map(r => r._qTranTuDo)
+                .filter(v => Number.isFinite(v));
+            const qmax = qVals.length ? Math.max(...qVals) : 0;
+
+            document.getElementById('kpi-total').textContent = formatNumber(totalRain, 1);
+            document.getElementById('kpi-days').textContent = `${rainyDays} / ${totalDays}`;
+            document.getElementById('kpi-max').textContent = maxText;
+            document.getElementById('kpi-qmax').textContent = formatNumber(qmax, 3);
+
+            // Update new KPI cards with current data
+            updateCurrentKPIs();
+        }
+
+        function updateCurrentKPIs() {
+            // Get most recent data point
+            const sortedData = [...filteredData].sort((a, b) => (b.__d || 0) - (a.__d || 0));
+            const latestData = sortedData.length > 0 ? sortedData[0] : null;
+
+            if (latestData) {
+                // Update current water level
+                const currentWaterLevel = latestData._mucNuoc || 0;
+                document.getElementById('kpi-current-water-level').textContent = `${formatNumber(currentWaterLevel, 2)} m`;
+                
+                // Update current water level in warning system
+                currentWaterLevelValue.textContent = `${formatNumber(currentWaterLevel, 2)} m`;
+
+                // Update current capacity
+                const currentCapacity = latestData._dungTich || 0;
+                document.getElementById('kpi-current-capacity').textContent = `${formatNumber(currentCapacity, 3)} triệu m³`;
+
+                // Update daily rainfall - calculate total for the day
+                const currentDay = latestData.__dayKey;
+                const dayData = filteredData.filter(r => r.__dayKey === currentDay);
+                const dailyRainfall = dayData.reduce((sum, r) => sum + (r._luongMua || 0), 0);
+                document.getElementById('kpi-daily-rainfall').textContent = `${formatNumber(dailyRainfall, 1)} mm`;
+
+                // Calculate rainfall change compared to yesterday
+                const uniqueDays = [...new Set(sortedData.map(r => r.__dayKey))].sort().reverse();
+                const previousDay = uniqueDays.length > 1 ? uniqueDays[1] : null;
+                
+                if (previousDay) {
+                    const previousDayData = allData.filter(r => r.__dayKey === previousDay);
+                    const previousDayRainfall = previousDayData.reduce((sum, r) => sum + (r._luongMua || 0), 0);
+                    
+                    const rainfallChange = dailyRainfall - previousDayRainfall;
+                    const rainfallChangePercent = previousDayRainfall ? 
+                        (rainfallChange / previousDayRainfall * 100).toFixed(1) : 0;
+                    const rainfallSign = rainfallChange >= 0 ? '+' : '';
+                    document.getElementById('kpi-rainfall-change').textContent = 
+                        `~ ${rainfallSign}${rainfallChangePercent}% so với hôm qua`;
+                } else {
+                    // If no previous day data, set change to 0%
+                    document.getElementById('kpi-rainfall-change').textContent = '~ 0% so với hôm qua';
+                }
+                
+                // Check warning status
+                checkWarningStatus(currentWaterLevel, dailyRainfall, latestData.__d);
+            } else {
+                // If no data available, set default values
+                document.getElementById('kpi-current-water-level').textContent = '0 m';
+                document.getElementById('kpi-current-capacity').textContent = '0.234 triệu m³';
+                document.getElementById('kpi-daily-rainfall').textContent = '0 mm';
+                document.getElementById('kpi-rainfall-change').textContent = '~ 0% so với hôm qua';
+                
+                // Set warning status to normal if no data
+                updateWarningStatus('safe', 'Không có dữ liệu để xác định trạng thái cảnh báo.');
+            }
+        }
+
+        // Smart Warning System Functions - Updated
+        function checkWarningStatus(waterLevel, rainfall, timestamp) {
+            let status = 'safe';
+            let message = 'Mực nước đang ở mức an toàn.';
+            
+            if (waterLevel >= warningThresholds.emergency) {
+                status = 'emergency';
+                message = `Mực nước (${formatNumber(waterLevel, 2)} m) đã vượt ngưỡng khẩn cấp (${formatNumber(warningThresholds.emergency, 2)} m). Cần hành động ngay lập tức!`;
+            } else if (waterLevel >= warningThresholds.warning) {
+                status = 'warning';
+                message = `Mực nước (${formatNumber(waterLevel, 2)} m) đã vượt ngưỡng cảnh báo (${formatNumber(warningThresholds.warning, 2)} m). Cần theo dõi chặt chẽ và chuẩn bị hành động.`;
+            } else if (waterLevel >= warningThresholds.theory) {
+                status = 'theory';
+                message = `Mực nước (${formatNumber(waterLevel, 2)} m) đã vượt ngưỡng lý thuyết (${formatNumber(warningThresholds.theory, 2)} m). Cần tăng cường giám sát.`;
+            } else if (waterLevel >= warningThresholds.safe) {
+                status = 'safe';
+                message = `Mực nước (${formatNumber(waterLevel, 2)} m) nằm trong ngưỡng an toàn (tối đa ${formatNumber(warningThresholds.safe, 2)} m).`;
+            } else if (waterLevel >= LVL_DEAD) {
+                status = 'safe';
+                message = `Mực nước (${formatNumber(waterLevel, 2)} m) nằm trong vùng an toàn, cao hơn mực nước chết (${LVL_DEAD_TXT} m).`;
+            } else {
+                status = 'safe';
+                message = `Mực nước (${formatNumber(waterLevel, 2)} m) thấp hơn mực nước chết (${LVL_DEAD_TXT} m). Đây là tình trạng báo động.`;
+            }
+            
+            // Check rainfall threshold
+            if (rainfall >= 50) {
+                if (status === 'safe') {
+                    status = 'warning';
+                    message = `Lượng mưa (${formatNumber(rainfall, 1)} mm) đã vượt ngưỡng cảnh báo. Cần theo dõi chặt chẽ mực nước.`;
+                } else {
+                    message += ` Lượng mưa (${formatNumber(rainfall, 1)} mm) cũng đã vượt ngưỡng cảnh báo.`;
+                }
+            }
+            
+            updateWarningStatus(status, message, timestamp);
+            
+            // Show toast notification for non-safe status
+            if (status !== 'safe') {
+                showToast(message);
+            }
+        }
+
+        function updateWarningStatus(status, message, timestamp) {
+            const statusElement = currentWarningStatus;
+            const indicatorElement = statusElement.querySelector('.status-indicator');
+            const textElement = statusElement.querySelector('.status-text');
+            
+            // Remove all status classes
+            statusElement.classList.remove('safe', 'theory', 'warning', 'emergency');
+            indicatorElement.classList.remove('safe', 'theory', 'warning', 'emergency');
+            
+            // Add current status class
+            statusElement.classList.add(status);
+            indicatorElement.classList.add(status);
+            
+            // Update status text
+            let statusText = 'Trạng thái hiện tại: ';
+            switch (status) {
+                case 'safe':
+                    statusText += 'An toàn';
+                    break;
+                case 'theory':
+                    statusText += 'Lý thuyết';
+                    break;
+                case 'warning':
+                    statusText += 'Cảnh báo';
+                    break;
+                case 'emergency':
+                    statusText += 'Khẩn cấp';
+                    break;
+            }
+            
+            textElement.textContent = statusText + '. ' + message;
+        }
+
+        // Warning System Settings Functions - Updated
+        function loadWarningThresholds() {
+            const saved = localStorage.getItem('HoOngKinh_WarningThresholds');
+            if (saved) {
+                try {
+                    warningThresholds = JSON.parse(saved);
+                    thresholdSafe.value = warningThresholds.safe;
+                    thresholdTheory.value = warningThresholds.theory;
+                    thresholdWarning.value = warningThresholds.warning;
+                    thresholdEmergency.value = warningThresholds.emergency;
+                } catch (e) {
+                    console.error('Failed to load warning thresholds:', e);
+                }
+            }
+        }
+
+        function saveWarningThresholds() {
+            warningThresholds.safe = parseFloat(thresholdSafe.value);
+            warningThresholds.theory = parseFloat(thresholdTheory.value);
+            warningThresholds.warning = parseFloat(thresholdWarning.value);
+            warningThresholds.emergency = parseFloat(thresholdEmergency.value);
+            
+            localStorage.setItem('HoOngKinh_WarningThresholds', JSON.stringify(warningThresholds));
+            showToast('Cài đặt ngưỡng cảnh báo đã được lưu.');
+            
+            // Re-check warning status with new thresholds
+            updateCurrentKPIs();
+        }
+
+        function resetWarningThresholds() {
+            thresholdSafe.value = LVL_BT;
+            thresholdTheory.value = LVL_DESIGN;
+            thresholdWarning.value = LVL_CHECK;
+            thresholdEmergency.value = LVL_DAM;
+            saveWarningThresholds();
+        }
+        
+        // Trend Analysis Functions - New
+        function updateTrendAnalysis() {
+            // Get data for the selected period
+            const now = new Date();
+            const startDate = new Date();
+            startDate.setDate(now.getDate() - selectedTrendPeriod);
+            
+            const periodData = allData.filter(r => {
+                const d = r.__d;
+                return d && d >= startDate && d <= now;
+            });
+            
+            if (periodData.length === 0) {
+                trendAvgLevel.textContent = '0 m';
+                trendMaxLevel.textContent = '0 m';
+                trendMinLevel.textContent = '0 m';
+                trendVariance.textContent = '0 m';
+                
+                if (trendChart) {
+                    trendChart.destroy();
+                    trendChart = null;
+                }
+                return;
+            }
+            
+            // Calculate statistics
+            const waterLevels = periodData
+                .map(r => r._mucNuoc)
+                .filter(v => v != null && !Number.isNaN(v));
+                
+            const avgLevel = waterLevels.length ? 
+                waterLevels.reduce((sum, level) => sum + level, 0) / waterLevels.length : 0;
+            const maxLevel = waterLevels.length ? Math.max(...waterLevels) : 0;
+            const minLevel = waterLevels.length ? Math.min(...waterLevels) : 0;
+            const variance = maxLevel - minLevel;
+            
+            // Update statistics display
+            trendAvgLevel.textContent = `${formatNumber(avgLevel, 2)} m`;
+            trendMaxLevel.textContent = `${formatNumber(maxLevel, 2)} m`;
+            trendMinLevel.textContent = `${formatNumber(minLevel, 2)} m`;
+            trendVariance.textContent = `${formatNumber(variance, 2)} m`;
+            
+            // Prepare data for chart
+            const { labels, dailyRain, dailyLevel } = aggregateDaily(periodData);
+            
+            // Build trend chart
+            buildTrendChart(labels, dailyLevel);
+        }
+
+        function buildTrendChart(labels, dailyLevel) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            
+            if (trendChart) {
+                trendChart.destroy();
+            }
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+            gradient.addColorStop(0, 'rgba(139, 92, 246, 0.35)');
+            gradient.addColorStop(1, 'rgba(139, 92, 246, 0.00)');
+            
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Mực nước (m)',
+                            data: dailyLevel,
+                            borderColor: '#8b5cf6',
+                            backgroundColor: gradient,
+                            borderWidth: 2.2,
+                            pointRadius: 2.5,
+                            pointHoverRadius: 4,
+                            pointBackgroundColor: '#8b5cf6',
+                            pointBorderColor: '#ffffff',
+                            fill: true,
+                            tension: 0.35,
+                            spanGaps: true
+                        },
+                        {
+                            label: 'MN chết',
+                            data: labels.map(() => LVL_DEAD),
+                            borderColor: '#f97316',
+                            borderDash: [6, 4],
+                            borderWidth: 1.7,
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            label: 'MN dâng BT',
+                            data: labels.map(() => LVL_BT),
+                            borderColor: '#eab308',
+                            borderDash: [6, 4],
+                            borderWidth: 1.7,
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            label: 'MN lũ thiết kế',
+                            data: labels.map(() => LVL_DESIGN),
+                            borderColor: '#3b82f6',
+                            borderDash: [6, 4],
+                            borderWidth: 1.7,
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            label: 'MN lũ kiểm tra',
+                            data: labels.map(() => LVL_CHECK),
+                            borderColor: '#8b5cf6',
+                            borderDash: [6, 4],
+                            borderWidth: 1.7,
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            align: 'center',
+                            labels: {
+                                usePointStyle: false,
+                                boxWidth: 22,
+                                boxHeight: 10,
+                                padding: 14
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label(ctx) {
+                                    const v = ctx.parsed.y;
+                                    if (ctx.datasetIndex === 0) {
+                                        return `Mực nước: ${Number(v || 0).toLocaleString('vi-VN', { maximumFractionDigits: 2 })} m`;
+                                    }
+                                    return `${ctx.dataset.label}: ${Number(v || 0).toLocaleString('vi-VN', { maximumFractionDigits: 2 })} m`;
+                                }
+                            }
+                        }
+                    },
+                    interaction: { mode: 'nearest', intersect: false },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: Math.min(12, labels.length),
+                                maxRotation: 0
+                            }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            grid: { color: 'rgba(148,163,184,0.20)' },
+                            title: { display: true, text: 'Mực nước (m)' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Dashboard Customization Functions
+        function loadDashboardPrefs() {
+            const saved = localStorage.getItem(DASHBOARD_PREFS_KEY);
+            if (saved) {
+                try {
+                    dashboardPrefs = JSON.parse(saved);
+                } catch (e) {
+                    console.error('Failed to load dashboard preferences:', e);
+                    dashboardPrefs = JSON.parse(JSON.stringify(defaultDashboardPrefs));
+                }
+            }
+            applyDashboardPrefs();
+        }
+
+        function saveDashboardPrefs() {
+            // Read from checkboxes
+            dashboardPrefs.kpis = {
+                k5: document.getElementById('kpi-k5').checked,
+                k6: document.getElementById('kpi-k6').checked,
+                k7: document.getElementById('kpi-k7').checked,
+                k1: document.getElementById('kpi-k1').checked,
+                k2: document.getElementById('kpi-k2').checked,
+                k3: document.getElementById('kpi-k3').checked,
+                k4: document.getElementById('kpi-k4').checked
+            };
+            dashboardPrefs.sections = {
+                'warning-system-container': document.getElementById('show-warning-system').checked,
+                'trend-analysis-container': document.getElementById('show-trend-analysis').checked,
+                'ai-analysis-container': document.getElementById('show-ai-analysis').checked,
+                'main-chart-container': document.getElementById('show-main-chart').checked,
+                'data-table-container': document.getElementById('show-data-table').checked
+            };
+
+            localStorage.setItem(DASHBOARD_PREFS_KEY, JSON.stringify(dashboardPrefs));
+            applyDashboardPrefs();
+            showToast('Cài đặt Dashboard đã được lưu.');
+        }
+
+        function resetDashboardPrefs() {
+            dashboardPrefs = JSON.parse(JSON.stringify(defaultDashboardPrefs));
+            localStorage.removeItem(DASHBOARD_PREFS_KEY);
+            applyDashboardPrefs();
+            showToast('Cài đặt Dashboard đã được khôi phục về mặc định.');
+        }
+
+        function applyDashboardPrefs() {
+            // Apply KPI visibility
+            const kpiGrid = document.getElementById('kpi-grid');
+            const kpiElements = kpiGrid.querySelectorAll('.kpi');
+            kpiElements.forEach(el => {
+                const kpiId = el.dataset.kpi;
+                if (dashboardPrefs.kpis[kpiId] !== false) {
+                    el.style.display = '';
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+
+            // Apply Section visibility
+            for (const sectionId in dashboardPrefs.sections) {
+                const sectionEl = document.getElementById(sectionId);
+                if (sectionEl) {
+                    if (dashboardPrefs.sections[sectionId] === false) {
+                        sectionEl.style.display = 'none';
+                    } else {
+                        sectionEl.style.display = ''; // Use '' to revert to default CSS (e.g., flex, grid)
+                    }
+                }
+            }
+
+            // Update checkboxes to match the loaded preferences
+            document.getElementById('kpi-k5').checked = dashboardPrefs.kpis.k5;
+            document.getElementById('kpi-k6').checked = dashboardPrefs.kpis.k6;
+            document.getElementById('kpi-k7').checked = dashboardPrefs.kpis.k7;
+            document.getElementById('kpi-k1').checked = dashboardPrefs.kpis.k1;
+            document.getElementById('kpi-k2').checked = dashboardPrefs.kpis.k2;
+            document.getElementById('kpi-k3').checked = dashboardPrefs.kpis.k3;
+            document.getElementById('kpi-k4').checked = dashboardPrefs.kpis.k4;
+
+            document.getElementById('show-warning-system').checked = dashboardPrefs.sections['warning-system-container'];
+            document.getElementById('show-trend-analysis').checked = dashboardPrefs.sections['trend-analysis-container'];
+            document.getElementById('show-ai-analysis').checked = dashboardPrefs.sections['ai-analysis-container'];
+            document.getElementById('show-main-chart').checked = dashboardPrefs.sections['main-chart-container'];
+            document.getElementById('show-data-table').checked = dashboardPrefs.sections['data-table-container'];
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        const debouncedApply = debounce(applyFiltersAndRender, 300);
+
+        // Sidebar Navigation Functions
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+        }
+
+        // New functions for hiding/showing sidebar
+        function hideSidebar() {
+            sidebar.classList.add('hidden');
+            mainContent.classList.add('expanded');
+            showSidebarBtn.classList.add('visible');
+        }
+
+        function showSidebar() {
+            sidebar.classList.remove('hidden');
+            mainContent.classList.remove('expanded');
+            showSidebarBtn.classList.remove('visible');
+        }
+
+        function showSection(sectionId) {
+            // Hide all sections
+            contentSections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            const targetSection = document.getElementById(`${sectionId}-section`);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Update active menu item
+            sidebarLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Close sidebar on mobile after selection
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+            }
+        }
+
+        // Initialize sidebar event listeners
+        menuToggleBtn.addEventListener('click', toggleSidebar);
+
+        // Add event listeners for new sidebar toggle buttons
+        sidebarToggle.addEventListener('click', hideSidebar);
+        showSidebarBtn.addEventListener('click', showSidebar);
+
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = link.dataset.section;
+                showSection(sectionId);
+            });
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(e.target) && 
+                !menuToggleBtn.contains(e.target) &&
+                sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // Dashboard Settings Modal Event Listeners
+        btnDashboardSettings.addEventListener('click', () => {
+            dashboardModal.style.display = 'block';
+        });
+
+        modalClose.addEventListener('click', () => {
+            dashboardModal.style.display = 'none';
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === dashboardModal) {
+                dashboardModal.style.display = 'none';
+            }
+        });
+
+        // Trend Analysis Event Listeners - New
+        trendPeriodBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active button
+                trendPeriodBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update selected period
+                selectedTrendPeriod = parseInt(btn.dataset.period);
+                
+                // Update trend analysis
+                updateTrendAnalysis();
+            });
+        });
+
+        btnCustomTime.addEventListener('click', () => {
+            const isVisible = customTimePanel.style.display !== 'none';
+            customTimePanel.style.display = isVisible ? 'none' : 'block';
+            btnCustomTime.textContent = isVisible ? '⏱️ Thời gian tùy chỉnh' : '⏱️ Đóng bộ lọc';
+        });
+
+        btnApplyCustom.addEventListener('click', () => {
+            const fromDate = customFromDate.value;
+            const toDate = customToDate.value;
+            if (!fromDate || !toDate) {
+                alert('Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc');
+                return;
+            }
+            const fromTime = customFromTime.value || '00:00:00';
+            const toTime = customToTime.value || '23:59:59';
+            customTimeRange = { fromDate, fromTime, toDate, toTime };
+
+            yearFilter.value = 'all';
+            quarterFilter.value = 'all';
+            monthFilter.value = 'all';
+            weekFilter.value = 'all';
+
+            applyFiltersAndRender();
+        });
+
+        btnClearCustom.addEventListener('click', () => {
+            customFromDate.value = '';
+            customFromTime.value = '00:00:00';
+            customToDate.value = '';
+            customToTime.value = '23:59:59';
+            customTimeRange = null;
+            customTimePanel.style.display = 'none';
+            btnCustomTime.textContent = '⏱️ Thời gian tùy chỉnh';
+
+            applyFiltersAndRender();
+        });
+
+        yearFilter.addEventListener('change', () => {
+            if (yearFilter.value !== 'all') {
+                const y = parseInt(yearFilter.value, 10);
+                populateWeekFilter(allData.filter(r => r.__y === y));
+            } else {
+                populateWeekFilter(allData);
+            }
+            debouncedApply();
+        });
+
+        quarterFilter.addEventListener('change', () => {
+            if (quarterFilter.value !== 'all') {
+                monthFilter.value = 'all';
+                weekFilter.value = 'all';
+            }
+            debouncedApply();
+        });
+
+        monthFilter.addEventListener('change', () => {
+            if (monthFilter.value !== 'all') {
+                quarterFilter.value = 'all';
+                weekFilter.value = 'all';
+            }
+            debouncedApply();
+        });
+
+        weekFilter.addEventListener('change', () => {
+            if (weekFilter.value !== 'all') {
+                quarterFilter.value = 'all';
+                monthFilter.value = 'all';
+            }
+            debouncedApply();
+        });
+
+        dayNightFilter.addEventListener('change', debouncedApply);
+        qFilter.addEventListener('change', debouncedApply);
+
+        pageSizeEl.addEventListener('change', () => {
+            pageSize = Number(pageSizeEl.value);
+            page = 1;
+            renderTablePaged(filteredData);
+        });
+        prevBtn.addEventListener('click', () => { if (page > 1) { page--; renderTablePaged(filteredData); } });
+        nextBtn.addEventListener('click', () => { page++; renderTablePaged(filteredData); });
+
+        // Warning System Event Listeners
+        btnWarningSettings.addEventListener('click', () => {
+            const isVisible = warningSettings.style.display !== 'none';
+            warningSettings.style.display = isVisible ? 'none' : 'block';
+        });
+
+        saveThresholdsBtn.addEventListener('click', saveWarningThresholds);
+        resetThresholdsBtn.addEventListener('click', resetWarningThresholds);
+
+        // Dashboard Customization Event Listeners
+        saveCustomizationBtn.addEventListener('click', () => {
+            saveDashboardPrefs();
+            dashboardModal.style.display = 'none';
+        });
+        resetCustomizationBtn.addEventListener('click', () => {
+            resetDashboardPrefs();
+        });
+
+        // AI Analysis Event Listener
+        btnGenerateAnalysis.addEventListener('click', generateAIAnalysis);
+
+        const DB_NAME = 'HoOngKinh_DB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'key_value_store';
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME);
+                    }
+                };
+                request.onsuccess = (event) => resolve(event.target.result);
+                request.onerror = (event) => reject(event.error);
+            });
+        }
+
+        async function getFromDB(key) {
+            try {
+                const db = await openDB();
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, 'readonly');
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.get(key);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (e) {
+                console.error('IDB Get Error:', e);
+                return null;
+            }
+        }
+
+        async function saveToDB(key, value) {
+            try {
+                const db = await openDB();
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction(STORE_NAME, 'readwrite');
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.put(value, key);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (e) {
+                console.error('IDB Save Error:', e);
+            }
+        }
+
+        function processData(data) {
+            if (!Array.isArray(data) || data.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="${totalColumns}" class="status-message">Không có dữ liệu để hiển thị.</td></tr>`;
+                printTbody.innerHTML = '';
+                waterStatusEl.textContent = 'Không có dữ liệu mực nước.';
+                return;
+            }
+
+            allData = data.map((raw) => {
+                const d = parseVNDateTime(raw.ngayGio);
+                let y = null, m = null, q = null, weekKey = null, dayStr = '', timeStr = '';
+                if (d) {
+                    y = d.getFullYear();
+                    m = d.getMonth() + 1;
+                    q = Math.floor((m - 1) / 3) + 1;
+                    const week = getWeekNumber(d);
+                    weekKey = `${y}-W${String(week).padStart(2, '0')}`;
+                    dayStr = toDayStr(d);
+                    timeStr = toTimeStr(d);
+                } else {
+                    dayStr = raw.ngay || '';
+                    timeStr = raw.gio || '';
+                }
+
+                return {
+                    ...raw,
+                    __d: d,
+                    __y: y,
+                    __m: m,
+                    __q: q,
+                    __weekKey: weekKey,
+                    __dayStr: dayStr,
+                    __timeStr: timeStr,
+                    __dayKey: dayStr,
+                    _mucNuoc: Number(raw.mucNuoc) || 0,
+                    _dungTich: Number(raw.dungTich) || 0,
+                    _luongMua: Number(raw.luongMua) || 0,
+                    _hTran: Number(raw.hTran) || 0,
+                    _qTranTuDo: Number(raw.qTranTuDo) || 0
+                };
+            });
+
+            allData.sort((a, b) => (b.__d || 0) - (a.__d || 0));
+
+            populateYearFilter(allData);
+            populateWeekFilter(allData);
+            applyFiltersAndRender();
+        }
+
+        // AI Analysis Functions
+        function generateAIAnalysis() {
+            if (filteredData.length === 0) {
+                aiAnalysisContent.innerHTML = `
+                    <div class="ai-analysis-section">
+                        <div class="ai-analysis-section-title">Lỗi</div>
+                        <div class="ai-analysis-text">Không có dữ liệu để phân tích. Vui lòng điều chỉnh bộ lọc và thử lại.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Show loading state
+            aiAnalysisContent.innerHTML = `
+                <div class="ai-analysis-loading">
+                    <div class="spinner"></div>
+                    <div class="ai-analysis-loading-text">Đang phân tích dữ liệu...</div>
+                </div>
+            `;
+
+            // Simulate AI processing delay
+            setTimeout(() => {
+                // Get most recent data point
+                const sortedData = [...filteredData].sort((a, b) => (b.__d || 0) - (a.__d || 0));
+                const latestData = sortedData.length > 0 ? sortedData[0] : null;
+                
+                // Get daily aggregated data
+                const { labels, dailyRain, dailyLevel } = aggregateDaily(filteredData);
+                
+                // Calculate statistics
+                const totalDays = labels.length;
+                const totalRain = dailyRain.reduce((s, v) => s + (Number(v) || 0), 0);
+                const rainyDays = dailyRain.filter(v => (Number(v) || 0) > 0).length;
+                const maxRain = Math.max(0, ...dailyRain);
+                
+                const waterLevels = dailyLevel.filter(v => v != null && !Number.isNaN(v));
+                const minWaterLevel = waterLevels.length ? Math.min(...waterLevels) : 0;
+                const maxWaterLevel = waterLevels.length ? Math.max(...waterLevels) : 0;
+                const avgWaterLevel = waterLevels.length ? 
+                    waterLevels.reduce((sum, level) => sum + level, 0) / waterLevels.length : 0;
+                
+                const currentWaterLevel = latestData ? latestData._mucNuoc : 0;
+                const currentCapacity = latestData ? latestData._dungTich : 0;
+                const currentRainfall = latestData ? latestData._luongMua : 0;
+                
+                // Get spillway data
+                const qVals = filteredData.map(r => r._qTranTuDo).filter(v => Number.isFinite(v));
+                const maxQ = qVals.length ? Math.max(...qVals) : 0;
+                const avgQ = qVals.length ? 
+                    qVals.reduce((sum, q) => sum + q, 0) / qVals.length : 0;
+                
+                // Determine time period
+                let timePeriod = '';
+                if (customTimeRange) {
+                    const { fromDate, toDate } = customTimeRange;
+                    timePeriod = `từ ${fromDate} đến ${toDate}`;
+                } else if (weekFilter.value !== 'all') {
+                    const [year, week] = weekFilter.value.split('-W');
+                    timePeriod = `tuần ${parseInt(week, 10)} năm ${year}`;
+                } else if (monthFilter.value !== 'all' && yearFilter.value !== 'all') {
+                    timePeriod = `tháng ${monthFilter.value} năm ${yearFilter.value}`;
+                } else if (quarterFilter.value !== 'all' && yearFilter.value !== 'all') {
+                    timePeriod = `quý ${quarterFilter.value} năm ${yearFilter.value}`;
+                } else if (yearFilter.value !== 'all') {
+                    timePeriod = `năm ${yearFilter.value}`;
+                } else {
+                    timePeriod = 'toàn bộ dữ liệu';
+                }
+                
+                // Generate analysis sections
+                const statusAnalysis = generateStatusAnalysis(
+                    currentWaterLevel, 
+                    currentCapacity, 
+                    currentRainfall,
+                    minWaterLevel,
+                    maxWaterLevel,
+                    avgWaterLevel,
+                    timePeriod
+                );
+                
+                const operationAnalysis = generateOperationAnalysis(
+                    totalRain,
+                    rainyDays,
+                    totalDays,
+                    maxRain,
+                    maxQ,
+                    avgQ,
+                    timePeriod
+                );
+                
+                const recommendations = generateRecommendations(
+                    currentWaterLevel,
+                    currentCapacity,
+                    totalRain,
+                    maxWaterLevel,
+                    timePeriod
+                );
+                
+                const longTermSuggestions = generateLongTermSuggestions(
+                    avgWaterLevel,
+                    totalRain,
+                    maxQ,
+                    timePeriod
+                );
+                
+                // Display analysis
+                aiAnalysisContent.innerHTML = `
+                    <div class="ai-analysis-section">
+                        <div class="ai-analysis-section-title">1. Đánh giá hiện trạng</div>
+                        <div class="ai-analysis-text">${statusAnalysis}</div>
+                    </div>
+                    <div class="ai-analysis-section">
+                        <div class="ai-analysis-section-title">2. Phân tích vận hành</div>
+                        <div class="ai-analysis-text">${operationAnalysis}</div>
+                    </div>
+                    <div class="ai-analysis-section">
+                        <div class="ai-analysis-section-title">3. Kiến nghị hành động</div>
+                        <div class="ai-analysis-text">${recommendations}</div>
+                    </div>
+                    <div class="ai-analysis-section">
+                        <div class="ai-analysis-section-title">4. Đề xuất dài hạn</div>
+                        <div class="ai-analysis-text">${longTermSuggestions}</div>
+                    </div>
+                `;
+            }, 2000);
+        }
+
+        function generateStatusAnalysis(currentWaterLevel, currentCapacity, currentRainfall, minLevel, maxLevel, avgLevel, timePeriod) {
+            let statusText = `Dựa trên dữ liệu ${timePeriod}, mực nước hiện tại là ${formatNumber(currentWaterLevel, 2)} m với dung tích ${formatNumber(currentCapacity, 3)} triệu m³. `;
+            
+            if (currentWaterLevel < LVL_DEAD) {
+                statusText += `Mực nước hiện tại đang thấp hơn mực nước chết (${LVL_DEAD_TXT} m), đây là tình trạng báo động và cần có biện pháp cấp nước khẩn cấp. `;
+            } else if (currentWaterLevel < LVL_BT) {
+                statusText += `Mực nước hiện tại nằm trong vùng an toàn, cao hơn mực nước chết (${LVL_DEAD_TXT} m) nhưng thấp hơn mực nước dâng bình thường (${LVL_BT_TXT} m). `;
+            } else if (currentWaterLevel < LVL_DESIGN) {
+                statusText += `Mực nước hiện tại nằm trong vùng lý thuyết, cao hơn mực nước dâng bình thường (${LVL_BT_TXT} m) nhưng vẫn dưới mực nước lũ thiết kế (${LVL_DESIGN_TXT} m). `;
+            } else if (currentWaterLevel < LVL_CHECK) {
+                statusText += `Mực nước hiện tại nằm trong vùng cảnh báo, cao hơn mực nước lũ thiết kế (${LVL_DESIGN_TXT} m) nhưng vẫn dưới mực nước lũ kiểm tra (${LVL_CHECK_TXT} m). `;
+            } else if (currentWaterLevel < LVL_DAM) {
+                statusText += `Mực nước hiện tại nằm trong vùng khẩn cấp, cao hơn mực nước lũ kiểm tra (${LVL_CHECK_TXT} m) nhưng vẫn dưới cao trình đỉnh đập (${LVL_DAM_TXT} m). `;
+            } else {
+                statusText += `Mực nước hiện tại đang ở mức cực kỳ nguy hiểm, xấp xỉ hoặc vượt cao trình đỉnh đập (${LVL_DAM_TXT} m). Đây là tình trạng nguy hiểm tối đa. `;
+            }
+            
+            statusText += `Trong khoảng thời gian phân tích, mực nước dao động từ ${formatNumber(minLevel, 2)} m đến ${formatNumber(maxLevel, 2)} m, với mức trung bình là ${formatNumber(avgLevel, 2)} m. `;
+            
+            if (currentRainfall > 0) {
+                statusText += `Lượng mưa ghi nhận gần đây là ${formatNumber(currentRainfall, 1)} mm, có thể ảnh hưởng đến mực nước hồ chứa. `;
+            } else {
+                statusText += `Không ghi nhận lượng mưa gần đây. `;
+            }
+            
+            return statusText;
+        }
+
+        function generateOperationAnalysis(totalRain, rainyDays, totalDays, maxRain, maxQ, avgQ, timePeriod) {
+            let operationText = `Trong khoảng thời gian ${timePeriod}, tổng lượng mưa là ${formatNumber(totalRain, 1)} mm với ${rainyDays} ngày có mưa trên tổng số ${totalDays} ngày. `;
+            
+            if (maxRain > 0) {
+                operationText += `Lượng mưa lớn nhất ghi nhận là ${formatNumber(maxRain, 1)} mm. `;
+            }
+            
+            if (maxQ > 0) {
+                operationText += `Lưu lượng xả tràn tự do lớn nhất là ${formatNumber(maxQ, 3)} m³/s với mức trung bình là ${formatNumber(avgQ, 3)} m³/s. `;
+                
+                if (maxQ > 50) {
+                    operationText += `Lưu lượng xả tràn lớn cho thấy hồ chứa đã phải vận hành ở mức cao để đảm bảo an toàn. `;
+                } else if (maxQ > 20) {
+                    operationText += `Lưu lượng xả tràn ở mức trung bình, cho thấy hồ chứa đã vận hành tương đối hiệu quả. `;
+                } else {
+                    operationText += `Lưu lượng xả tràn ở mức thấp, cho thấy hồ chứa chưa cần vận hành ở mức cao. `;
+                }
+            } else {
+                operationText += `Không ghi nhận hoạt động xả tràn trong khoảng thời gian này. `;
+            }
+            
+            return operationText;
+        }
+
+        function generateRecommendations(currentWaterLevel, currentCapacity, totalRain, maxWaterLevel, timePeriod) {
+            let recommendationsText = '';
+            
+            if (currentWaterLevel < LVL_DEAD) {
+                recommendationsText = `1. <strong>Cấp nước khẩn cấp:</strong> Cần có biện pháp cấp nước ngay lập tức cho hồ chứa để mực nước không giảm sâu dưới mức chết.<br>`;
+                recommendationsText += `2. <strong>Kiểm tra hệ thống:</strong> Kiểm tra toàn bộ hệ thống đập, cửa van và các thiết bị liên quan để đảm bảo không có rò rỉ.<br>`;
+                recommendationsText += `3. <strong>Giảm thiểu sử dụng:</strong> Tạm thời giảm thiểu việc sử dụng nước từ hồ chứa cho đến khi mực nước được phục hồi.<br>`;
+            } else if (currentWaterLevel < LVL_BT) {
+                recommendationsText = `1. <strong>Theo dõi định kỳ:</strong> Tiếp tục theo dõi chặt chẽ mực nước hồ chứa ít nhất 2 lần/ngày.<br>`;
+                recommendationsText += `2. <strong>Lập kế hoạch dự trữ:</strong> Xem xét kế hoạch trữ nước để chuẩn bị cho mùa khô sắp tới.<br>`;
+                recommendationsText += `3. <strong>Tối ưu hóa vận hành:</strong> Tối ưu hóa việc sử dụng nước cho các mục đích khác nhau để đảm bảo hiệu quả.<br>`;
+            } else if (currentWaterLevel < LVL_DESIGN) {
+                recommendationsText = `1. <strong>Tăng cường giám sát:</strong> Tăng tần suất quan trắc mực nước lên 3-4 lần/ngày.<br>`;
+                recommendationsText += `2. <strong>Chuẩn bị xả tràn:</strong> Kiểm tra và đảm bảo các thiết bị xả tràn hoạt động tốt.<br>`;
+                recommendationsText += `3. <strong>Phòng ngừa lũ:</strong> Xây dựng kịch bản phòng ngừa lũ lụt cho hạ du.<br>`;
+            } else if (currentWaterLevel < LVL_CHECK) {
+                recommendationsText = `1. <strong>Vận hành an toàn:</strong> Sẵn sàng vận hành xả tràn theo quy trình đã được phê duyệt.<br>`;
+                recommendationsText += `2. <strong>Cảnh báo hạ du:</strong> Cảnh báo sớm cho các khu vực hạ du về khả năng xả lũ.<br>`;
+                recommendationsText += `3. <strong>Theo dõi liên tục:</strong> Quan trắc liên tục 24/24 và báo cáo tình hình cho các cơ quan chức năng.<br>`;
+            } else if (currentWaterLevel < LVL_DAM) {
+                recommendationsText = `1. <strong>Vận hành khẩn cấp:</strong> Vận hành xả lũ ở mức tối đa theo quy trình khẩn cấp.<br>`;
+                recommendationsText += `2. <strong>Di dời dân cư:</strong> Cân nhắc di dời dân cư ở khu vực hạ du nếu cần thiết.<br>`;
+                recommendationsText += `3. <strong>Báo cáo cấp cao:</strong> Báo cáo ngay lập tức cho các cơ quan quản lý cấp cao nhất.<br>`;
+            } else {
+                recommendationsText = `1. <strong>Phản ứng khẩn cấp tối đa:</strong> Triển khai tất cả các biện pháp ứng phó khẩn cấp tối đa.<br>`;
+                recommendationsText += `2. <strong>Đánh giá an toàn đập:</strong> Tiến hành đánh giá an toàn đập ngay lập tức.<br>`;
+                recommendationsText += `3. <strong>Phương án dự phòng:</strong> Chuẩn bị phương án xử lý tình huống xấu nhất.<br>`;
+            }
+            
+            if (totalRain > 100) {
+                recommendationsText += `4. <strong>Đối phó với mưa lớn:</strong> Tổng lượng mưa lớn (${formatNumber(totalRain, 1)} mm) trong khoảng thời gian này đòi hỏi cần có kế hoạch đối phó với khả năng mưa lớn trong tương lai.<br>`;
+            }
+            
+            if (maxWaterLevel > LVL_DESIGN) {
+                recommendationsText += `5. <strong>Đánh giá an toàn đập:</strong> Mực nước đã vượt mực nước lũ thiết kế, cần tiến hành đánh giá an toàn đập ngay lập tức.<br>`;
+            }
+            
+            return recommendationsText;
+        }
+
+        function generateLongTermSuggestions(avgWaterLevel, totalRain, maxQ, timePeriod) {
+            let suggestionsText = `Dựa trên phân tích dữ liệu ${timePeriod}, các đề xuất dài hạn chi tiết và thiết thực sau đây được đưa ra:<br><br>`;
+            
+            if (avgWaterLevel < LVL_BT) {
+                suggestionsText += `1. <strong>Nâng cao dung tích hữu ích:</strong> Với mực nước trung bình (${formatNumber(avgWaterLevel, 2)} m) thường xuyên dưới mực nước dâng bình thường, đề xuất thực hiện các giải pháp kỹ thuật sau: (a) Nạo vét lòng hồ để tăng dung tích chứa; (b) Xem xét nâng cao đập chính hoặc đập phụ để tăng khả năng chứa nước; (c) Rà soát và tối ưu hóa mực nước chết để giảm thiểu lượng nước không thể sử dụng.<br>`;
+                suggestionsText += `2. <strong>Quản lý tổng hợp nguồn nước:</strong> (a) Xây dựng kế hoạch phân bổ nước liên lưu vực, kết hợp hồ chứa với các công trình thủy lợi khác; (b) Triển khai chương trình tiết kiệm nước và tái sử dụng nước cho các khu vực công nghiệp và nông nghiệp hạ du; (c) Nghiên cứu khả năng bổ sung nước từ các nguồn bên ngoài trong mùa khô.<br>`;
+            } else if (avgWaterLevel > LVL_BT) {
+                suggestionsText += `1. <strong>Tăng cường an toàn đập và hạ du:</strong> (a) Thực hiện đánh giá an toàn đập định kỳ theo tiêu chuẩn quốc tế; (b) Củng cố các vị trí yếu trên thân đập và nền móng; (c) Xây dựng hệ thống giám sát áp lực lọc và biến dạng đập tự động; (d) Kè chống xói lở và gia cố bờ hạ du.<br>`;
+                suggestionsText += `2. <strong>Phát triển hệ thống cảnh báo sớm:</strong> (a) Lắp đặt mạng lưới trạm đo mưa tự động thượng lưu; (b) Xây dựng mô hình dự báo lũ tích hợp dữ liệu thời tiết và thủy văn; (c) Thiết lập quy trình cảnh báo đa cấp cho các cơ quan quản lý và cộng đồng dân cư.<br>`;
+            }
+            
+            if (totalRain > 200) {
+                suggestionsText += `3. <strong>Thích ứng với biến đổi khí hậu:</strong> (a) Rà soát và điều chỉnh lại các quy trình vận hành hồ chứa phù hợp với xu hướng thời tiết cực đoan; (b) Xây dựng kịch bản ứng phó với các tình huống mưa lớn vượt thiết kế; (c) Tăng cường diện tích che phủ rừng thượng lưu để giảm thiểu xói mòn và lũ quét.<br>`;
+            }
+            
+            if (maxQ > 50) {
+                suggestionsText += `4. <strong>Nâng cấp hệ thống xả lũ:</strong> (a) Đánh giá lại năng lực xả của các cửa tràn hiện tại; (b) Cân nhắc xây dựng thêm tràn xả phụ hoặc nâng cấp hệ thống cửa van để tăng khả năng xả lũ an toàn; (c) Tự động hóa hệ thống vận hành cửa van để giảm thời gian phản ứng trong tình huống khẩn cấp.<br>`;
+            }
+            
+            suggestionsText += `5. <strong>Chuyển đổi số và tự động hóa:</strong> (a) Lắp đặt hệ thống cảm biến IoT giám sát mực nước, lượng mưa, và áp lực đập theo thời gian thực; (b) Xây dựng mô hình dự báo thủy văn tích hợp AI để dự báo sớm tình hình mưa lũ và đề xuất kịch bản vận hành tối ưu; (c) Triển khai hệ thống điều khiển tự động cho các cửa van xả lũ để giảm thời gian phản ứng và tăng độ chính xác.<br>`;
+            suggestionsText += `6. <strong>Nâng cao năng lực vận hành:</strong> (a) Tổ chức các khóa đào tạo chuyên sâu về vận hành hồ chứa trong tình huống khẩn cấp; (b) Thực hiện diễn tập phòng chống lũ lụt định kỳ hàng năm; (c) Xây dựng cơ chế phối hợp chặt chẽ với các ban ngành liên quan để đảm bảo chỉ đạo thống nhất và hiệu quả.<br>`;
+            
+            return suggestionsText;
+        }
+
+        (async function init() {
+            // Load preferences on initialization
+            loadDashboardPrefs();
+            loadWarningThresholds();
+
+            let hasCache = false;
+
+            try {
+                const cachedData = await getFromDB(CACHE_KEY);
+                if (cachedData) {
+                    console.log('Loaded from IndexedDB');
+                    processData(cachedData);
+                    showToast('Đã tải dữ liệu từ bộ nhớ đệm. Đang cập nhật...');
+                    hasCache = true;
+                }
+            } catch (e) {
+                console.warn('Failed to load cache', e);
+            }
+
+            fetch(API_URL, { cache: 'no-store' })
+                .then(res => res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`)))
+                .then(async json => {
+                    if (json && json.error) throw new Error(json.message || 'Lỗi từ API');
+
+                    await saveToDB(CACHE_KEY, json);
+
+                    processData(json);
+                    if (hasCache) showToast('Dữ liệu đã được cập nhật mới nhất.');
+                })
+                .catch(err => {
+                    console.error('Lỗi tải dữ liệu:', err);
+                    if (!hasCache) {
+                        showError(`Không thể tải dữ liệu. Lỗi: ${err.message || err}`);
+                        waterStatusEl.textContent = 'Không thể xác định trạng thái mực nước do lỗi dữ liệu.';
+                    } else {
+                        showToast('Không thể cập nhật dữ liệu mới. Đang hiển thị dữ liệu cũ.');
+                    }
+                });
+        })();
+
+        function rebuildPrintTable() {
+            if (!filteredData.length) {
+                printTbody.innerHTML = '';
+                return;
+            }
+            // Sắp xếp từ cũ đến mới cho in PDF
+            const sortedData = [...filteredData].sort((a, b) => (a.__d || 0) - (b.__d || 0));
+            let phtml = '';
+            for (let i = 0; i < sortedData.length; i++) {
+                const r = sortedData[i];
+                phtml += `<tr>${rowHtml(r, i + 1)}</tr>`;
+            }
+            printTbody.innerHTML = phtml;
+        }
+
+        document.getElementById('export-excel').addEventListener('click', () => {
+            if (!filteredData.length) return alert('Không có dữ liệu để xuất.');
+
+            // Sắp xếp từ cũ đến mới cho xuất Excel
+            const sortedData = [...filteredData].sort((a, b) => (a.__d || 0) - (b.__d || 0));
+
+            const headers = [
+                "STT", "Ngày", "Giờ", "Mực nước (m)", "Dung tích (Triệu m³)", "Lượng mưa (mm)",
+                "H tràn (cm)", "Q tràn tự do (m³/s)", "Họ, tên người vận hành", "Ký tên"
+            ];
+            const rows = sortedData.map((r, i) => {
+                return [
+                    i + 1,
+                    r.__dayStr || '',
+                    r.__timeStr || '',
+                    r.mucNuoc ?? '', r.dungTich ?? '', r.luongMua ?? '',
+                    r.hTran ?? '', r.qTranTuDo ?? '',
+                    r.nguoiVanHanh || '', ''
+                ];
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+            ws['!cols'] = headers.map((_, ci) => {
+                const maxLen = [headers, ...rows].reduce((max, row) => {
+                    const v = row[ci] == null ? '' : String(row[ci]);
+                    return Math.max(max, v.length);
+                }, 0);
+                return { wch: Math.min(Math.max(10, maxLen + 2), 40) };
+            });
+
+            XLSX.utils.book_append_sheet(wb, ws, "NhatKy_HoOngKinh");
+            XLSX.writeFile(wb, "NhatKyVanHanh_HoOngKinh.xlsx");
+        });
+
+        function printWithOrientation(orientation) {
+            rebuildPrintTable();
+            let el = document.getElementById('print-orientation-style');
+            if (!el) {
+                el = document.createElement('style');
+                el.id = 'print-orientation-style';
+                document.head.appendChild(el);
+            }
+            el.textContent = `@media print{ @page{ size: A4 ${orientation}; margin: 12mm; } }`;
+            window.print();
+        }
+        document.getElementById('btn-print-portrait').addEventListener('click', () => printWithOrientation('portrait'));
+        document.getElementById('btn-print-landscape').addEventListener('click', () => printWithOrientation('landscape'));
+
+        const levelBandsPlugin = {
+            id: 'levelBands',
+            beforeDraw(chart, args, opts) {
+                const bands = opts && opts.bands;
+                if (!bands || !bands.length) return;
+                const yScale = chart.scales['yLevel'];
+                if (!yScale) return;
+                const { ctx, chartArea } = chart;
+                ctx.save();
+                bands.forEach(b => {
+                    if (b.from == null || b.to == null) return;
+                    const y1 = yScale.getPixelForValue(b.from);
+                    const y2 = yScale.getPixelForValue(b.to);
+                    const top = Math.min(y1, y2);
+                    const bottom = Math.max(y1, y2);
+                    const clippedTop = Math.max(chartArea.top, top);
+                    const clippedBottom = Math.min(chartArea.bottom, bottom);
+                    if (clippedBottom <= clippedTop) return;
+                    ctx.fillStyle = b.color || 'rgba(0,0,0,0.05)';
+                    ctx.fillRect(chartArea.left, clippedTop, chartArea.right - chartArea.left, clippedBottom - clippedTop);
+                });
+                ctx.restore();
+            }
+        };
+        Chart.register(levelBandsPlugin);
+
+        function buildComboChartAndStatus(labels, dailyRain, dailyLevel) {
+            const deadLine = labels.map(() => LVL_DEAD);
+            const btLine = labels.map(() => LVL_BT);
+            const designLine = labels.map(() => LVL_DESIGN);
+            const checkLine = labels.map(() => LVL_CHECK);
+
+            const maxRain = Math.max(0, ...dailyRain);
+            const stepRain = maxRain > 50 ? 10 : 5;
+            const yMaxRain = maxRain ? Math.ceil(maxRain / stepRain) * stepRain : stepRain;
+
+            const lvlVals = dailyLevel.filter(v => v != null && !Number.isNaN(v));
+            const lvlMin = lvlVals.length ? Math.min(...lvlVals) : LVL_DEAD;
+            const lvlMax = lvlVals.length ? Math.max(...lvlVals) : LVL_DAM + 1;
+            const pad = 0.1;
+            const yMinLvl = lvlMin - pad;
+            const yMaxLvl = lvlMax + pad;
+
+            if (comboChart) comboChart.destroy();
+            const ctx = document.getElementById('waterChart').getContext('2d');
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+            gradient.addColorStop(0, 'rgba(248,113,113,0.35)');
+            gradient.addColorStop(1, 'rgba(248,113,113,0.00)');
+
+            comboChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Lượng mưa (mm/ngày)',
+                            data: dailyRain,
+                            yAxisID: 'yRain',
+                            backgroundColor: 'rgba(59,130,246,0.65)',
+                            borderColor: 'rgba(37,99,235,0.9)',
+                            borderWidth: 1,
+                            borderRadius: 3,
+                            maxBarThickness: 26
+                        },
+                        {
+                            type: 'line',
+                            label: 'Mực nước (m)',
+                            data: dailyLevel,
+                            yAxisID: 'yLevel',
+                            spanGaps: true,
+                            borderColor: '#fb7185',
+                            backgroundColor: gradient,
+                            tension: 0.35,
+                            borderWidth: 2.2,
+                            pointRadius: 2.5,
+                            pointHoverRadius: 4,
+                            pointBackgroundColor: '#f97373',
+                            pointBorderColor: '#ffffff',
+                            fill: true
+                        },
+                        {
+                            type: 'line',
+                            label: 'MN chết',
+                            data: deadLine,
+                            yAxisID: 'yLevel',
+                            borderColor: '#f97316',
+                            borderDash: [6, 4],
+                            borderWidth: 1.7,
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            type: 'line',
+                            label: 'MN dâng BT',
+                            data: btLine,
+                            yAxisID: 'yLevel',
+                            borderColor: '#eab308',
+                            borderDash: [6, 4],
+                            borderWidth: 1.7,
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            type: 'line',
+                            label: 'MN lũ thiết kế',
+                            data: designLine,
+                            yAxisID: 'yLevel',
+                            borderColor: '#3b82f6',
+                            borderDash: [6, 4],
+                            borderWidth: 1.7,
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            type: 'line',
+                            label: 'MN lũ kiểm tra',
+                            data: checkLine,
+                            yAxisID: 'yLevel',
+                            borderColor: '#8b5cf6',
+                            borderDash: [6, 4],
+                            borderWidth: 1.7,
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            align: 'center',
+                            labels: {
+                                usePointStyle: false,
+                                boxWidth: 22,
+                                boxHeight: 10,
+                                padding: 14
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label(ctx) {
+                                    const v = ctx.parsed.y;
+                                    if (ctx.datasetIndex === 0) {
+                                        return `Lượng mưa: ${Number(v || 0).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} mm`;
+                                    } else if (ctx.datasetIndex === 1) {
+                                        return `Mực nước: ${Number(v || 0).toLocaleString('vi-VN', { maximumFractionDigits: 2 })} m`;
+                                    }
+                                    return `${ctx.dataset.label}: ${Number(v || 0).toLocaleString('vi-VN', { maximumFractionDigits: 2 })} m`;
+                                }
+                            }
+                        },
+                        levelBands: {
+                            bands: [
+                                { from: yMinLvl, to: LVL_DEAD, color: 'rgba(254,249,195,0.5)' },
+                                { from: LVL_DEAD, to: LVL_BT, color: 'rgba(187,247,208,0.65)' },
+                                { from: LVL_BT, to: LVL_DESIGN, color: 'rgba(219,234,254,0.6)' },
+                                { from: LVL_DESIGN, to: LVL_CHECK, color: 'rgba(254,240,138,0.6)' },
+                                { from: LVL_CHECK, to: yMaxLvl, color: 'rgba(254,202,202,0.7)' }
+                            ]
+                        }
+                    },
+                    interaction: { mode: 'nearest', intersect: false },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: Math.min(12, labels.length),
+                                maxRotation: 0
+                            }
+                        },
+                        yRain: {
+                            position: 'left',
+                            beginAtZero: true,
+                            suggestedMax: yMaxRain,
+                            ticks: { stepSize: stepRain },
+                            grid: { color: 'rgba(148,163,184,0.20)' },
+                            title: { display: true, text: 'Lượng mưa (mm)' }
+                        },
+                        yLevel: {
+                            position: 'right',
+                            beginAtZero: false,
+                            suggestedMin: yMinLvl,
+                            suggestedMax: yMaxLvl,
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: 'Mực nước (m)' }
+                        }
+                    }
+                }
+            });
+
+            let lastVal = null;
+            for (let i = dailyLevel.length - 1; i >= 0; i--) {
+                if (dailyLevel[i] != null) {
+                    lastVal = dailyLevel[i];
+                    break;
+                }
+            }
+            if (lastVal == null || Number.isNaN(lastVal)) {
+                waterStatusEl.textContent = 'Không có dữ liệu mực nước.';
+            } else {
+                const lastTxt = formatMeter(lastVal, 2);
+                const diffTxt = formatMeter(Math.abs(lastVal - LVL_DEAD), 2);
+
+                let baseText;
+                if (lastVal >= LVL_DEAD) {
+                    baseText = `Mực nước gần nhất ${lastTxt} m — CAO HƠN mực nước chết ${diffTxt} m`;
+                } else {
+                    baseText = `Mực nước gần nhất ${lastTxt} m — THẤP HƠN mực nước chết ${diffTxt} m`;
+                }
+
+                let zoneText;
+                if (lastVal < LVL_DEAD) {
+                    zoneText = 'dưới mực nước chết, dưới vùng làm việc bình thường.';
+                } else if (lastVal < LVL_BT) {
+                    zoneText = `VÙNG AN TOÀN – dưới mực nước dâng bình thường (${LVL_BT_TXT} m).`;
+                } else if (lastVal < LVL_DESIGN) {
+                    zoneText = `VÙNG LÝ THUYẾT – từ mực nước dâng bình thường đến mực nước lũ thiết kế (${LVL_DESIGN_TXT} m).`;
+                } else if (lastVal < LVL_CHECK) {
+                    zoneText = `VÙNG CẢNH BÁO – từ mực nước lũ thiết kế đến mực nước lũ kiểm tra (${LVL_CHECK_TXT} m).`;
+                } else {
+                    zoneText = `VÙNG KHẨN CẤP – xấp xỉ hoặc vượt mực nước lũ kiểm tra (${LVL_CHECK_TXT} m).`;
+                }
+
+                waterStatusEl.textContent = `${baseText}. Trạng thái: ${zoneText}`;
+            }
+        }
+
+        function updateChartsAndKPIs() {
+            const { labels, dailyRain, dailyLevel } = aggregateDaily(filteredData);
+            updateKPIs(labels, dailyRain);
+            buildComboChartAndStatus(labels, dailyRain, dailyLevel);
+            updateTrendAnalysis();
+        }
+
+        function updateSubtitle() {
+            let subtitleText = '';
+
+            if (customTimeRange) {
+                const { fromDate, fromTime, toDate, toTime } = customTimeRange;
+                subtitleText = `Từ ${fromDate} ${fromTime || '00:00:00'} đến ${toDate} ${toTime || '23:59:59'}`;
+            } else if (weekFilter.value !== 'all') {
+                const [year, week] = weekFilter.value.split('-W');
+                subtitleText = `Tuần ${parseInt(week, 10)} năm ${year}`;
+            } else if (dayNightFilter.value !== 'all') {
+                const label = dayNightFilter.value === 'day' ? 'Ngày (7h-19h)' : 'Đêm (19h-7h)';
+                if (yearFilter.value !== 'all' && monthFilter.value !== 'all') {
+                    subtitleText = `${label} - Tháng ${monthFilter.value} năm ${yearFilter.value}`;
+                } else if (yearFilter.value !== 'all') {
+                    subtitleText = `${label} - Năm ${yearFilter.value}`;
+                } else {
+                    subtitleText = label;
+                }
+            } else if (monthFilter.value !== 'all' && yearFilter.value !== 'all') {
+                subtitleText = `Tháng ${monthFilter.value} năm ${yearFilter.value}`;
+            } else if (quarterFilter.value !== 'all' && yearFilter.value !== 'all') {
+                subtitleText = `Quý ${quarterFilter.value} năm ${yearFilter.value}`;
+            } else if (yearFilter.value !== 'all') {
+                subtitleText = `Năm ${yearFilter.value}`;
+            } else {
+                const c = new Date();
+                subtitleText = `Tháng ${c.getMonth() + 1} năm ${c.getFullYear()}`;
+            }
+
+            subtitleDiv.textContent = subtitleText;
+        }
+
+        function applyFiltersAndRender() {
+            const y = yearFilter.value;
+            const q = quarterFilter.value;
+            const m = monthFilter.value;
+            const w = weekFilter.value;
+            const dn = dayNightFilter.value;
+            const qMode = qFilter.value;
+
+            let fromDT = null, toDT = null;
+            if (customTimeRange) {
+                const { fromDate, fromTime, toDate, toTime } = customTimeRange;
+                fromDT = new Date(`${fromDate}T${fromTime || '00:00:00'}`);
+                toDT = new Date(`${toDate}T${toTime || '23:59:59'}`);
+            }
+
+            filteredData = allData.filter(r => {
+                const d = r.__d;
+                if (!d) return false;
+
+                if (fromDT && (d < fromDT || d > toDT)) return false;
+
+                if (w !== 'all' && r.__weekKey !== w) return false;
+
+                if (dn === 'day' && !isDayTime(d)) return false;
+                if (dn === 'night' && !isNightTime(d)) return false;
+
+                if (y !== 'all' && String(r.__y) !== String(y)) return false;
+
+                if (m !== 'all') {
+                    if (r.__m !== Number(m)) return false;
+                } else if (q !== 'all') {
+                    if (r.__q !== Number(q)) return false;
+                }
+
+                const qv = r._qTranTuDo;
+                if (qMode === 'zero' && qv !== 0) return false;
+                if (qMode === 'positive' && !(qv > 0)) return false;
+
+                return true;
+            });
+
+            updateSubtitle();
+            page = 1;
+            renderTablePaged(filteredData);
+            updateChartsAndKPIs();
+        }
+    </script>
+</body>
+
+</html>
