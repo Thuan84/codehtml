@@ -709,8 +709,6 @@
         <h2 style="margin: 0; font-size: 15pt; font-weight: bold;">NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC THÀNH SƠN</h2>
       </div>
       <div style="display: flex; gap: 8px;">
-        <button id="export-excel" style="padding: 6px 12px; font-size: 12pt; background:#218838; color:#fff; border:none; border-radius:6px; cursor:pointer;">Xuất Excel</button>
-        <button id="print-page" style="padding: 6px 12px; font-size: 12pt; background:#c82333; color:#fff; border:none; border-radius:6px; cursor:pointer;">In</button>
         <button id="toggle-fullscreen-2" title="Bật/Tắt toàn màn hình" style="padding: 6px 12px; font-size: 12pt; background:#0b5ed7; color:#fff; border:none; border-radius:6px; cursor:pointer;">⛶ Toàn màn hình</button>
       </div>
     </div>
@@ -2192,7 +2190,7 @@ comboChart = new Chart(canvasEl.getContext('2d'), {
             populateWeekFilter(allData);
             filteredData = clientFilter(allData);
             drawTableWithPagination();
-renderRainStats();
+        renderRainStats();
 
 // Chỉ vẽ chart nếu đang ở tab monitoring
 if (currentContent === 'monitoring') {
