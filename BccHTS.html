@@ -1292,11 +1292,12 @@
       currentWaterLevelValue.textContent = formatFixedVN(currentLevel, 2) + 'm';
       
       // Tính toán vị trí của marker trên thanh chỉ báo
-      const minLevel = DEAD_LEVEL - 1; // Thêm khoảng không gian bên dưới
-      const maxLevel = WALL_CREST_LEVEL + 1; // Thêm khoảng không gian bên trên
-      const range = maxLevel - minLevel;
-      const position = ((currentLevel - minLevel) / range) * 100;
-      waterLevelMarker.style.left = `${position}%`;
+        const minLevel = DEAD_LEVEL;     // 27.50
+        const maxLevel = WALL_CREST_LEVEL; // 33.00
+        const range = maxLevel - minLevel; // 5.50m
+        const position = Math.max(0, Math.min(100, ((currentLevel - minLevel) / range) * 100));
+        waterLevelMarker.style.left = `${position}%`;
+        console.log(`Mực nước: ${currentLevel}m, Vị trí marker: ${position}%`); // Debug
       
       // Xác định mức cảnh báo và cập nhật giao diện
       let alertClass, alertMessage, alertTitleText;
@@ -2276,7 +2277,12 @@ if (currentContent === 'monitoring') {
       pagerInfo.textContent = `Trang ${currentPage}/${totalPages}`;
     }
     function drawTableWithPagination(){
-      const { start, slice } = getPagedSlice();
+      // THÊM DÒNG NÀY TRƯỚC KHI GỌI getPagedSlice():
+  filteredData.sort((a, b) => {
+    if (!a._dt || !b._dt) return 0;
+    return b._dt - a._dt; // Sắp xếp giảm dần (mới nhất trước)
+  });
+        const { start, slice } = getPagedSlice();
       renderTable(slice, start);
       renderPaginationBar();
     }
