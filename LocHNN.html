@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hệ thống quan trắc hồ chứa nước ngọt</title>
+  <title>Nhật ký vận hành hồ chứa nước ngọt</title>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -24,9 +24,6 @@
       --monitor-color: #f59e0b;
       --danger-color: #ef4444;
       --emergency-color: #a855f7;
-      --sidebar-bg: #f8fafc;
-      --sidebar-active: #e2f8f0;
-      --sidebar-hover: #f0fdfa;
     }
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
@@ -35,274 +32,6 @@
       font-family: Inter,"Segoe UI",Roboto,Arial,sans-serif;
       color:var(--ink);
       background:#f8fafc;
-      display: flex;
-      overflow-x: hidden;
-    }
-
-    /* Toast Notification Styles */
-    .toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    
-    .toast {
-      background-color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 300px;
-      max-width: 400px;
-      animation: slideIn 0.3s ease-out;
-      transition: opacity 0.3s, transform 0.3s;
-    }
-    
-    .toast.success {
-      border-left: 4px solid var(--normal-color);
-    }
-    
-    .toast.info {
-      border-left: 4px solid #3b82f6;
-    }
-    
-    .toast.warning {
-      border-left: 4px solid var(--monitor-color);
-    }
-    
-    .toast.error {
-      border-left: 4px solid var(--danger-color);
-    }
-    
-    .toast-icon {
-      font-size: 18px;
-    }
-    
-    .toast.success .toast-icon {
-      color: var(--normal-color);
-    }
-    
-    .toast.info .toast-icon {
-      color: #3b82f6;
-    }
-    
-    .toast.warning .toast-icon {
-      color: var(--monitor-color);
-    }
-    
-    .toast.error .toast-icon {
-      color: var(--danger-color);
-    }
-    
-    .toast-message {
-      flex: 1;
-      font-size: 14px;
-    }
-    
-    .toast-close {
-      cursor: pointer;
-      color: var(--muted);
-      font-size: 16px;
-    }
-    
-    .toast-progress {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 3px;
-      background-color: var(--brand);
-      animation: progress 5s linear forwards;
-    }
-    
-    @keyframes slideIn {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-    
-    @keyframes progress {
-      from {
-        width: 100%;
-      }
-      to {
-        width: 0%;
-      }
-    }
-
-    /* Loading Spinner */
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(255, 255, 255, 0.8);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    
-    .loading-spinner {
-      width: 50px;
-      height: 50px;
-      border: 5px solid rgba(30, 164, 141, 0.2);
-      border-radius: 50%;
-      border-top-color: var(--brand);
-      animation: spin 1s ease-in-out infinite;
-      margin-bottom: 16px;
-    }
-    
-    .loading-text {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--ink);
-    }
-    
-    .loading-progress {
-      margin-top: 10px;
-      width: 200px;
-      height: 8px;
-      background-color: #e5e7eb;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    
-    .loading-progress-bar {
-      height: 100%;
-      background-color: var(--brand);
-      transition: width 0.3s ease;
-    }
-    
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* Data Update Indicator */
-    .data-update-indicator {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background-color: var(--brand);
-      color: white;
-      padding: 10px 16px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      z-index: 999;
-      transform: translateY(100px);
-      opacity: 0;
-      transition: transform 0.3s ease, opacity 0.3s ease;
-    }
-    
-    .data-update-indicator.show {
-      transform: translateY(0);
-      opacity: 1;
-    }
-    
-    .data-update-indicator i {
-      animation: pulse 1.5s infinite;
-    }
-    
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: 260px;
-      background: var(--sidebar-bg);
-      border-right: 1px solid #e5e7eb;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      position: fixed;
-      left: 0;
-      top: 0;
-      z-index: 100;
-      box-shadow: 2px 0 8px rgba(0,0,0,0.05);
-      transition: transform 0.3s ease;
-    }
-
-    .sidebar-header {
-      padding: 16px;
-      background: linear-gradient(135deg, #1EA48D 0%, #158572 100%);
-      color: white;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .sidebar-header h1 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 700;
-    }
-
-    .sidebar-menu {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px 0;
-    }
-
-    .menu-item {
-      padding: 12px 20px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 500;
-      color: var(--ink);
-      border-left: 3px solid transparent;
-    }
-
-    .menu-item:hover {
-      background: var(--sidebar-hover);
-    }
-
-    .menu-item.active {
-      background: var(--sidebar-active);
-      border-left-color: var(--brand);
-      color: var(--brand);
-    }
-
-    .menu-item i {
-      font-size: 18px;
-      width: 24px;
-      text-align: center;
-    }
-
-    .menu-text {
-      font-size: 15px;
-    }
-
-    /* Main Content */
-    .main-content {
-      flex: 1;
-      margin-left: 260px;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
     }
 
     /* Toolbar */
@@ -364,20 +93,6 @@
     #btnLandscape:hover{ filter:brightness(.95); }
     #btnDashboardSettings{ background:#f97316; color:#fff; border-color:#f97316; }
     #btnDashboardSettings:hover{ filter:brightness(.95); }
-    #btnRefreshData{ background:#3b82f6; color:#fff; border-color:#3b82f6; }
-    #btnRefreshData:hover{ filter:brightness(.95); }
-
-    /* Content Area */
-    .content-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      display: none;
-    }
-
-    .content-area.active {
-      display: block;
-    }
 
     .sheet{
       width:100%;
@@ -399,21 +114,6 @@
       font-size:12pt;
       color:var(--muted);
       margin-bottom:12px;
-    }
-
-    /* Map Container */
-    .map-container {
-      width: 100%;
-      height: calc(100vh - 60px);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .map-container iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
     }
 
     /* ===== HỆ THỐNG CẢNH BÁO THÔNG MINH ===== */
@@ -1113,14 +813,14 @@
       text-align:center;
     }
     .kpi-icon{
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      margin-bottom: 8px;
-      font-size: 24px; /* Kích thước của emoji */
-    }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+  font-size: 24px; /* Kích thước của emoji */
+}
     .kpi .t{
       font-size:12px;
       color:#475569;
@@ -1368,23 +1068,17 @@
 
     /* ===== PRINT ===== */
     @media print{
-  .toolbar,
-  .filters,
-  .charts,
-  .kpis,
-  .pager,
-  .custom-time-panel,
-  .modal,
-  .alert-system,
-  .ai-analysis,
-  .sidebar,
-  .menu-toggle {
-    display:none !important;
-  }
-  
-  .main-content {
-    margin-left: 0 !important;
-  }
+      .toolbar,
+      .filters,
+      .charts,
+      .kpis,
+      .pager,
+      .custom-time-panel,
+      .modal,
+      .alert-system,
+      .ai-analysis {
+        display:none !important;
+      }
       table{ border:1.2px solid #000; }
       thead th, tbody td{
         border:1px solid #000 !important;
@@ -1445,538 +1139,436 @@
       .ai-metrics {
         grid-template-columns: 1fr;
       }
-      
-      /* Responsive sidebar */
-      .sidebar {
-        transform: translateX(-100%);
-      }
-      
-      .sidebar.open {
-        transform: translateX(0);
-      }
-      
-      .main-content {
-        margin-left: 0;
-      }
-      
-      .menu-toggle {
-        display: block;
-        position: fixed;
-        top: 15px;
-        left: 15px;
-        z-index: 101;
-        background: var(--brand);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-        cursor: pointer;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      }
-    }
-    
-    @media (min-width:769px) {
-      .menu-toggle {
-        display: none;
-      }
     }
   </style>
 </head>
 <body>
-  <!-- Toast Container -->
-  <div class="toast-container" id="toastContainer"></div>
-
-  <!-- Loading Overlay -->
-  <div class="loading-overlay" id="loadingOverlay" style="display: none;">
-    <div class="loading-spinner"></div>
-    <div class="loading-text" id="loadingText">Đang tải dữ liệu...</div>
-    <div class="loading-progress">
-      <div class="loading-progress-bar" id="loadingProgressBar" style="width: 0%"></div>
-    </div>
+  <div class="toolbar">
+    <div class="brand"><span class="dot"></span>Nhật ký vận hành – Hồ Nước Ngọt</div>
+    <div class="spacer"></div>
+    <button class="btn" id="btnCustomTime"><i class="fas fa-clock"></i> Thời gian tùy chỉnh</button>
+    <button class="btn" id="btnExcel"><i class="fas fa-file-excel"></i> Xuất Excel</button>
+    <button class="btn" id="btnPortrait"><i class="fas fa-file-alt"></i> In dọc</button>
+    <button class="btn" id="btnLandscape"><i class="fas fa-file-image"></i> In ngang</button>
+    <button class="btn" id="btnDashboardSettings"><i class="fas fa-cog"></i> Cá nhân hóa</button>
   </div>
 
-  <!-- Data Update Indicator -->
-  <div class="data-update-indicator" id="dataUpdateIndicator">
-    <i class="fas fa-sync-alt"></i>
-    <span id="dataUpdateText">Đang cập nhật dữ liệu mới...</span>
-  </div>
+  <div id="printArea" class="sheet">
+    <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</h1>
+    <div class="subhead" id="subTitle">Tháng …/…</div>
 
-  <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <i class="fas fa-water"></i>
-      <h1>Hệ thống quan trắc</h1>
+    <!-- Filters -->
+    <div class="filters">
+      <span class="label">Bộ lọc:</span>
+      <label for="yearSel">Năm</label>
+      <select id="yearSel"><option value="all">Tất cả</option></select>
+
+      <label for="quarterSel">Quý</label>
+      <select id="quarterSel">
+        <option value="all">Tất cả</option>
+        <option value="1">Quý 1</option>
+        <option value="2">Quý 2</option>
+        <option value="3">Quý 3</option>
+        <option value="4">Quý 4</option>
+      </select>
+
+      <label for="monthSel">Tháng</label>
+      <select id="monthSel">
+        <option value="all">Tất cả</option>
+        <script>for(let i=1;i<=12;i++) document.write(`<option value="${i}">Tháng ${i}</option>`);</script>
+      </select>
+
+      <label for="weekSel">Tuần</label>
+      <select id="weekSel">
+        <option value="all">Tất cả</option>
+      </select>
+
+      <label for="dayNightSel">Ngày/Đêm</label>
+      <select id="dayNightSel">
+        <option value="all">Tất cả</option>
+        <option value="day">Ngày (7h-19h)</option>
+        <option value="night">Đêm (19h-7h)</option>
+      </select>
     </div>
-    
-    <div class="sidebar-menu">
-      <div class="menu-item active" data-content="station">
-        <i class="fas fa-map-marked-alt"></i>
-        <span class="menu-text">Trạm đo</span>
+
+    <!-- Custom Time Panel -->
+    <div class="custom-time-panel" id="customTimePanel">
+      <div class="time-inputs">
+        <div class="input-group">
+          <label>Từ ngày:</label>
+          <input type="date" id="customFromDate">
+        </div>
+        <div class="input-group">
+          <label>Giờ:phút:giây</label>
+          <input type="time" id="customFromTime" step="1" value="00:00:00">
+        </div>
+        <div class="input-group">
+          <label>Đến ngày:</label>
+          <input type="date" id="customToDate">
+        </div>
+        <div class="input-group">
+          <label>Giờ:phút:giây</label>
+          <input type="time" id="customToTime" step="1" value="23:59:59">
+        </div>
+        <button id="btnApplyCustom">Áp dụng</button>
+        <button id="btnClearCustom">Xóa</button>
+      </div>
+    </div>
+
+    <!-- KPI: 6 ô -->
+    <div class="kpis" id="kpisContainer">
+        <div class="kpi" data-kpi-id="kpi_current_level">
+            <span class="kpi-icon">💧</span>
+            <div class="t">Mực nước hiện tại (m)</div>
+            <div class="v" id="kpiCurrentLevel">0</div>
+        </div>
+        <div class="kpi" data-kpi-id="kpi_current_volume">
+            <span class="kpi-icon">🏞️</span>
+            <div class="t">Dung tích hiện tại (Triệu m³)</div>
+            <div class="v" id="kpiCurrentVolume">0</div>
+        </div>
+        <div class="kpi" data-kpi-id="kpi_total_rain">
+        <span class="kpi-icon">💦</span>
+        <div class="t">Tổng lượng mưa (kỳ lọc) (mm)</div>
+        <div class="v" id="kpiTotalRain">0</div>
+      </div>
+      <div class="kpi" data-kpi-id="kpi_max_level">
+        <span class="kpi-icon">♒</span>
+        <div class="t">Mực nước lớn nhất (m)</div>
+        <div class="v" id="kpiMaxLevel">0</div>
+      </div>
+      <div class="kpi" data-kpi-id="kpi_max_rain">
+        <span class="kpi-icon">⛈️</span>
+        <div class="t">Mưa lớn nhất (mm)</div>
+        <div class="v">
+          <span id="kpiMaxRain">0</span>
+          <span class="s" id="kpiMaxRainDay"></span>
+        </div>
+      </div>
+      <div class="kpi" data-kpi-id="kpi_max_q">
+        <span class="kpi-icon">🌊</span>
+        <div class="t">Q lớn nhất (m³/s)</div>
+        <div class="v"><span id="kpiMaxQ">0</span></div>
       </div>
       
-      <div class="menu-item" data-content="monitoring">
-        <i class="fas fa-chart-line"></i>
-        <span class="menu-text">Dữ liệu quan trắc</span>
+    </div>
+
+    <!-- Hệ thống cảnh báo thông minh -->
+    <div class="alert-system">
+      <div class="alert-header">
+        <h2><i class="fas fa-exclamation-triangle"></i> Hệ thống cảnh báo thông minh</h2>
+        <div class="alert-timestamp" id="alertTimestamp">Cập nhật: --:--:-- --/--/----</div>
       </div>
       
-      <div class="menu-item" data-content="analysis">
-        <i class="fas fa-brain"></i>
-        <span class="menu-text">Cảnh báo và phân tích</span>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Menu Toggle Button for Mobile -->
-  <button class="menu-toggle" id="menuToggle">
-    <i class="fas fa-bars"></i>
-  </button>
-  
-  <!-- Main Content -->
-  <div class="main-content">
-    <!-- Toolbar -->
-    <div class="toolbar">
-      <div class="brand"><span class="dot"></span>Hệ thống quan trắc hồ chứa nước ngọt</div>
-      <div class="spacer"></div>
-      <button class="btn" id="btnRefreshData"><i class="fas fa-sync-alt"></i> Làm mới dữ liệu</button>
-      <button class="btn" id="btnCustomTime"><i class="fas fa-clock"></i> Thời gian tùy chỉnh</button>
-      <button class="btn" id="btnExcel"><i class="fas fa-file-excel"></i> Xuất Excel</button>
-      <button class="btn" id="btnPortrait"><i class="fas fa-file-alt"></i> In dọc</button>
-      <button class="btn" id="btnLandscape"><i class="fas fa-file-image"></i> In ngang</button>
-      <button class="btn" id="btnDashboardSettings"><i class="fas fa-cog"></i> Cá nhân hóa</button>
-    </div>
-    
-    <!-- Content Areas -->
-    <div class="content-area active" id="station-content">
-      <div class="map-container">
-        <iframe src="https://thuan84.github.io/codehtml/tramdomua.html" title="Bản đồ trạm đo"></iframe>
-      </div>
-    </div>
-    
-    <div class="content-area" id="monitoring-content">
-      <div class="sheet">
-        <h1>NHẬT KÝ VẬN HÀNH HỒ CHỨA NƯỚC NGỌT</h1>
-        <div class="subhead" id="subTitle">Tháng …/…</div>
-
-        <!-- Filters -->
-        <div class="filters">
-          <span class="label">Bộ lọc:</span>
-          <label for="yearSel">Năm</label>
-          <select id="yearSel"><option value="all">Tất cả</option></select>
-
-          <label for="quarterSel">Quý</label>
-          <select id="quarterSel">
-            <option value="all">Tất cả</option>
-            <option value="1">Quý 1</option>
-            <option value="2">Quý 2</option>
-            <option value="3">Quý 3</option>
-            <option value="4">Quý 4</option>
-          </select>
-
-          <label for="monthSel">Tháng</label>
-          <select id="monthSel">
-            <option value="all">Tất cả</option>
-            <script>for(let i=1;i<=12;i++) document.write(`<option value="${i}">Tháng ${i}</option>`);</script>
-          </select>
-
-          <label for="weekSel">Tuần</label>
-          <select id="weekSel">
-            <option value="all">Tất cả</option>
-          </select>
-
-          <label for="dayNightSel">Ngày/Đêm</label>
-          <select id="dayNightSel">
-            <option value="all">Tất cả</option>
-            <option value="day">Ngày (7h-19h)</option>
-            <option value="night">Đêm (19h-7h)</option>
-          </select>
-        </div>
-
-        <!-- Custom Time Panel -->
-        <div class="custom-time-panel" id="customTimePanel">
-          <div class="time-inputs">
-            <div class="input-group">
-              <label>Từ ngày:</label>
-              <input type="date" id="customFromDate">
-            </div>
-            <div class="input-group">
-              <label>Giờ:phút:giây</label>
-              <input type="time" id="customFromTime" step="1" value="00:00:00">
-            </div>
-            <div class="input-group">
-              <label>Đến ngày:</label>
-              <input type="date" id="customToDate">
-            </div>
-            <div class="input-group">
-              <label>Giờ:phút:giây</label>
-              <input type="time" id="customToTime" step="1" value="23:59:59">
-            </div>
-            <button id="btnApplyCustom">Áp dụng</button>
-            <button id="btnClearCustom">Xóa</button>
+      <div class="alert-content">
+        <!-- Trạng thái cảnh báo -->
+        <div class="alert-status-container">
+          <div class="alert-status normal" data-status="normal">
+            <i class="fas fa-check-circle"></i>
+            <div class="status-title">Bình thường</div>
+            <div class="status-value"><span id="normalValue">56.5</span> <span class="status-unit">m</span></div>
+          </div>
+          <div class="alert-status monitor active" data-status="monitor">
+            <i class="fas fa-eye"></i>
+            <div class="status-title">Theo dõi</div>
+            <div class="status-value"><span id="monitorValue">58.78</span> <span class="status-unit">m</span></div>
+          </div>
+          <div class="alert-status danger" data-status="danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div class="status-title">Nguy hiểm</div>
+            <div class="status-value"><span id="dangerValue">60.3</span> <span class="status-unit">m</span></div>
+          </div>
+          <div class="alert-status emergency" data-status="emergency">
+            <i class="fas fa-bell"></i>
+            <div class="status-title">Khẩn cấp</div>
+            <div class="status-value"><span id="emergencyValue">60.76</span> <span class="status-unit">m</span></div>
           </div>
         </div>
+        
+        <!-- Thông báo cảnh báo -->
+        <div class="alert-message normal" id="alertMessage">
+          <i class="fas fa-info-circle"></i>
+          <span id="alertText">Mực nước (56,65 m) trong ngưỡng an toàn (56,5 m). Hoạt động bình thường.</span>
+        </div>
+        
+        <!-- Trực quan hóa mực nước -->
+        <div class="alert-visual">
+          <div class="water-level-visual" id="waterLevelVisual"></div>
+          <div class="level-markers">
+            <div class="level-marker dead" data-label="Mực nước chết: 50.6 m"></div>
+            <div class="level-marker normal" data-label="MN dâng bình thường: 58.78 m"></div>
+            <div class="level-marker danger" data-label="MN dâng gia cường: 60.76 m"></div>
+          </div>
+          <div class="current-level-indicator" id="currentLevelIndicator" data-label="56.65 m"></div>
+        </div>
+        
+        <!-- Cài đặt ngưỡng cảnh báo (ẩn/hiện) -->
+        <div class="alert-expandable">
+          <div class="expandable-header">
+            <div class="expandable-title">
+              <i class="fas fa-sliders-h"></i> Cài đặt ngưỡng cảnh báo (m)
+            </div>
+            <button class="toggle-btn" id="toggleSettings">
+              <i class="fas fa-chevron-down"></i> Hiện
+            </button>
+          </div>
+          <div class="expandable-content" id="settingsContent">
+            <div class="threshold-inputs">
+              <div class="threshold-group">
+                <label>
+                  <span class="threshold-indicator indicator-normal"></span>
+                  Bình thường
+                </label>
+                <input type="number" id="normalThreshold" step="0.01" value="56.5">
+              </div>
+              <div class="threshold-group">
+                <label>
+                  <span class="threshold-indicator indicator-monitor"></span>
+                  Theo dõi (MN dâng BT)
+                </label>
+                <input type="number" id="monitorThreshold" step="0.01" value="58.78">
+              </div>
+              <div class="threshold-group">
+                <label>
+                  <span class="threshold-indicator indicator-danger"></span>
+                  Nguy hiểm
+                </label>
+                <input type="number" id="dangerThreshold" step="0.01" value="60.3">
+              </div>
+              <div class="threshold-group">
+                <label>
+                  <span class="threshold-indicator indicator-emergency"></span>
+                  Khẩn cấp (MN dâng GC)
+                </label>
+                <input type="number" id="emergencyThreshold" step="0.01" value="60.76">
+              </div>
+            </div>
+            <div class="threshold-actions">
+              <button class="btn-reset" id="resetThresholds"><i class="fas fa-undo"></i> Đặt lại mặc định</button>
+              <button class="btn-save" id="saveThresholds"><i class="fas fa-save"></i> Lưu cài đặt</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Lịch sử cảnh báo (ẩn/hiện) -->
+        <div class="alert-expandable">
+          <div class="expandable-header">
+            <div class="expandable-title">
+              <i class="fas fa-history"></i> Lịch sử cảnh báo
+            </div>
+            <button class="toggle-btn" id="toggleHistory">
+              <i class="fas fa-chevron-down"></i> Hiện
+            </button>
+          </div>
+          <div class="expandable-content" id="historyContent">
+            <div class="history-list" id="historyList">
+              <div class="history-item normal">
+                <span>Mực nước (56,65 m) trong ngưỡng an toàn (56,5 m)</span>
+                <span class="history-time">10:30:25 15/06/2023</span>
+              </div>
+              <div class="history-item monitor">
+                <span>Mực nước (58,90 m) đã vượt ngưỡng theo dõi (58,78 m)</span>
+                <span class="history-time">09:15:10 15/06/2023</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        <!-- KPI: 6 ô -->
-        <div class="kpis" id="kpisContainer">
-            <div class="kpi" data-kpi-id="kpi_current_level">
-                <span class="kpi-icon">💧</span>
-                <div class="t">Mực nước hiện tại (m)</div>
-                <div class="v" id="kpiCurrentLevel">0</div>
+    <!-- Phân tích AI -->
+    <div class="ai-analysis" id="aiAnalysis">
+      <div class="ai-header">
+        <h2><i class="fas fa-brain"></i> Phân tích AI</h2>
+        <div class="ai-timestamp" id="aiTimestamp">Cập nhật: --:--:-- --/--/----</div>
+      </div>
+      
+      <div class="ai-content">
+        <div class="ai-tabs">
+          <button class="ai-tab active" data-tab="trend">Xu hướng</button>
+          <button class="ai-tab" data-tab="prediction">Dự báo</button>
+          <button class="ai-tab" data-tab="recommendation">Đề xuất</button>
+          <button class="ai-tab" data-tab="pattern">Phân tích mẫu</button>
+        </div>
+        
+        <div class="ai-tab-content active" id="trend-tab">
+          <div class="ai-insight">
+            <div class="ai-insight-title">
+              <i class="fas fa-chart-line"></i> Xu hướng mực nước
             </div>
-            <div class="kpi" data-kpi-id="kpi_current_volume">
-                <span class="kpi-icon">🏞️</span>
-                <div class="t">Dung tích hiện tại (Triệu m³)</div>
-                <div class="v" id="kpiCurrentVolume">0</div>
+            <div class="ai-insight-content" id="waterLevelTrend">
+              Đang phân tích xu hướng mực nước...
             </div>
-            <div class="kpi" data-kpi-id="kpi_total_rain">
-            <span class="kpi-icon">💦</span>
-            <div class="t">Tổng lượng mưa (kỳ lọc) (mm)</div>
-            <div class="v" id="kpiTotalRain">0</div>
-          </div>
-          <div class="kpi" data-kpi-id="kpi_max_level">
-            <span class="kpi-icon">♒</span>
-            <div class="t">Mực nước lớn nhất (m)</div>
-            <div class="v" id="kpiMaxLevel">0</div>
-          </div>
-          <div class="kpi" data-kpi-id="kpi_max_rain">
-            <span class="kpi-icon">⛈️</span>
-            <div class="t">Mưa lớn nhất (mm)</div>
-            <div class="v">
-              <span id="kpiMaxRain">0</span>
-              <span class="s" id="kpiMaxRainDay"></span>
-            </div>
-          </div>
-          <div class="kpi" data-kpi-id="kpi_max_q">
-            <span class="kpi-icon">🌊</span>
-            <div class="t">Q lớn nhất (m³/s)</div>
-            <div class="v"><span id="kpiMaxQ">0</span></div>
           </div>
           
-        </div>
-
-        <!-- Chart gộp mưa + mực nước -->
-        <div class="charts" id="chartsContainer">
-          <div class="card">
-            <div class="card-header">
-              <h3>Lượng mưa &amp; mực nước theo ngày – vùng cảnh báo mực nước</h3>
-              <div id="waterStatus"></div>
-              <div class="chart-legend-hint">
-                🟢 an toàn · 🟡 theo dõi · 🟠 cảnh báo · 🔴 nguy hiểm<br>
-                ╌ MN chết 50.6 m · ╌ MN dâng BT 58.78 m · ╌ MN dâng GC 60.76 m
-              </div>
+          <div class="ai-metrics">
+            <div class="ai-metric">
+              <div class="ai-metric-value" id="trendDirection">--</div>
+              <div class="ai-metric-label">Xu hướng</div>
             </div>
-            <div class="chart-box"><canvas id="comboChart"></canvas></div>
-          </div>
-        </div>
-
-        <!-- Bảng -->
-        <div class="table-wrap">
-          <table id="grid">
-            <colgroup><col class="cw-day"><col class="cw-time"></colgroup>
-            <thead>
-              <tr>
-                <th class="col-ngay" rowspan="2">Ngày</th>
-                <th class="col-gio"  rowspan="2">Giờ</th>
-                <th rowspan="2">Mực nước<br>(m)</th>
-                <th rowspan="2">Dung tích<br>(Triệu m³)</th>
-                <th rowspan="2">Lượng mưa<br>(mm)</th>
-                <th colspan="2">Thông số vận hành tràn tự do</th>
-                <th colspan="4">Thông số vận hành tràn sự cố</th>
-                <th colspan="3">Thông số vận hành cống lấy nước</th>
-                <th rowspan="2" style="min-width:180px">Họ, tên người vận hành</th>
-                <th rowspan="2" style="min-width:140px">Chữ ký</th>
-              </tr>
-              <tr>
-                <th>H tràn<br>(cm)</th>
-                <th>Q tràn tự do<br>(m³/s)</th>
-                <th>a1<br>(cm)</th>
-                <th>a2<br>(cm)</th>
-                <th>a3<br>(cm)</th>
-                <th>Q tràn sự cố<br>(m³/s)</th>
-                <th>a<br>(cm)</th>
-                <th>Cột nước đầu kênh<br>(m)</th>
-                <th>Q cống<br>(m³/s)</th>
-              </tr>
-            </thead>
-            <tbody id="tbody">
-              <tr><td class="state" colspan="16">Đang tải dữ liệu…</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Phân trang -->
-        <div id="pager" class="pager"></div>
-      </div>
-    </div>
-    
-    <div class="content-area" id="analysis-content">
-      <div class="sheet">
-        <!-- Hệ thống cảnh báo thông minh -->
-        <div class="alert-system">
-          <div class="alert-header">
-            <h2><i class="fas fa-exclamation-triangle"></i> Hệ thống cảnh báo thông minh</h2>
-            <div class="alert-timestamp" id="alertTimestamp">Cập nhật: --:--:-- --/--/----</div>
+            <div class="ai-metric">
+              <div class="ai-metric-value" id="trendRate">--</div>
+              <div class="ai-metric-label">Tốc độ thay đổi (m/ngày)</div>
+            </div>
+            <div class="ai-metric">
+              <div class="ai-metric-value" id="trendConsistency">--</div>
+              <div class="ai-metric-label">Độ ổn định (%)</div>
+            </div>
           </div>
           
-          <div class="alert-content">
-            <!-- Trạng thái cảnh báo -->
-            <div class="alert-status-container">
-              <div class="alert-status normal" data-status="normal">
-                <i class="fas fa-check-circle"></i>
-                <div class="status-title">Bình thường</div>
-                <div class="status-value"><span id="normalValue">56.5</span> <span class="status-unit">m</span></div>
-              </div>
-              <div class="alert-status monitor active" data-status="monitor">
-                <i class="fas fa-eye"></i>
-                <div class="status-title">Theo dõi</div>
-                <div class="status-value"><span id="monitorValue">58.78</span> <span class="status-unit">m</span></div>
-              </div>
-              <div class="alert-status danger" data-status="danger">
-                <i class="fas fa-exclamation-triangle"></i>
-                <div class="status-title">Nguy hiểm</div>
-                <div class="status-value"><span id="dangerValue">60.3</span> <span class="status-unit">m</span></div>
-              </div>
-              <div class="alert-status emergency" data-status="emergency">
-                <i class="fas fa-bell"></i>
-                <div class="status-title">Khẩn cấp</div>
-                <div class="status-value"><span id="emergencyValue">60.76</span> <span class="status-unit">m</span></div>
-              </div>
+          <div class="ai-chart-container">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+        
+        <div class="ai-tab-content" id="prediction-tab">
+          <div class="ai-prediction">
+            <div class="ai-prediction-title">
+              <i class="fas fa-crystal-ball"></i> Dự báo mực nước 7 ngày tới
             </div>
-            
-            <!-- Thông báo cảnh báo -->
-            <div class="alert-message normal" id="alertMessage">
-              <i class="fas fa-info-circle"></i>
-              <span id="alertText">Mực nước (56,65 m) trong ngưỡng an toàn (56,5 m). Hoạt động bình thường.</span>
+            <div class="ai-prediction-content" id="waterLevelPrediction">
+              Đang phân tích dữ liệu lịch sử để đưa ra dự báo...
             </div>
-            
-            <!-- Trực quan hóa mực nước -->
-            <div class="alert-visual">
-              <div class="water-level-visual" id="waterLevelVisual"></div>
-              <div class="level-markers">
-                <div class="level-marker dead" data-label="Mực nước chết: 50.6 m"></div>
-                <div class="level-marker normal" data-label="MN dâng bình thường: 58.78 m"></div>
-                <div class="level-marker danger" data-label="MN dâng gia cường: 60.76 m"></div>
-              </div>
-              <div class="current-level-indicator" id="currentLevelIndicator" data-label="56.65 m"></div>
+          </div>
+          
+          <div class="ai-metrics">
+            <div class="ai-metric">
+              <div class="ai-metric-value" id="predictionMin">--</div>
+              <div class="ai-metric-label">Dự báo thấp nhất (m)</div>
             </div>
-            
-            <!-- Cài đặt ngưỡng cảnh báo (ẩn/hiện) -->
-            <div class="alert-expandable">
-              <div class="expandable-header">
-                <div class="expandable-title">
-                  <i class="fas fa-sliders-h"></i> Cài đặt ngưỡng cảnh báo (m)
-                </div>
-                <button class="toggle-btn" id="toggleSettings">
-                  <i class="fas fa-chevron-down"></i> Hiện
-                </button>
-              </div>
-              <div class="expandable-content" id="settingsContent">
-                <div class="threshold-inputs">
-                  <div class="threshold-group">
-                    <label>
-                      <span class="threshold-indicator indicator-normal"></span>
-                      Bình thường
-                    </label>
-                    <input type="number" id="normalThreshold" step="0.01" value="56.5">
-                  </div>
-                  <div class="threshold-group">
-                    <label>
-                      <span class="threshold-indicator indicator-monitor"></span>
-                      Theo dõi (MN dâng BT)
-                    </label>
-                    <input type="number" id="monitorThreshold" step="0.01" value="58.78">
-                  </div>
-                  <div class="threshold-group">
-                    <label>
-                      <span class="threshold-indicator indicator-danger"></span>
-                      Nguy hiểm
-                    </label>
-                    <input type="number" id="dangerThreshold" step="0.01" value="60.3">
-                  </div>
-                  <div class="threshold-group">
-                    <label>
-                      <span class="threshold-indicator indicator-emergency"></span>
-                      Khẩn cấp (MN dâng GC)
-                    </label>
-                    <input type="number" id="emergencyThreshold" step="0.01" value="60.76">
-                  </div>
-                </div>
-                <div class="threshold-actions">
-                  <button class="btn-reset" id="resetThresholds"><i class="fas fa-undo"></i> Đặt lại mặc định</button>
-                  <button class="btn-save" id="saveThresholds"><i class="fas fa-save"></i> Lưu cài đặt</button>
-                </div>
-              </div>
+            <div class="ai-metric">
+              <div class="ai-metric-value" id="predictionMax">--</div>
+              <div class="ai-metric-label">Dự báo cao nhất (m)</div>
             </div>
-            
-            <!-- Lịch sử cảnh báo (ẩn/hiện) -->
-            <div class="alert-expandable">
-              <div class="expandable-header">
-                <div class="expandable-title">
-                  <i class="fas fa-history"></i> Lịch sử cảnh báo
-                </div>
-                <button class="toggle-btn" id="toggleHistory">
-                  <i class="fas fa-chevron-down"></i> Hiện
-                </button>
-              </div>
-              <div class="expandable-content" id="historyContent">
-                <div class="history-list" id="historyList">
-                  <div class="history-item normal">
-                    <span>Mực nước (56,65 m) trong ngưỡng an toàn (56,5 m)</span>
-                    <span class="history-time">10:30:25 15/06/2023</span>
-                  </div>
-                  <div class="history-item monitor">
-                    <span>Mực nước (58,90 m) đã vượt ngưỡng theo dõi (58,78 m)</span>
-                    <span class="history-time">09:15:10 15/06/2023</span>
-                  </div>
-                </div>
-              </div>
+            <div class="ai-metric">
+              <div class="ai-metric-value" id="predictionRisk">--</div>
+              <div class="ai-metric-label">Rủi ro vượt ngưỡng</div>
+            </div>
+          </div>
+          
+          <div class="ai-chart-container">
+            <canvas id="predictionChart"></canvas>
+          </div>
+        </div>
+        
+        <div class="ai-tab-content" id="recommendation-tab">
+          <div class="ai-recommendation">
+            <div class="ai-recommendation-title">
+              <i class="fas fa-lightbulb"></i> Đề xuất vận hành
+            </div>
+            <div class="ai-recommendation-content" id="operationRecommendation">
+              Đang phân tích dữ liệu để đưa ra đề xuất vận hành...
+            </div>
+          </div>
+          
+          <div class="ai-insight">
+            <div class="ai-insight-title">
+              <i class="fas fa-tint"></i> Khuyến nghị xả nước
+            </div>
+            <div class="ai-insight-content" id="dischargeRecommendation">
+              Đang phân tích dữ liệu để đưa ra khuyến nghị xả nước...
+            </div>
+          </div>
+          
+          <div class="ai-insight">
+            <div class="ai-insight-title">
+              <i class="fas fa-exclamation-circle"></i> Các điểm cần chú ý
+            </div>
+            <div class="ai-insight-content" id="attentionPoints">
+              Đang phân tích dữ liệu để xác định các điểm cần chú ý...
             </div>
           </div>
         </div>
-
-        <!-- Phân tích AI -->
-        <div class="ai-analysis" id="aiAnalysis">
-          <div class="ai-header">
-            <h2><i class="fas fa-brain"></i> Phân tích AI</h2>
-            <div class="ai-timestamp" id="aiTimestamp">Cập nhật: --:--:-- --/--/----</div>
+        
+        <div class="ai-tab-content" id="pattern-tab">
+          <div class="ai-insight">
+            <div class="ai-insight-title">
+              <i class="fas fa-cloud-rain"></i> Phân tích mẫu mưa
+            </div>
+            <div class="ai-insight-content" id="rainPattern">
+              Đang phân tích mẫu lượng mưa...
+            </div>
           </div>
           
-          <div class="ai-content">
-            <div class="ai-tabs">
-              <button class="ai-tab active" data-tab="trend">Xu hướng</button>
-              <button class="ai-tab" data-tab="prediction">Dự báo</button>
-              <button class="ai-tab" data-tab="recommendation">Đề xuất</button>
-              <button class="ai-tab" data-tab="pattern">Phân tích mẫu</button>
+          <div class="ai-insight">
+            <div class="ai-insight-title">
+              <i class="fas fa-water"></i> Phân tích mẫu mực nước theo mùa
             </div>
-            
-            <div class="ai-tab-content active" id="trend-tab">
-              <div class="ai-insight">
-                <div class="ai-insight-title">
-                  <i class="fas fa-chart-line"></i> Xu hướng mực nước
-                </div>
-                <div class="ai-insight-content" id="waterLevelTrend">
-                  Đang phân tích xu hướng mực nước...
-                </div>
-              </div>
-              
-              <div class="ai-metrics">
-                <div class="ai-metric">
-                  <div class="ai-metric-value" id="trendDirection">--</div>
-                  <div class="ai-metric-label">Xu hướng</div>
-                </div>
-                <div class="ai-metric">
-                  <div class="ai-metric-value" id="trendRate">--</div>
-                  <div class="ai-metric-label">Tốc độ thay đổi (m/ngày)</div>
-                </div>
-                <div class="ai-metric">
-                  <div class="ai-metric-value" id="trendConsistency">--</div>
-                  <div class="ai-metric-label">Độ ổn định (%)</div>
-                </div>
-              </div>
-              
-              <div class="ai-chart-container">
-                <canvas id="trendChart"></canvas>
-              </div>
+            <div class="ai-insight-content" id="seasonalPattern">
+              Đang phân tích mẫu mực nước theo mùa...
             </div>
-            
-            <div class="ai-tab-content" id="prediction-tab">
-              <div class="ai-prediction">
-                <div class="ai-prediction-title">
-                  <i class="fas fa-crystal-ball"></i> Dự báo mực nước 7 ngày tới
-                </div>
-                <div class="ai-prediction-content" id="waterLevelPrediction">
-                  Đang phân tích dữ liệu lịch sử để đưa ra dự báo...
-                </div>
-              </div>
-              
-              <div class="ai-metrics">
-                <div class="ai-metric">
-                  <div class="ai-metric-value" id="predictionMin">--</div>
-                  <div class="ai-metric-label">Dự báo thấp nhất (m)</div>
-                </div>
-                <div class="ai-metric">
-                  <div class="ai-metric-value" id="predictionMax">--</div>
-                  <div class="ai-metric-label">Dự báo cao nhất (m)</div>
-                </div>
-                <div class="ai-metric">
-                  <div class="ai-metric-value" id="predictionRisk">--</div>
-                  <div class="ai-metric-label">Rủi ro vượt ngưỡng</div>
-                </div>
-              </div>
-              
-              <div class="ai-chart-container">
-                <canvas id="predictionChart"></canvas>
-              </div>
+          </div>
+          
+          <div class="ai-metrics">
+            <div class="ai-metric">
+              <div class="ai-metric-value" id="rainCorrelation">--</div>
+              <div class="ai-metric-label">Tương quan mưa-mực nước</div>
             </div>
-            
-            <div class="ai-tab-content" id="recommendation-tab">
-              <div class="ai-recommendation">
-                <div class="ai-recommendation-title">
-                  <i class="fas fa-lightbulb"></i> Đề xuất vận hành
-                </div>
-                <div class="ai-recommendation-content" id="operationRecommendation">
-                  Đang phân tích dữ liệu để đưa ra đề xuất vận hành...
-                </div>
-              </div>
-              
-              <div class="ai-insight">
-                <div class="ai-insight-title">
-                  <i class="fas fa-tint"></i> Khuyến nghị xả nước
-                </div>
-                <div class="ai-insight-content" id="dischargeRecommendation">
-                  Đang phân tích dữ liệu để đưa ra khuyến nghị xả nước...
-                </div>
-              </div>
-              
-              <div class="ai-insight">
-                <div class="ai-insight-title">
-                  <i class="fas fa-exclamation-circle"></i> Các điểm cần chú ý
-                </div>
-                <div class="ai-insight-content" id="attentionPoints">
-                  Đang phân tích dữ liệu để xác định các điểm cần chú ý...
-                </div>
-              </div>
+            <div class="ai-metric">
+              <div class="ai-metric-value" id="seasonalVariation">--</div>
+              <div class="ai-metric-label">Biến động theo mùa (%)</div>
             </div>
-            
-            <div class="ai-tab-content" id="pattern-tab">
-              <div class="ai-insight">
-                <div class="ai-insight-title">
-                  <i class="fas fa-cloud-rain"></i> Phân tích mẫu mưa
-                </div>
-                <div class="ai-insight-content" id="rainPattern">
-                  Đang phân tích mẫu lượng mưa...
-                </div>
-              </div>
-              
-              <div class="ai-insight">
-                <div class="ai-insight-title">
-                  <i class="fas fa-water"></i> Phân tích mẫu mực nước theo mùa
-                </div>
-                <div class="ai-insight-content" id="seasonalPattern">
-                  Đang phân tích mẫu mực nước theo mùa...
-                </div>
-              </div>
-              
-              <div class="ai-metrics">
-                <div class="ai-metric">
-                  <div class="ai-metric-value" id="rainCorrelation">--</div>
-                  <div class="ai-metric-label">Tương quan mưa-mực nước</div>
-                </div>
-                <div class="ai-metric">
-                  <div class="ai-metric-value" id="seasonalVariation">--</div>
-                  <div class="ai-metric-label">Biến động theo mùa (%)</div>
-                </div>
-              </div>
-              
-              <div class="ai-chart-container">
-                <canvas id="patternChart"></canvas>
-              </div>
-            </div>
+          </div>
+          
+          <div class="ai-chart-container">
+            <canvas id="patternChart"></canvas>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Chart gộp mưa + mực nước -->
+    <div class="charts" id="chartsContainer">
+      <div class="card">
+        <div class="card-header">
+          <h3>Lượng mưa &amp; mực nước theo ngày – vùng cảnh báo mực nước</h3>
+          <div id="waterStatus"></div>
+          <div class="chart-legend-hint">
+            🟢 an toàn · 🟡 theo dõi · 🟠 cảnh báo · 🔴 nguy hiểm<br>
+            ╌ MN chết 50.6 m · ╌ MN dâng BT 58.78 m · ╌ MN dâng GC 60.76 m
+          </div>
+        </div>
+        <div class="chart-box"><canvas id="comboChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Bảng -->
+    <div class="table-wrap">
+      <table id="grid">
+        <colgroup><col class="cw-day"><col class="cw-time"></colgroup>
+        <thead>
+          <tr>
+            <th class="col-ngay" rowspan="2">Ngày</th>
+            <th class="col-gio"  rowspan="2">Giờ</th>
+            <th rowspan="2">Mực nước<br>(m)</th>
+            <th rowspan="2">Dung tích<br>(Triệu m³)</th>
+            <th rowspan="2">Lượng mưa<br>(mm)</th>
+            <th colspan="2">Thông số vận hành tràn tự do</th>
+            <th colspan="4">Thông số vận hành tràn sự cố</th>
+            <th colspan="3">Thông số vận hành cống lấy nước</th>
+            <th rowspan="2" style="min-width:180px">Họ, tên người vận hành</th>
+            <th rowspan="2" style="min-width:140px">Chữ ký</th>
+          </tr>
+          <tr>
+            <th>H tràn<br>(cm)</th>
+            <th>Q tràn tự do<br>(m³/s)</th>
+            <th>a1<br>(cm)</th>
+            <th>a2<br>(cm)</th>
+            <th>a3<br>(cm)</th>
+            <th>Q tràn sự cố<br>(m³/s)</th>
+            <th>a<br>(cm)</th>
+            <th>Cột nước đầu kênh<br>(m)</th>
+            <th>Q cống<br>(m³/s)</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td class="state" colspan="16">Đang tải dữ liệu…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Phân trang -->
+    <div id="pager" class="pager"></div>
   </div>
 
   <!-- Dashboard Settings Modal -->
@@ -2119,23 +1711,6 @@
     const rainCorrelation = document.getElementById('rainCorrelation');
     const seasonalVariation = document.getElementById('seasonalVariation');
 
-    // Sidebar and content switching
-    const menuItems = document.querySelectorAll('.menu-item');
-    const contentAreas = document.querySelectorAll('.content-area');
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-
-    // Data Loading
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    const loadingText = document.getElementById('loadingText');
-    const loadingProgressBar = document.getElementById('loadingProgressBar');
-    const btnRefreshData = document.getElementById('btnRefreshData');
-    const toastContainer = document.getElementById('toastContainer');
-    
-    // Data Update Indicator
-    const dataUpdateIndicator = document.getElementById('dataUpdateIndicator');
-    const dataUpdateText = document.getElementById('dataUpdateText');
-
     let customTimeRange = null;
     let currentAlertStatus = 'normal'; // Mặc định là 'normal'
     let currentWaterLevel = 56.65; // Giá trị mặc định đã cập nhật theo thực tế
@@ -2165,6 +1740,7 @@
       const date=new Date(yyyy,mm-1,dd,HH,MM);
       return Number.isNaN(date.getTime())?null:date;
     }
+    
     const fmtDateVN=d=>`${fmt2(d.getDate())}/${fmt2(d.getMonth()+1)}/${d.getFullYear()}`;
     const fmtTimeVN=d=>`${fmt2(d.getHours())}:${fmt2(d.getMinutes())}`;
     const fmtDateTimeVN=d=>`${fmtDateVN(d)} ${fmtTimeVN(d)}`;
@@ -2381,14 +1957,9 @@
 
       updateSubtitle();
 
-      // Only update table and charts if the monitoring tab is active
-      if (document.getElementById('monitoring-content').classList.contains('active')) {
-        currentPage = 1;
-        renderTablePage();
-        updateKPIAndCharts();
-      }
-      
-      // Always update alert and AI analysis as they might be viewed later
+      currentPage = 1;
+      renderTablePage();
+      updateKPIAndCharts();
       updateAlertSystem();
       updateAIAnalysis();
     }
@@ -2523,15 +2094,13 @@
       const yMaxLvl = niceCeil(lvlMax + pad, 0.2);
 
       if(comboChart) comboChart.destroy();
-      const ctx = document.getElementById('comboChart');
-      if (!ctx) return; // Exit if chart canvas is not in the DOM
-      const chartCtx = ctx.getContext('2d');
+      const ctx = document.getElementById('comboChart').getContext('2d');
 
-      const gradient = chartCtx.createLinearGradient(0,0,0,chartCtx.canvas.height);
+      const gradient = ctx.createLinearGradient(0,0,0,ctx.canvas.height);
       gradient.addColorStop(0,'rgba(248,113,113,0.35)');
       gradient.addColorStop(1,'rgba(248,113,113,0.00)');
 
-      comboChart = new Chart(chartCtx,{
+      comboChart = new Chart(ctx,{
         type:'bar',
         data:{
           labels:labelsDM,
@@ -2716,395 +2285,6 @@
       }
     }
 
-    // --- Toast Notification System ---
-    function showToast(message, type = 'info', duration = 5000) {
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      
-      let icon = '';
-      switch(type) {
-        case 'success':
-          icon = '<i class="fas fa-check-circle toast-icon"></i>';
-          break;
-        case 'warning':
-          icon = '<i class="fas fa-exclamation-triangle toast-icon"></i>';
-          break;
-        case 'error':
-          icon = '<i class="fas fa-times-circle toast-icon"></i>';
-          break;
-        default:
-          icon = '<i class="fas fa-info-circle toast-icon"></i>';
-      }
-      
-      toast.innerHTML = `
-        ${icon}
-        <div class="toast-message">${message}</div>
-        <div class="toast-close"><i class="fas fa-times"></i></div>
-        <div class="toast-progress"></div>
-      `;
-      
-      toastContainer.appendChild(toast);
-      
-      // Auto remove after duration
-      const timeout = setTimeout(() => {
-        removeToast(toast);
-      }, duration);
-      
-      // Manual close
-      toast.querySelector('.toast-close').addEventListener('click', () => {
-        clearTimeout(timeout);
-        removeToast(toast);
-      });
-      
-      return toast;
-    }
-    
-    function removeToast(toast) {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateX(100%)';
-      setTimeout(() => {
-        if (toast.parentNode) {
-          toast.parentNode.removeChild(toast);
-        }
-      }, 300);
-    }
-
-    // --- IndexedDB for Caching ---
-    const DB_NAME = 'hoNuocNgotDB';
-    const DB_VERSION = 1;
-    const STORE_NAME = 'dataCache';
-    
-    let db;
-    
-    function initDB() {
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
-        
-        request.onerror = (event) => {
-          console.error('IndexedDB error:', event.target.error);
-          reject(event.target.error);
-        };
-        
-        request.onsuccess = (event) => {
-          db = event.target.result;
-          resolve(db);
-        };
-        
-        request.onupgradeneeded = (event) => {
-          const db = event.target.result;
-          
-          if (!db.objectStoreNames.contains(STORE_NAME)) {
-            const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-            objectStore.createIndex('timestamp', 'timestamp', { unique: false });
-          }
-        };
-      });
-    }
-    
-    function getCachedData() {
-      return new Promise((resolve, reject) => {
-        if (!db) {
-          reject(new Error('Database not initialized'));
-          return;
-        }
-        
-        const transaction = db.transaction([STORE_NAME], 'readonly');
-        const objectStore = transaction.objectStore(STORE_NAME);
-        const request = objectStore.get('mainData');
-        
-        request.onerror = (event) => {
-          reject(event.target.error);
-        };
-        
-        request.onsuccess = (event) => {
-          const result = event.target.result;
-          if (result && result.data) {
-            resolve(result.data);
-          } else {
-            resolve(null);
-          }
-        };
-      });
-    }
-    
-    function cacheData(data) {
-      return new Promise((resolve, reject) => {
-        if (!db) {
-          reject(new Error('Database not initialized'));
-          return;
-        }
-        
-        const transaction = db.transaction([STORE_NAME], 'readwrite');
-        const objectStore = transaction.objectStore(STORE_NAME);
-        
-        const cacheEntry = {
-          id: 'mainData',
-          data: data,
-          timestamp: new Date().getTime()
-        };
-        
-        const request = objectStore.put(cacheEntry);
-        
-        request.onerror = (event) => {
-          reject(event.target.error);
-        };
-        
-        request.onsuccess = (event) => {
-          resolve();
-        };
-      });
-    }
-    
-    // --- Data Loading with Progressive Enhancement ---
-    function showLoading(show = true, text = 'Đang tải dữ liệu...', progress = 0) {
-      if (show) {
-        loadingOverlay.style.display = 'flex';
-        loadingText.textContent = text;
-        loadingProgressBar.style.width = `${progress}%`;
-      } else {
-        loadingOverlay.style.display = 'none';
-      }
-    }
-    
-    // Show data update indicator
-    function showDataUpdateIndicator(show = true, text = 'Đang cập nhật dữ liệu mới...') {
-      if (show) {
-        dataUpdateText.textContent = text;
-        dataUpdateIndicator.classList.add('show');
-      } else {
-        dataUpdateIndicator.classList.remove('show');
-      }
-    }
-    
-    // Combine data without duplicates
-    function combineData(existingData, newData) {
-      if (!existingData || existingData.length === 0) {
-        return newData || [];
-      }
-      
-      if (!newData || newData.length === 0) {
-        return existingData;
-      }
-      
-      // Create a map of existing data by unique identifier (ngayGio)
-      const dataMap = new Map();
-      
-      // Add existing data to map
-      existingData.forEach(item => {
-        if (item.ngayGio) {
-          dataMap.set(item.ngayGio, item);
-        }
-      });
-      
-      // Add new data to map (overwrites duplicates)
-      newData.forEach(item => {
-        if (item.ngayGio) {
-          dataMap.set(item.ngayGio, item);
-        }
-      });
-      
-      // Convert back to array and sort by date (newest first)
-      return Array.from(dataMap.values()).sort((a, b) => {
-        const dateA = parseVNDateTime(a.ngayGio);
-        const dateB = parseVNDateTime(b.ngayGio);
-        return dateB - dateA;
-      });
-    }
-    
-    // Process raw data into the format used by the application
-    function processData(rawData) {
-      return rawData.map(r => {
-        const d = parseVNDateTime(r.ngayGio);
-        const y = d ? d.getFullYear() : null;
-        const m = d ? (d.getMonth() + 1) : null;
-        const q = d ? (Math.floor((m - 1) / 3) + 1) : null;
-        
-        const base = {
-          ...r,
-          __d: d,
-          __y: y,
-          __m: m,
-          __q: q
-        };
-        
-        base.__rowHTML = buildRowHTML(base);
-        return base;
-      });
-    }
-    
-    // Load data with progressive enhancement
-    async function loadDataWithProgressiveEnhancement() {
-      try {
-        // Initialize IndexedDB
-        await initDB();
-        
-        // Try to get cached data first
-        const cachedData = await getCachedData();
-        
-        if (cachedData && cachedData.length > 0) {
-          // Process cached data
-          allData = processData(cachedData);
-          
-          // Populate filters with cached data
-          populateYears(allData);
-          populateWeeks(allData);
-          
-          // Apply filters to show cached data immediately
-          applyFiltersCore();
-          
-          showToast('Đã tải dữ liệu từ cache', 'info', 3000);
-          
-          // Continue to fetch fresh data in background
-          fetchFreshDataInBackground();
-        } else {
-          // No cached data, fetch from server
-          fetchFreshData();
-        }
-      } catch (error) {
-        console.error('Error loading data:', error);
-        showToast(`Lỗi tải dữ liệu: ${error.message}`, 'error', 5000);
-        
-        // Fallback to direct fetch if IndexedDB fails
-        fetchFreshData();
-      }
-    }
-    
-    // Fetch fresh data from server in background
-    async function fetchFreshDataInBackground() {
-      try {
-        // Show data update indicator
-        showDataUpdateIndicator(true, 'Đang kiểm tra dữ liệu mới...');
-        
-        // Fetch data from server
-        const response = await fetch(API_URL, { cache: 'no-store' });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        
-        showDataUpdateIndicator(true, 'Đang xử lý dữ liệu mới...');
-        const data = await response.json();
-        
-        if (!Array.isArray(data) || !data.length) {
-          throw new Error('Không có dữ liệu mới từ máy chủ');
-        }
-        
-        // Process the new data
-        const processedData = processData(data);
-        
-        // Check if there's actually new data
-        let hasNewData = false;
-        if (allData.length > 0) {
-          const newestExistingDate = allData[0].__d;
-          const newestNewDate = processedData[0].__d;
-          
-          if (newestNewDate > newestExistingDate) {
-            hasNewData = true;
-          }
-        } else {
-          hasNewData = true;
-        }
-        
-        if (hasNewData) {
-          showDataUpdateIndicator(true, 'Đang cập nhật dữ liệu mới...');
-          
-          // Combine with existing data
-          const previousDataCount = allData.length;
-          allData = combineData(allData, processedData);
-          const newDataCount = allData.length - previousDataCount;
-          
-          // Cache the combined data
-          await cacheData(allData.map(item => {
-            // Create a clean version for caching (without computed properties)
-            const { __d, __y, __m, __q, __rowHTML, ...cleanItem } = item;
-            return cleanItem;
-          }));
-          
-          // Update UI with fresh data
-          populateYears(allData);
-          populateWeeks(allData);
-          applyFiltersCore();
-          
-          showDataUpdateIndicator(false);
-          
-          if (newDataCount > 0) {
-            showToast(`Đã cập nhật ${newDataCount} bản ghi mới`, 'success', 5000);
-          } else {
-            showToast('Dữ liệu đã được cập nhật', 'success', 3000);
-          }
-        } else {
-          showDataUpdateIndicator(false);
-          showToast('Không có dữ liệu mới', 'info', 3000);
-        }
-      } catch (error) {
-        console.error('Error fetching fresh data:', error);
-        showDataUpdateIndicator(false);
-        showToast(`Lỗi kiểm tra dữ liệu mới: ${error.message}`, 'error', 5000);
-      }
-    }
-    
-    // Fetch fresh data from server (blocking version)
-    async function fetchFreshData() {
-      try {
-        showLoading(true, 'Đang tải dữ liệu từ máy chủ...', 30);
-        
-        // Fetch data from server
-        const response = await fetch(API_URL, { cache: 'no-store' });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        
-        showLoading(true, 'Đang xử lý dữ liệu...', 60);
-        const data = await response.json();
-        
-        if (!Array.isArray(data) || !data.length) {
-          throw new Error('Không có dữ liệu từ máy chủ');
-        }
-        
-        // Process the new data
-        const processedData = processData(data);
-        
-        // Combine with existing data
-        allData = combineData(allData, processedData);
-        
-        // Cache the combined data
-        showLoading(true, 'Đang lưu dữ liệu vào cache...', 80);
-        await cacheData(allData.map(item => {
-          // Create a clean version for caching (without computed properties)
-          const { __d, __y, __m, __q, __rowHTML, ...cleanItem } = item;
-          return cleanItem;
-        }));
-        
-        // Update UI with fresh data
-        showLoading(true, 'Cập nhật giao diện...', 90);
-        populateYears(allData);
-        populateWeeks(allData);
-        applyFiltersCore();
-        
-        showLoading(false);
-        showToast('Đã tải dữ liệu mới nhất thành công', 'success', 3000);
-      } catch (error) {
-        console.error('Error fetching fresh data:', error);
-        showLoading(false);
-        showToast(`Lỗi tải dữ liệu mới: ${error.message}`, 'error', 5000);
-        
-        // If we have cached data, continue using it
-        if (allData && allData.length > 0) {
-          showToast('Đang sử dụng dữ liệu đã lưu', 'warning', 3000);
-        } else {
-          // Show error in the table
-          tbody.innerHTML = `<tr><td class="state" colspan="16">Lỗi tải dữ liệu: ${error.message || error}</td></tr>`;
-        }
-      }
-    }
-    
-    // Refresh data button handler
-    btnRefreshData.addEventListener('click', () => {
-      showToast('Đang làm mới dữ liệu...', 'info', 3000);
-      fetchFreshData();
-    });
-
     // --- Dashboard Settings Logic ---
     const DASHBOARD_SETTINGS_KEY = 'dashboardSettings';
 
@@ -3198,7 +2378,7 @@
     
     // Toggle buttons functionality
     toggleSettingsBtn.addEventListener('click', () => {
-      const isHidden = !settingsContent.classList.contains('show');
+      const isHidden = settingsContent.classList.contains('show');
       if (isHidden) {
         settingsContent.classList.remove('show');
         toggleSettingsBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Hiện';
@@ -3209,7 +2389,7 @@
     });
     
     toggleHistoryBtn.addEventListener('click', () => {
-      const isHidden = !historyContent.classList.contains('show');
+      const isHidden = historyContent.classList.contains('show');
       if (isHidden) {
         historyContent.classList.remove('show');
         toggleHistoryBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Hiện';
@@ -4028,7 +3208,7 @@
       const fromDate = customFromDate.value;
       const toDate = customToDate.value;
       if (!fromDate || !toDate) {
-        showToast('Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc', 'warning', 3000);
+        alert('Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc');
         return;
       }
       const fromTime = customFromTime.value || '00:00:00';
@@ -4040,7 +3220,6 @@
       weekSel.value = 'all';
       dayNightSel.value = 'all';
       applyFiltersCore();
-      showToast('Đã áp dụng bộ lọc thời gian tùy chỉnh', 'success', 3000);
     });
 
     btnClearCustom.addEventListener('click', () => {
@@ -4052,7 +3231,6 @@
       customTimePanel.style.display = 'none';
       btnCustomTime.innerHTML = '<i class="fas fa-clock"></i> Thời gian tùy chỉnh';
       applyFiltersCore();
-      showToast('Đã xóa bộ lọc thời gian tùy chỉnh', 'info', 3000);
     });
 
     /* Filter events */
@@ -4090,29 +3268,40 @@
       applyFilters();
     });
 
-    /* Initialize data loading on page load */
-    document.addEventListener('DOMContentLoaded', () => {
-      // Load data with progressive enhancement
-      loadDataWithProgressiveEnhancement();
-      
-      // Set up periodic data refresh (every 5 minutes)
-      setInterval(() => {
-        // Only refresh if the page is visible
-        if (!document.hidden) {
-          fetchFreshDataInBackground();
+    /* fetch data */
+    fetch(API_URL,{ cache:'no-store' })
+      .then(res=>res.ok?res.json():Promise.reject(new Error(`HTTP ${res.status}`)))
+      .then(data=>{
+        if(!Array.isArray(data)||!data.length){ 
+          tbody.innerHTML=`<tr><td class="state" colspan="16">Không có dữ liệu.</td></tr>`; 
+          return; 
         }
-      }, 5 * 60 * 1000);
-    });
+        allData=data.map(r=>{
+          const d=parseVNDateTime(r.ngayGio);
+          const y=d?d.getFullYear():null, m=d?(d.getMonth()+1):null, q=d?(Math.floor((m-1)/3)+1):null;
+          const base={...r,__d:d,__y:y,__m:m,__q:q}; 
+          base.__rowHTML=buildRowHTML(base); 
+          return base;
+        });
+        populateYears(allData);
+        populateWeeks(allData);
+        
+        if (params.get('thang') && params.get('nam')) {
+          subTitle.textContent = `Tháng ${params.get('thang')} năm ${params.get('nam')}`;
+        } else if (params.get('thang')) {
+          subTitle.textContent = `Tháng ${params.get('thang')}`;
+        }
+        
+        applyFiltersCore();
+      })
+      .catch(err=>{
+        console.error(err);
+        tbody.innerHTML=`<tr><td class="state" colspan="16">Lỗi tải dữ liệu: ${err.message||err}</td></tr>`;
+      });
 
     /* Xuất Excel (toàn bộ dữ liệu sau lọc) */
     document.getElementById('btnExcel').addEventListener('click',()=>{
-      if(!filtered.length){ 
-        showToast('Không có dữ liệu để xuất.', 'warning', 3000); 
-        return; 
-      }
-      
-      showToast('Đang chuẩn bị xuất Excel...', 'info', 2000);
-      
+      if(!filtered.length){ alert('Không có dữ liệu để xuất.'); return; }
       const H1=["Ngày","Giờ","Mực nước (m)","Dung tích (Triệu m³)","Lượng mưa (mm)",
         "Thông số vận hành tràn tự do","",
         "Thông số vận hành tràn sự cố","","","",
@@ -4146,356 +3335,7 @@
       XLSX.utils.book_append_sheet(wb,ws,"NhatKy_HoNuocNgot");
       XLSX.writeFile(wb,"NhatKyVanHanh_HoNuocNgot.xlsx");
       function num(v){ const n=Number(v); return Number.isNaN(n)?"":n; }
-      
-      showToast('Đã xuất file Excel thành công', 'success', 3000);
     });
-
-    /* Sidebar Navigation Logic */
-    menuItems.forEach(item => {
-      item.addEventListener('click', () => {
-        const targetContent = item.dataset.content;
-        
-        // Remove active class from all menu items and content areas
-        menuItems.forEach(i => i.classList.remove('active'));
-        contentAreas.forEach(area => area.classList.remove('active'));
-        
-        // Add active class to clicked menu item and corresponding content area
-        item.classList.add('active');
-        document.getElementById(`${targetContent}-content`).classList.add('active');
-        
-        // Close sidebar on mobile after selection
-        if (window.innerWidth <= 768) {
-          sidebar.classList.remove('open');
-        }
-        
-        // Trigger updates for the specific content
-        if (targetContent === 'monitoring') {
-          // Re-render table and charts when this tab is activated
-          currentPage = 1;
-          renderTablePage();
-          updateKPIAndCharts();
-        } else if (targetContent === 'analysis') {
-          // Re-render alert and AI analysis when this tab is activated
-          updateAlertSystem();
-          updateAIAnalysis();
-        }
-      });
-    });
-
-    /* Mobile Menu Toggle Logic */
-    menuToggle.addEventListener('click', () => {
-      sidebar.classList.toggle('open');
-    });
-
-    // Close sidebar when clicking outside on mobile
-    document.addEventListener('click', (event) => {
-      const isClickInsideSidebar = sidebar.contains(event.target);
-      const isClickOnToggle = menuToggle.contains(event.target);
-      const isMobile = window.innerWidth <= 768;
-
-      if (isMobile && !isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains('open')) {
-        sidebar.classList.remove('open');
-      }
-    });
-
-    // Handle page visibility changes
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        // Page became visible again, check if we need to refresh data
-        const lastRefreshTime = localStorage.getItem('lastDataRefresh');
-        const now = new Date().getTime();
-        
-        // If it's been more than 5 minutes since last refresh, refresh data
-        if (!lastRefreshTime || (now - parseInt(lastRefreshTime)) > 5 * 60 * 1000) {
-          showToast('Đang làm mới dữ liệu...', 'info', 2000);
-          fetchFreshDataInBackground();
-        }
-      }
-    });
-
-    // Network status handling
-    window.addEventListener('online', () => {
-      showToast('Đã kết nối lại mạng', 'success', 3000);
-      fetchFreshDataInBackground();
-    });
-
-    window.addEventListener('offline', () => {
-      showToast('Mất kết nối mạng, đang sử dụng dữ liệu đã lưu', 'warning', 5000);
-    });
-
-    // Service Worker registration for offline support (optional)
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(registration => {
-            console.log('SW registered: ', registration);
-          })
-          .catch(registrationError => {
-            console.log('SW registration failed: ', registrationError);
-          });
-      });
-    }
-
-    // Update last refresh time
-    function updateLastRefreshTime() {
-      localStorage.setItem('lastDataRefresh', new Date().getTime().toString());
-    }
-
-    // Enhanced data loading with cache-first approach
-    async function loadDataWithCacheFirst() {
-      try {
-        // Show initial loading state
-        showLoading(true, 'Đang tải dữ liệu...', 10);
-        
-        // Initialize IndexedDB
-        await initDB();
-        
-        // Try to get cached data first
-        showLoading(true, 'Kiểm tra cache...', 20);
-        const cachedData = await getCachedData();
-        
-        if (cachedData && cachedData.length > 0) {
-          // Process and display cached data immediately
-          showLoading(true, 'Đang tải dữ liệu từ cache...', 40);
-          allData = processData(cachedData);
-          
-          // Populate filters with cached data
-          populateYears(allData);
-          populateWeeks(allData);
-          
-          // Apply filters to show cached data immediately
-          applyFiltersCore();
-          
-          // Hide loading overlay
-          showLoading(false);
-          
-          showToast('Đã tải dữ liệu từ cache', 'info', 3000);
-          
-          // Update last refresh time
-          updateLastRefreshTime();
-          
-          // Continue to fetch fresh data in background
-          setTimeout(() => {
-            fetchFreshDataInBackground();
-          }, 1000);
-        } else {
-          // No cached data, fetch from server
-          fetchFreshData();
-        }
-      } catch (error) {
-        console.error('Error loading data with cache-first:', error);
-        showLoading(false);
-        showToast(`Lỗi tải dữ liệu: ${error.message}`, 'error', 5000);
-        
-        // Fallback to direct fetch if IndexedDB fails
-        fetchFreshData();
-      }
-    }
-
-    // Initialize the application
-    document.addEventListener('DOMContentLoaded', () => {
-      // Load data with cache-first approach
-      loadDataWithCacheFirst();
-      
-      // Set up periodic background refresh (every 5 minutes)
-      setInterval(() => {
-        // Only refresh if page is visible
-        if (!document.hidden) {
-          fetchFreshDataInBackground();
-        }
-      }, 5 * 60 * 1000);
-    });
-
-    // Performance optimization: Debounce scroll events
-    let scrollTimeout;
-    window.addEventListener('scroll', () => {
-      if (scrollTimeout) {
-        window.cancelAnimationFrame(scrollTimeout);
-      }
-      
-      scrollTimeout = window.requestAnimationFrame(() => {
-        // Handle scroll-based lazy loading if needed in the future
-      });
-    });
-
-    // Performance optimization: Debounce resize events
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-      if (resizeTimeout) {
-        clearTimeout(resizeTimeout);
-      }
-      
-      resizeTimeout = setTimeout(() => {
-        // Handle responsive layout changes
-        if (comboChart) {
-          comboChart.resize();
-        }
-        if (trendChart) {
-          trendChart.resize();
-        }
-        if (predictionChart) {
-          predictionChart.resize();
-        }
-        if (patternChart) {
-          patternChart.resize();
-        }
-      }, 250);
-    });
-
-    // Add keyboard shortcuts for better UX
-    document.addEventListener('keydown', (event) => {
-      // Ctrl/Cmd + R: Refresh data
-      if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
-        event.preventDefault();
-        fetchFreshData();
-      }
-      
-      // Ctrl/Cmd + E: Export to Excel
-      if ((event.ctrlKey || event.metaKey) && event.key === 'e') {
-        event.preventDefault();
-        document.getElementById('btnExcel').click();
-      }
-      
-      // Ctrl/Cmd + P: Print
-      if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
-        event.preventDefault();
-        window.print();
-      }
-      
-      // Escape: Close modals
-      if (event.key === 'Escape') {
-        if (dashboardSettingsModal.style.display === 'block') {
-          dashboardSettingsModal.style.display = 'none';
-        }
-        if (customTimePanel.style.display === 'block') {
-          customTimePanel.style.display = 'none';
-          btnCustomTime.innerHTML = '<i class="fas fa-clock"></i> Thời gian tùy chỉnh';
-        }
-      }
-    });
-
-    // Add accessibility improvements
-    function addAccessibilityFeatures() {
-      // Add ARIA labels to interactive elements
-      document.querySelectorAll('button, .btn').forEach(button => {
-        if (!button.getAttribute('aria-label')) {
-          button.setAttribute('aria-label', button.textContent.trim());
-        }
-      });
-      
-      // Add keyboard navigation to menu items
-      menuItems.forEach((item, index) => {
-        item.setAttribute('tabindex', '0');
-        
-        item.addEventListener('keydown', (event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            item.click();
-          } else if (event.key === 'ArrowDown') {
-            event.preventDefault();
-            const nextItem = menuItems[(index + 1) % menuItems.length];
-            nextItem.focus();
-          } else if (event.key === 'ArrowUp') {
-            event.preventDefault();
-            const prevItem = menuItems[(index - 1 + menuItems.length) % menuItems.length];
-            prevItem.focus();
-          }
-        });
-      });
-    }
-
-    // Initialize accessibility features
-    document.addEventListener('DOMContentLoaded', addAccessibilityFeatures);
-
-    // Add analytics for performance monitoring (optional)
-    function trackPerformance() {
-      if ('performance' in window) {
-        window.addEventListener('load', () => {
-          setTimeout(() => {
-            const perfData = performance.getEntriesByType('navigation')[0];
-            if (perfData) {
-              console.log('Page load performance:', {
-                loadTime: perfData.loadEventEnd - perfData.loadEventStart,
-                domContentLoaded: perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart,
-                firstPaint: performance.getEntriesByType('paint')[0]?.startTime,
-                firstContentfulPaint: performance.getEntriesByType('paint')[1]?.startTime
-              });
-            }
-          }, 0);
-        });
-      }
-    }
-
-    // Initialize performance tracking
-    trackPerformance();
-
-    // Add error boundary for better error handling
-    window.addEventListener('error', (event) => {
-      console.error('Global error:', event.error);
-      showToast('Đã xảy ra lỗi không mong muốn', 'error', 5000);
-    });
-
-    // Add unhandled promise rejection handler
-    window.addEventListener('unhandledrejection', (event) => {
-      console.error('Unhandled promise rejection:', event.reason);
-      showToast('Đã xảy ra lỗi không mong muốn', 'error', 5000);
-    });
-
-    // Add feature detection for better browser compatibility
-    function detectFeatures() {
-      const features = {
-        indexedDB: 'indexedDB' in window,
-        serviceWorker: 'serviceWorker' in navigator,
-        notification: 'Notification' in window,
-        localStorage: 'localStorage' in window,
-        sessionStorage: 'sessionStorage' in window
-      };
-      
-      console.log('Browser features:', features);
-      
-      // Show warning if IndexedDB is not supported
-      if (!features.indexedDB) {
-        showToast('Trình duyệt không hỗ trợ IndexedDB. Một số tính năng có thể không hoạt động.', 'warning', 5000);
-      }
-    }
-
-    // Initialize feature detection
-    detectFeatures();
-
-    // Add dark mode support (optional enhancement)
-    function initDarkMode() {
-      const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      
-      function updateDarkMode(e) {
-        if (e.matches) {
-          document.body.classList.add('dark-mode');
-        } else {
-          document.body.classList.remove('dark-mode');
-        }
-      }
-      
-      darkModeQuery.addListener(updateDarkMode);
-      updateDarkMode(darkModeQuery);
-    }
-
-    // Initialize dark mode
-    initDarkMode();
-
-    // Add progressive enhancement for better loading experience
-    function initProgressiveEnhancement() {
-      // Show a minimal version of the page while JavaScript loads
-      document.body.classList.add('js-loading');
-      
-      window.addEventListener('load', () => {
-        setTimeout(() => {
-          document.body.classList.remove('js-loading');
-          document.body.classList.add('js-loaded');
-        }, 100);
-      });
-    }
-
-    // Initialize progressive enhancement
-    initProgressiveEnhancement();
   </script>
 </body>
 </html>
