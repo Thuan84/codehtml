@@ -2340,6 +2340,16 @@
       return toast;
     }
 
+    // --- Data Update Indicator ---
+function showDataUpdateIndicator(show, message = 'Đang cập nhật dữ liệu mới...') {
+  if (show) {
+    dataUpdateText.textContent = message;
+    dataUpdateIndicator.classList.add('show');
+  } else {
+    dataUpdateIndicator.classList.remove('show');
+  }
+}
+
     function removeToast(toast) {
       toast.style.opacity = '0';
       toast.style.transform = 'translateX(100%)';
@@ -2835,8 +2845,8 @@
 
     /* ===== CÁC HÀM XỬ LÝ CHÍNH ===== */
 
-    // Hàm chính cập nhật toàn bộ phần phân tích
-    // Tìm hàm updateWaterAnalysis và thay thế bằng phiên bản mới này
+    
+// Hàm chính cập nhật toàn bộ phần phân tích
 function updateWaterAnalysis() {
   // Cập nhật timestamp
   const now = new Date();
@@ -2917,6 +2927,7 @@ function updateWaterAnalysis() {
 
     // Hàm tính toán các chỉ số thống kê cho một kỳ
     // Tìm hàm calculatePeriodStats và thay thế bằng phiên bản mới này
+// Hàm tính toán các chỉ số thống kê cho một kỳ
 function calculatePeriodStats(periodDays) {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - periodDays);
@@ -2980,184 +2991,185 @@ function calculatePeriodStats(periodDays) {
 }
 
     // Hàm cập nhật biểu đồ cho một kỳ cụ thể
-    function updateWaterLevelChartForPeriod(periodDays) {
-      const ctx = document.getElementById('waterLevelChart');
-      if (!ctx) return;
+    // Hàm cập nhật biểu đồ cho một kỳ cụ thể
+function updateWaterLevelChartForPeriod(periodDays) {
+  const ctx = document.getElementById('waterLevelChart');
+  if (!ctx) return;
 
-      if (waterLevelChart) waterLevelChart.destroy();
+  if (waterLevelChart) waterLevelChart.destroy();
 
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - periodDays);
-      
-      // Lọc dữ liệu trong kỳ từ allData
-      const periodData = allData.filter(r => r.__d && r.__d >= startDate);
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - periodDays);
+  
+  // Lọc dữ liệu trong kỳ từ allData
+  const periodData = allData.filter(r => r.__d && r.__d >= startDate);
 
-      // Chuẩn bị dữ liệu cho biểu đồ
-      const levelByDay = new Map();
-      const rainByDay = new Map();
+  // Chuẩn bị dữ liệu cho biểu đồ
+  const levelByDay = new Map();
+  const rainByDay = new Map();
 
-      periodData.forEach(r => {
-        const d = r.__d;
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        
-        const level = Number(r.mucNuoc);
-        if (!Number.isNaN(level)) {
-          levelByDay.set(key, level);
-        }
-        
-        rainByDay.set(key, (rainByDay.get(key) || 0) + (Number(r.luongMua) || 0));
-      });
+  periodData.forEach(r => {
+    const d = r.__d;
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    
+    const level = Number(r.mucNuoc);
+    if (!Number.isNaN(level)) {
+      levelByDay.set(key, level);
+    }
+    
+    rainByDay.set(key, (rainByDay.get(key) || 0) + (Number(r.luongMua) || 0));
+  });
 
-      const dayKeys = [...new Set([...levelByDay.keys(), ...rainByDay.keys()])].sort();
-      const labels = dayKeys.map(k => {
-        const [y, m, d] = k.split('-');
-        return `${d}/${m}`;
-      });
-      
-      const levelData = dayKeys.map(k => levelByDay.get(k) || null);
-      const rainData = dayKeys.map(k => rainByDay.get(k) || 0);
+  const dayKeys = [...new Set([...levelByDay.keys(), ...rainByDay.keys()])].sort();
+  const labels = dayKeys.map(k => {
+    const [y, m, d] = k.split('-');
+    return `${d}/${m}`;
+  });
+  
+  const levelData = dayKeys.map(k => levelByDay.get(k) || null);
+  const rainData = dayKeys.map(k => rainByDay.get(k) || 0);
 
-      // Tính toán các ngưỡng
-      const safeMax = 58.78;
-      const theoryMax = 59.77;
-      const warningMax = 60.76;
+  // Tính toán các ngưỡng
+  const safeMax = 58.78;
+  const theoryMax = 59.77;
+  const warningMax = 60.76;
 
-      const safeLine = dayKeys.map(() => safeMax);
-      const theoryLine = dayKeys.map(() => theoryMax);
-      const warningLine = dayKeys.map(() => warningMax);
+  const safeLine = dayKeys.map(() => safeMax);
+  const theoryLine = dayKeys.map(() => theoryMax);
+  const warningLine = dayKeys.map(() => warningMax);
 
-      const validLevels = levelData.filter(v => v !== null);
-      const minLevel = validLevels.length > 0 ? Math.min(...validLevels) : 25;
-      const maxLevel = validLevels.length > 0 ? Math.max(...validLevels) : 32;
-      const padding = (maxLevel - minLevel) * 0.1 || 1;
+  const validLevels = levelData.filter(v => v !== null);
+  const minLevel = validLevels.length > 0 ? Math.min(...validLevels) : 25;
+  const maxLevel = validLevels.length > 0 ? Math.max(...validLevels) : 32;
+  const padding = (maxLevel - minLevel) * 0.1 || 1;
 
-      const chartCtx = ctx.getContext('2d');
-      
-      // Tính toán KPI để truyền vào plugin
-      const kpis = calculatePeriodStats(periodDays);
+  const chartCtx = ctx.getContext('2d');
+  
+  // Tính toán KPI để truyền vào plugin
+  const kpis = calculatePeriodStats(periodDays);
 
-      waterLevelChart = new Chart(chartCtx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Mực nước (m)',
-              data: levelData,
-              borderColor: '#1EA48D',
-              backgroundColor: 'rgba(30, 164, 141, 0.1)',
-              borderWidth: 2,
-              pointRadius: 3,
-              pointHoverRadius: 5,
-              tension: 0.2,
-              fill: true,
-              spanGaps: true
-            },
-            {
-              label: 'Ngưỡng an toàn',
-              data: safeLine,
-              borderColor: '#22c55e',
-              borderWidth: 2,
-              borderDash: [5, 5],
-              pointRadius: 0,
-              fill: false
-            },
-            {
-              label: 'Ngưỡng lý thuyết',
-              data: theoryLine,
-              borderColor: '#f59e0b',
-              borderWidth: 2,
-              borderDash: [5, 5],
-              pointRadius: 0,
-              fill: false
-            },
-            {
-              label: 'Ngưỡng cảnh báo',
-              data: warningLine,
-              borderColor: '#ef4444',
-              borderWidth: 2,
-              borderDash: [5, 5],
-              pointRadius: 0,
-              fill: false
-            },
-            {
-              type: 'bar',
-              label: 'Lượng mưa (mm)',
-              data: rainData,
-              backgroundColor: 'rgba(56, 189, 248, 0.3)',
-              borderColor: 'rgba(56, 189, 248, 0.5)',
-              borderWidth: 1,
-              yAxisID: 'yRain',
-              order: 4
-            }
-          ]
+  waterLevelChart = new Chart(chartCtx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Mực nước (m)',
+          data: levelData,
+          borderColor: '#1EA48D',
+          backgroundColor: 'rgba(30, 164, 141, 0.1)',
+          borderWidth: 2,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          tension: 0.2,
+          fill: true,
+          spanGaps: true
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'top',
-              labels: {
-                boxWidth: 12,
-                padding: 10,
-                font: {
-                  size: 11
-                }
-              }
-            },
-            tooltip: {
-              mode: 'index',
-              intersect: false,
-              callbacks: {
-                label: function(context) {
-                  let label = context.dataset.label || '';
-                  if (label) {
-                    label += ': ';
-                  }
-                  if (context.parsed.y !== null) {
-                    if (context.datasetIndex === 4) { // Lượng mưa
-                      label += `${context.parsed.y.toFixed(1)} mm`;
-                    } else { // Mực nước
-                      label += `${context.parsed.y.toFixed(2)} m`;
-                    }
-                  }
-                  return label;
-                }
-              }
-            },
-            // Truyền KPI và kỳ vào plugin
-            chartKpiPlugin: {
-              kpis: kpis,
-              period: periodDays
-            }
-          },
-          scales: {
-            x: {
-              grid: { display: false },
-              ticks: {
-                maxTicksLimit: 12,
-                font: { size: 11 }
-              }
-            },
-            y: {
-              position: 'left',
-              min: minLevel - padding,
-              max: maxLevel + padding,
-              title: { display: true, text: 'Mực nước (m)', font: { size: 12 } },
-              ticks: { font: { size: 11 } }
-            },
-            yRain: {
-              position: 'right',
-              beginAtZero: true,
-              title: { display: true, text: 'Lượng mưa (mm)', font: { size: 12 } },
-              grid: { drawOnChartArea: false },
-              ticks: { font: { size: 11 } }
+        {
+          label: 'Ngưỡng an toàn',
+          data: safeLine,
+          borderColor: '#22c55e',
+          borderWidth: 2,
+          borderDash: [5, 5],
+          pointRadius: 0,
+          fill: false
+        },
+        {
+          label: 'Ngưỡng lý thuyết',
+          data: theoryLine,
+          borderColor: '#f59e0b',
+          borderWidth: 2,
+          borderDash: [5, 5],
+          pointRadius: 0,
+          fill: false
+        },
+        {
+          label: 'Ngưỡng cảnh báo',
+          data: warningLine,
+          borderColor: '#ef4444',
+          borderWidth: 2,
+          borderDash: [5, 5],
+          pointRadius: 0,
+          fill: false
+        },
+        {
+          type: 'bar',
+          label: 'Lượng mưa (mm)',
+          data: rainData,
+          backgroundColor: 'rgba(56, 189, 248, 0.3)',
+          borderColor: 'rgba(56, 189, 248, 0.5)',
+          borderWidth: 1,
+          yAxisID: 'yRain',
+          order: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            boxWidth: 12,
+            padding: 10,
+            font: {
+              size: 11
             }
           }
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) {
+                label += ': ';
+              }
+              if (context.parsed.y !== null) {
+                if (context.datasetIndex === 4) { // Lượng mưa
+                  label += `${context.parsed.y.toFixed(1)} mm`;
+                } else { // Mực nước
+                  label += `${context.parsed.y.toFixed(2)} m`;
+                }
+              }
+              return label;
+            }
+          }
+        },
+        // Truyền KPI và kỳ vào plugin
+        chartKpiPlugin: {
+          kpis: kpis,
+          period: periodDays
         }
-      });
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            maxTicksLimit: 12,
+            font: { size: 11 }
+          }
+        },
+        y: {
+          position: 'left',
+          min: minLevel - padding,
+          max: maxLevel + padding,
+          title: { display: true, text: 'Mực nước (m)', font: { size: 12 } },
+          ticks: { font: { size: 11 } }
+        },
+        yRain: {
+          position: 'right',
+          beginAtZero: true,
+          title: { display: true, text: 'Lượng mưa (mm)', font: { size: 12 } },
+          grid: { drawOnChartArea: false },
+          ticks: { font: { size: 11 } }
+        }
+      }
     }
+  });
+}
 
     /* Custom Time Range Events */
     btnCustomTime.addEventListener('click', () => {
@@ -3278,35 +3290,35 @@ function calculatePeriodStats(periodDays) {
     });
 
     /* Sidebar Navigation Logic */
-    menuItems.forEach(item => {
-      item.addEventListener('click', () => {
-        const targetContent = item.dataset.content;
-        
-        // Remove active class from all menu items and content areas
-        menuItems.forEach(i => i.classList.remove('active'));
-        contentAreas.forEach(area => area.classList.remove('active'));
-        
-        // Add active class to clicked menu item and corresponding content area
-        item.classList.add('active');
-        document.getElementById(`${targetContent}-content`).classList.add('active');
-        
-        // Close sidebar on mobile after selection
-        if (window.innerWidth <= 768) {
-          sidebar.classList.remove('open');
-        }
-        
-        // Trigger updates for the specific content
-        if (targetContent === 'monitoring') {
-          // Re-render table and charts when this tab is activated
-          currentPage = 1;
-          renderTablePage();
-          updateKPIAndCharts();
-        } else if (targetContent === 'analysis') {
-          // Re-render water analysis when this tab is activated
-          updateWaterAnalysis();
-        }
-      });
-    });
+menuItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const targetContent = item.dataset.content;
+    
+    // Remove active class from all menu items and content areas
+    menuItems.forEach(i => i.classList.remove('active'));
+    contentAreas.forEach(area => area.classList.remove('active'));
+    
+    // Add active class to clicked menu item and corresponding content area
+    item.classList.add('active');
+    document.getElementById(`${targetContent}-content`).classList.add('active');
+    
+    // Close sidebar on mobile after selection
+    if (window.innerWidth <= 768) {
+      sidebar.classList.remove('open');
+    }
+    
+    // Trigger updates for the specific content
+    if (targetContent === 'monitoring') {
+      // Re-render table and charts when this tab is activated
+      currentPage = 1;
+      renderTablePage();
+      updateKPIAndCharts();
+    } else if (targetContent === 'analysis') {
+      // Re-render water analysis when this tab is activated
+      updateWaterAnalysis();
+    }
+  });
+});
 
     /* Mobile Menu Toggle Logic */
     menuToggle.addEventListener('click', () => {
