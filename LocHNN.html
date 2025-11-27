@@ -1965,6 +1965,10 @@
     }
 
     function applyFiltersCore(){
+        // Đảm bảo dữ liệu đã được sắp xếp đúng
+  if (allData.length > 0) {
+    allData.sort((a, b) => b.__d - a.__d); // Mới nhất lên đầu
+  }
       const y=yearSel.value, q=quarterSel.value, m=monthSel.value;
       const w=weekSel.value, dn=dayNightSel.value;
       
@@ -2597,8 +2601,13 @@ function showDataUpdateIndicator(show, message = 'Đang cập nhật dữ liệu
 
 // ===== HÀM 2: TỰ ĐỘNG CẬP NHẬT NỀN (5 PHÚT/LẦN) =====
 async function fetchFreshDataInBackground() {
-  if (isRefreshing) return;
+    if (isRefreshing) {
+    console.log('⏳ Background refresh already in progress, skipping...');
+    return;
+  }
+  
   isRefreshing = true;
+  console.log('🔄 Starting background data refresh...');
   
   try {
     showDataUpdateIndicator(true, 'Đang kiểm tra dữ liệu mới...');
@@ -2661,11 +2670,12 @@ async function fetchFreshDataInBackground() {
          showToast('Dữ liệu đã được làm mới', 'success', 2000);
     }
 
-  } catch (error) {
+    } catch (error) {
     console.error('❌ Background fetch error:', error);
     showDataUpdateIndicator(false);
   } finally {
     isRefreshing = false;
+    console.log('✅ Background refresh completed');
   }
 }
 
@@ -3002,8 +3012,9 @@ function calculatePeriodStats(periodDays) {
         return { avg: null, max: null, min: null, trend: 'stable', forecast: null };
       }
 
-      // Lưu ý: Dữ liệu đang sắp xếp Mới nhất -> Cũ nhất (index 0 là hiện tại)
-      const levels = periodData.map(r => Number(r.mucNuoc)).filter(l => !isNaN(l));
+      // ĐẢM BẢO sắp xếp mới nhất → cũ nhất cho tính toán
+  const sortedData = [...periodData].sort((a, b) => b.__d - a.__d);
+  const levels = sortedData.map(r => Number(r.mucNuoc)).filter(l => !isNaN(l));
       
       if (levels.length === 0) {
           return { avg: null, max: null, min: null, trend: 'stable', forecast: null };
