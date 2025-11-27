@@ -2469,6 +2469,7 @@
     }
 
     // Combine data without duplicates
+    // Combine data without duplicates - PRIORITIZE NEW DATA
     function combineData(existingData, newData) {
       if (!existingData || existingData.length === 0) {
         return newData || [];
@@ -2478,29 +2479,35 @@
         return existingData;
       }
 
-      // Create a map of existing data by unique identifier (ngayGio)
+      // Create a map of data by unique identifier (ngayGio)
       const dataMap = new Map();
 
-      // Add existing data to map
+      // Add existing data to map FIRST
       existingData.forEach(item => {
         if (item.ngayGio) {
           dataMap.set(item.ngayGio, item);
         }
       });
 
-      // Add new data to map (overwrites duplicates)
+      // Add new data to map - THIS WILL OVERWRITE OLD VALUES
       newData.forEach(item => {
         if (item.ngayGio) {
+          // Force overwrite to ensure new data takes precedence
           dataMap.set(item.ngayGio, item);
         }
       });
 
       // Convert back to array and sort by date (newest first)
-      return Array.from(dataMap.values()).sort((a, b) => {
+      const combined = Array.from(dataMap.values()).sort((a, b) => {
         const dateA = parseVNDateTime(a.ngayGio);
         const dateB = parseVNDateTime(b.ngayGio);
+        if (!dateA) return 1;
+        if (!dateB) return -1;
         return dateB - dateA;
       });
+
+      console.log(`Combined data: ${existingData.length} existing + ${newData.length} new = ${combined.length} total`);
+      return combined;
     }
 
     // Process raw data into the format used by the application
