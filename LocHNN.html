@@ -27,7 +27,6 @@
       --sidebar-bg: #f8fafc;
       --sidebar-active: #e2f8f0;
       --sidebar-hover: #f0fdfa;
-      --sidebar-width: 260px;
     }
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
@@ -229,7 +228,7 @@
 
     /* Sidebar */
     .sidebar {
-      width: var(--sidebar-width);
+      width: 260px;
       background: var(--sidebar-bg);
       border-right: 1px solid #e5e7eb;
       display: flex;
@@ -249,7 +248,7 @@
       color: white;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 10px;
     }
 
     .sidebar-header h1 {
@@ -294,38 +293,16 @@
 
     .menu-text {
       font-size: 15px;
-      transition: opacity 0.3s;
-    }
-
-    /* Sidebar Toggle Button */
-    .sidebar-toggle {
-      background: var(--brand);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 36px;
-      height: 36px;
-      font-size: 16px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s;
-    }
-
-    .sidebar-toggle:hover {
-      background: #158572;
     }
 
     /* Main Content */
     .main-content {
       flex: 1;
-      margin-left: var(--sidebar-width);
+      margin-left: 260px;
       display: flex;
       flex-direction: column;
       height: 100vh;
       overflow: hidden;
-      transition: margin-left 0.3s ease;
     }
 
     /* Toolbar */
@@ -431,8 +408,6 @@
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      page-break-inside: avoid;
-      page-break-after: always;
     }
 
     .map-container iframe {
@@ -448,7 +423,6 @@
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       background: #fff;
-      page-break-inside: avoid;
     }
     
     .alert-header {
@@ -893,7 +867,6 @@
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       background: #fff;
-      page-break-inside: avoid;
     }
     
     .ai-header {
@@ -1393,76 +1366,31 @@
       color: var(--ink);
     }
 
-    /* ===== PRINT - QUAN TRỌNG NHẤT ===== */
+    /* ===== PRINT ===== */
     @media print{
-      /* Ẩn các phần tử không cần in */
-      .toolbar,
-      .filters,
-      .charts,
-      .kpis,
-      .pager,
-      .custom-time-panel,
-      .modal,
-      .alert-system,
-      .ai-analysis,
-      .sidebar,
-      .sidebar-toggle,
-      .menu-toggle,
-      .toast-container,
-      .loading-overlay,
-      .data-update-indicator {
-        display:none !important;
-      }
-      
-      /* SỬA LỖI CHÍNH: Cho phép cuộn khi in */
-      body {
-        overflow: visible !important;
-        height: auto !important;
-      }
-      
-      /* Xóa giới hạn chiều cao của main-content */
-      .main-content {
-        margin-left: 0 !important;
-        overflow: visible !important;
-        height: auto !important;
-        display: block !important;
-      }
-      
-      /* Xóa giới hạn chiều cao của content-area */
-      .content-area {
-        
-        overflow: visible !important;
-        height: auto !important;
-        padding: 10px !important;
-      }
-      
-      /* Cho phép sheet có chiều cao tự động */
-      .sheet {
-        min-height: auto !important;
-        height: auto !important;
-        padding: 10px !important;
-      }
-      
-      /* Đảm bảo bản đồ không bị cắt và chiếm cả trang đầu tiên */
-      .map-container {
-        height: auto !important;
-        min-height: 70vh !important;
-        page-break-inside: avoid !important;
-        page-break-after: always !important;
-        margin-bottom: 20px !important;
-      }
-      
-      /* Định dạng bảng khi in */
-      table{ 
-        border:1.2px solid #000 !important;
-        page-break-inside: auto;
-      }
+  .toolbar,
+  .filters,
+  .charts,
+  .kpis,
+  .pager,
+  .custom-time-panel,
+  .modal,
+  .alert-system,
+  .ai-analysis,
+  .sidebar,
+  .menu-toggle {
+    display:none !important;
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+  }
+      table{ border:1.2px solid #000; }
       thead th, tbody td{
         border:1px solid #000 !important;
-        padding:4px 6px !important;
+        padding:4px 6px;
         word-wrap:break-word;
-        white-space:normal !important;
-        font-size: 10pt !important;
+        white-space:normal;
       }
       thead th{
         background:#fff !important;
@@ -1518,7 +1446,7 @@
         grid-template-columns: 1fr;
       }
       
-      /* Responsive sidebar for mobile */
+      /* Responsive sidebar */
       .sidebar {
         transform: translateX(-100%);
       }
@@ -1547,50 +1475,11 @@
         cursor: pointer;
         box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       }
-      
-      .sidebar-toggle {
-        display: none;
-      }
     }
     
     @media (min-width:769px) {
       .menu-toggle {
         display: none;
-      }
-      
-      .sidebar-toggle {
-        display: flex;
-      }
-      
-      /* Desktop sidebar toggle styles */
-      .sidebar.collapsed {
-        transform: translateX(-100%);
-      }
-      
-      .sidebar.collapsed .menu-text {
-        opacity: 0;
-      }
-      
-      .main-content.expanded {
-        margin-left: 0;
-      }
-      
-      /* Add a small sidebar hint when collapsed */
-      .sidebar.hint {
-        width: 5px;
-        box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-      }
-      
-      .sidebar.hint:hover {
-        width: var(--sidebar-width);
-      }
-      
-      .sidebar.hint .menu-text {
-        opacity: 0;
-      }
-      
-      .sidebar.hint:hover .menu-text {
-        opacity: 1;
       }
     }
   </style>
@@ -1617,10 +1506,8 @@
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
+      <i class="fas fa-water"></i>
       <h1>Hệ thống quan trắc</h1>
-      <button class="sidebar-toggle" id="sidebarToggle">
-        <i class="fas fa-chevron-left" id="sidebarToggleIcon"></i>
-      </button>
     </div>
     
     <div class="sidebar-menu">
@@ -1647,7 +1534,7 @@
   </button>
   
   <!-- Main Content -->
-  <div class="main-content" id="mainContent">
+  <div class="main-content">
     <!-- Toolbar -->
     <div class="toolbar">
       <div class="brand"><span class="dot"></span>Hệ thống quan trắc hồ chứa nước ngọt</div>
@@ -1657,7 +1544,7 @@
       <button class="btn" id="btnExcel"><i class="fas fa-file-excel"></i> Xuất Excel</button>
       <button class="btn" id="btnPortrait"><i class="fas fa-file-alt"></i> In dọc</button>
       <button class="btn" id="btnLandscape"><i class="fas fa-file-image"></i> In ngang</button>
-      <button class="btn" id="btnDashboardSettings"><i class="fas fa-cog"></i> Setting</button>
+      <button class="btn" id="btnDashboardSettings"><i class="fas fa-cog"></i> Cá nhân hóa</button>
     </div>
     
     <!-- Content Areas -->
@@ -2237,9 +2124,6 @@
     const contentAreas = document.querySelectorAll('.content-area');
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebarToggleIcon = document.getElementById('sidebarToggleIcon');
-    const mainContent = document.getElementById('mainContent');
 
     // Data Loading
     const loadingOverlay = document.getElementById('loadingOverlay');
@@ -2256,7 +2140,6 @@
     let currentAlertStatus = 'normal'; // Mặc định là 'normal'
     let currentWaterLevel = 56.65; // Giá trị mặc định đã cập nhật theo thực tế
     let alertHistory = []; // Lưu trữ lịch sử cảnh báo
-    let sidebarCollapsed = false; // Track sidebar state
 
     const nf0=new Intl.NumberFormat('vi-VN',{maximumFractionDigits:0});
     const nf1=new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1});
@@ -2498,7 +2381,7 @@
 
       updateSubtitle();
 
-      // Only update table and charts if monitoring tab is active
+      // Only update table and charts if the monitoring tab is active
       if (document.getElementById('monitoring-content').classList.contains('active')) {
         currentPage = 1;
         renderTablePage();
@@ -2600,7 +2483,7 @@
       // ===== KPI mới: Mực nước hiện tại và Dung tích hiện tại =====
       let currentLevel = null;
       let currentVolume = null;
-
+      
       if (filtered.length > 0) {
         // Lấy bản ghi mới nhất theo thời gian
         const sortedByDate = [...filtered].sort((a, b) => a.__d - b.__d);
@@ -2614,7 +2497,7 @@
           currentWaterLevel = currentLevel;
         }
       }
-
+      
       kpiCurrentLevel.textContent = currentLevel !== null ? nf2.format(currentLevel) : '0';
       kpiCurrentVolume.textContent = currentVolume !== null ? nf2.format(currentVolume) : '0';
 
@@ -2837,7 +2720,7 @@
     function showToast(message, type = 'info', duration = 5000) {
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
-
+      
       let icon = '';
       switch(type) {
         case 'success':
@@ -2852,30 +2735,30 @@
         default:
           icon = '<i class="fas fa-info-circle toast-icon"></i>';
       }
-
+      
       toast.innerHTML = `
         ${icon}
         <div class="toast-message">${message}</div>
         <div class="toast-close"><i class="fas fa-times"></i></div>
         <div class="toast-progress"></div>
       `;
-
+      
       toastContainer.appendChild(toast);
-
+      
       // Auto remove after duration
       const timeout = setTimeout(() => {
         removeToast(toast);
       }, duration);
-
+      
       // Manual close
       toast.querySelector('.toast-close').addEventListener('click', () => {
         clearTimeout(timeout);
         removeToast(toast);
       });
-
+      
       return toast;
     }
-
+    
     function removeToast(toast) {
       toast.style.opacity = '0';
       toast.style.transform = 'translateX(100%)';
@@ -2890,9 +2773,9 @@
     const DB_NAME = 'hoNuocNgotDB';
     const DB_VERSION = 1;
     const STORE_NAME = 'dataCache';
-
+    
     let db;
-
+    
     function initDB() {
       return new Promise((resolve, reject) => {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -2917,7 +2800,7 @@
         };
       });
     }
-
+    
     function getCachedData() {
       return new Promise((resolve, reject) => {
         if (!db) {
@@ -2943,7 +2826,7 @@
         };
       });
     }
-
+    
     function cacheData(data) {
       return new Promise((resolve, reject) => {
         if (!db) {
@@ -2971,7 +2854,7 @@
         };
       });
     }
-
+    
     // --- Data Loading with Progressive Enhancement ---
     function showLoading(show = true, text = 'Đang tải dữ liệu...', progress = 0) {
       if (show) {
@@ -2982,7 +2865,7 @@
         loadingOverlay.style.display = 'none';
       }
     }
-
+    
     // Show data update indicator
     function showDataUpdateIndicator(show = true, text = 'Đang cập nhật dữ liệu mới...') {
       if (show) {
@@ -2992,34 +2875,34 @@
         dataUpdateIndicator.classList.remove('show');
       }
     }
-
+    
     // Combine data without duplicates
     function combineData(existingData, newData) {
       if (!existingData || existingData.length === 0) {
         return newData || [];
       }
-
+      
       if (!newData || newData.length === 0) {
         return existingData;
       }
-
+      
       // Create a map of existing data by unique identifier (ngayGio)
       const dataMap = new Map();
-
+      
       // Add existing data to map
       existingData.forEach(item => {
         if (item.ngayGio) {
           dataMap.set(item.ngayGio, item);
         }
       });
-
+      
       // Add new data to map (overwrites duplicates)
       newData.forEach(item => {
         if (item.ngayGio) {
           dataMap.set(item.ngayGio, item);
         }
       });
-
+      
       // Convert back to array and sort by date (newest first)
       return Array.from(dataMap.values()).sort((a, b) => {
         const dateA = parseVNDateTime(a.ngayGio);
@@ -3027,7 +2910,7 @@
         return dateB - dateA;
       });
     }
-
+    
     // Process raw data into the format used by the application
     function processData(rawData) {
       return rawData.map(r => {
@@ -3048,7 +2931,7 @@
         return base;
       });
     }
-
+    
     // Load data with progressive enhancement
     async function loadDataWithProgressiveEnhancement() {
       try {
@@ -3085,7 +2968,7 @@
         fetchFreshData();
       }
     }
-
+    
     // Fetch fresh data from server in background
     async function fetchFreshDataInBackground() {
       try {
@@ -3106,7 +2989,7 @@
           throw new Error('Không có dữ liệu mới từ máy chủ');
         }
         
-        // Process new data
+        // Process the new data
         const processedData = processData(data);
         
         // Check if there's actually new data
@@ -3130,7 +3013,7 @@
           allData = combineData(allData, processedData);
           const newDataCount = allData.length - previousDataCount;
           
-          // Cache combined data
+          // Cache the combined data
           await cacheData(allData.map(item => {
             // Create a clean version for caching (without computed properties)
             const { __d, __y, __m, __q, __rowHTML, ...cleanItem } = item;
@@ -3159,7 +3042,7 @@
         showToast(`Lỗi kiểm tra dữ liệu mới: ${error.message}`, 'error', 5000);
       }
     }
-
+    
     // Fetch fresh data from server (blocking version)
     async function fetchFreshData() {
       try {
@@ -3179,13 +3062,13 @@
           throw new Error('Không có dữ liệu từ máy chủ');
         }
         
-        // Process new data
+        // Process the new data
         const processedData = processData(data);
         
         // Combine with existing data
         allData = combineData(allData, processedData);
         
-        // Cache combined data
+        // Cache the combined data
         showLoading(true, 'Đang lưu dữ liệu vào cache...', 80);
         await cacheData(allData.map(item => {
           // Create a clean version for caching (without computed properties)
@@ -3215,7 +3098,7 @@
         }
       }
     }
-
+    
     // Refresh data button handler
     btnRefreshData.addEventListener('click', () => {
       showToast('Đang làm mới dữ liệu...', 'info', 3000);
@@ -3275,13 +3158,13 @@
 
       // Chart visibility
       chartsContainer.style.display = settings.chart ? 'grid' : 'none';
-
+      
       // Alert system visibility
       alertSystem.style.display = settings.alert_system ? 'block' : 'none';
-
+      
       // AI Analysis visibility
       aiAnalysis.style.display = settings.ai_analysis ? 'block' : 'none';
-
+      
       // Redraw chart if it becomes visible to handle sizing issues
       if (settings.chart && comboChart) {
         setTimeout(() => comboChart.resize(), 100);
@@ -3306,13 +3189,13 @@
     dashboardSettingsModal.querySelectorAll('input[type="checkbox"]').forEach(cb => {
       cb.addEventListener('change', saveDashboardSettings);
     });
-
+    
     // Load settings on page load
     document.addEventListener('DOMContentLoaded', loadDashboardSettings);
 
     /* HỆ THỐNG CẢNH BÁO THÔNG MINH (ĐÃ TINH GỌN) */
     const ALERT_SETTINGS_KEY = 'alertSettings';
-
+    
     // Toggle buttons functionality
     toggleSettingsBtn.addEventListener('click', () => {
       const isHidden = !settingsContent.classList.contains('show');
@@ -3324,7 +3207,7 @@
         toggleSettingsBtn.innerHTML = '<i class="fas fa-chevron-up"></i> Ẩn';
       }
     });
-
+    
     toggleHistoryBtn.addEventListener('click', () => {
       const isHidden = !historyContent.classList.contains('show');
       if (isHidden) {
@@ -3335,7 +3218,7 @@
         toggleHistoryBtn.innerHTML = '<i class="fas fa-chevron-up"></i> Ẩn';
       }
     });
-
+    
     // Load alert settings from localStorage
     function loadAlertSettings() {
       const savedSettings = localStorage.getItem(ALERT_SETTINGS_KEY);
@@ -3345,24 +3228,24 @@
         danger: 60.3,      // Nguy hiểm
         emergency: 60.76   // Khẩn cấp (MN dâng gia cường)
       };
-
+      
       const settings = savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
-
+      
       // Apply to inputs
       normalThreshold.value = settings.normal;
       monitorThreshold.value = settings.monitor;
       dangerThreshold.value = settings.danger;
       emergencyThreshold.value = settings.emergency;
-
+      
       // Update display values
       normalValueEl.textContent = nf2.format(settings.normal);
       monitorValueEl.textContent = nf2.format(settings.monitor);
       dangerValueEl.textContent = nf2.format(settings.danger);
       emergencyValueEl.textContent = nf2.format(settings.emergency);
-
+      
       return settings;
     }
-
+    
     // Save alert settings to localStorage
     function saveAlertSettings() {
       const settings = {
@@ -3371,27 +3254,27 @@
         danger: parseFloat(dangerThreshold.value),
         emergency: parseFloat(emergencyThreshold.value)
       };
-
+      
       localStorage.setItem(ALERT_SETTINGS_KEY, JSON.stringify(settings));
-
+      
       // Update display values
       normalValueEl.textContent = nf2.format(settings.normal);
       monitorValueEl.textContent = nf2.format(settings.monitor);
       dangerValueEl.textContent = nf2.format(settings.danger);
       emergencyValueEl.textContent = nf2.format(settings.emergency);
-
+      
       updateAlertSystem();
-
+      
       // Show success message
       alertMessage.className = 'alert-message normal';
       alertText.textContent = 'Đã lưu cài đặt ngưỡng cảnh báo thành công!';
-
+      
       // Reset to current status after 2 seconds
       setTimeout(() => {
         updateAlertSystem();
       }, 2000);
     }
-
+    
     // Reset alert settings to default
     function resetAlertSettings() {
       const defaultSettings = {
@@ -3400,59 +3283,59 @@
         danger: 60.3,      // Nguy hiểm
         emergency: 60.76   // Khẩn cấp (MN dâng gia cường)
       };
-
+      
       normalThreshold.value = defaultSettings.normal;
       monitorThreshold.value = defaultSettings.monitor;
       dangerThreshold.value = defaultSettings.danger;
       emergencyThreshold.value = defaultSettings.emergency;
-
+      
       localStorage.setItem(ALERT_SETTINGS_KEY, JSON.stringify(defaultSettings));
-
+      
       // Update display values
       normalValueEl.textContent = nf2.format(defaultSettings.normal);
       monitorValueEl.textContent = nf2.format(defaultSettings.monitor);
       dangerValueEl.textContent = nf2.format(defaultSettings.danger);
       emergencyValueEl.textContent = nf2.format(defaultSettings.emergency);
-
+      
       updateAlertSystem();
-
+      
       // Show success message
       alertMessage.className = 'alert-message normal';
       alertText.textContent = 'Đã đặt lại cài đặt ngưỡng cảnh báo về mặc định!';
-
+      
       // Reset to current status after 2 seconds
       setTimeout(() => {
         updateAlertSystem();
       }, 2000);
     }
-
+    
     // Add alert to history
     function addAlertToHistory(status, message) {
       const now = new Date();
       const timeStr = fmtDateTimeVN(now);
-
+      
       const historyItem = {
         status: status,
         message: message,
         time: timeStr
       };
-
+      
       // Add to beginning of array
       alertHistory.unshift(historyItem);
-
+      
       // Keep only last 10 items
       if (alertHistory.length > 10) {
         alertHistory = alertHistory.slice(0, 10);
       }
-
+      
       // Update history display
       updateHistoryDisplay();
     }
-
+    
     // Update history display
     function updateHistoryDisplay() {
       historyList.innerHTML = '';
-
+      
       alertHistory.forEach(item => {
         const historyEl = document.createElement('div');
         historyEl.className = `history-item ${item.status}`;
@@ -3463,23 +3346,23 @@
         historyList.appendChild(historyEl);
       });
     }
-
+    
     // Update water level visualization
     function updateWaterLevelVisualization() {
       const settings = loadAlertSettings();
       const minLevel = 45; // Minimum level for visualization
       const maxLevel = 65; // Maximum level for visualization
-
+      
       // Calculate percentage position (inverted because bottom is 0)
       const percentage = Math.max(0, Math.min(100, ((currentWaterLevel - minLevel) / (maxLevel - minLevel)) * 100));
-
+      
       // Update water level
       waterLevelVisual.style.height = `${percentage}%`;
-
+      
       // Update current level indicator
       currentLevelIndicator.style.bottom = `${percentage}%`;
       currentLevelIndicator.setAttribute('data-label', `${nf2.format(currentWaterLevel)} m`);
-
+      
       // Update water color based on level
       if (currentWaterLevel >= settings.emergency) {
         waterLevelVisual.style.background = 'linear-gradient(0deg, #a855f7 0%, #c084fc 100%)';
@@ -3491,21 +3374,21 @@
         waterLevelVisual.style.background = 'linear-gradient(0deg, #0ea5e9 0%, #38bdf8 100%)';
       }
     }
-
+    
     // Update alert timestamp
     function updateAlertTimestamp() {
       const now = new Date();
       alertTimestamp.textContent = `Cập nhật: ${fmtDateTimeVN(now)}`;
     }
-
+    
     // Update alert system based on current water level
     function updateAlertSystem() {
       const settings = loadAlertSettings();
-
+      
       // Determine alert status based on current water level
       let newStatus = 'normal';
       let message = '';
-
+      
       if (currentWaterLevel >= settings.emergency) {
         newStatus = 'emergency';
         message = `Mực nước (${nf2.format(currentWaterLevel)} m) đã vượt ngưỡng khẩn cấp (${nf2.format(settings.emergency)} m). Cần hành động khẩn cấp!`;
@@ -3519,20 +3402,20 @@
         newStatus = 'normal';
         message = `Mực nước (${nf2.format(currentWaterLevel)} m) trong ngưỡng an toàn (${nf2.format(settings.normal)} m). Hoạt động bình thường.`;
       }
-
+      
       // Check if status changed
       if (newStatus !== currentAlertStatus) {
         // Add to history
         addAlertToHistory(newStatus, message);
       }
-
+      
       // Update status
       currentAlertStatus = newStatus;
-
+      
       // Update UI
       alertMessage.className = `alert-message ${currentAlertStatus}`;
       alertText.textContent = message;
-
+      
       // Update tabs
       alertStatuses.forEach(tab => {
         if (tab.dataset.status === currentAlertStatus) {
@@ -3541,12 +3424,12 @@
           tab.classList.remove('active');
         }
       });
-
+      
       // Update visualizations
       updateWaterLevelVisualization();
       updateAlertTimestamp();
     }
-
+    
     // Alert tab click handlers
     alertStatuses.forEach(tab => {
       tab.addEventListener('click', () => {
@@ -3575,16 +3458,16 @@
         alertText.textContent = message;
       });
     });
-
+    
     // Save and reset button handlers
     saveThresholdsBtn.addEventListener('click', saveAlertSettings);
     resetThresholdsBtn.addEventListener('click', resetAlertSettings);
-
+    
     // Initialize alert system on page load
     document.addEventListener('DOMContentLoaded', () => {
       loadAlertSettings();
       updateAlertSystem();
-
+      
       // Set up auto-refresh for alerts (every 30 seconds)
       setInterval(() => {
         if (filtered.length > 0) {
@@ -3607,20 +3490,20 @@
         document.getElementById(`${tabId}-tab`).classList.add('active');
       });
     });
-
+    
     // Update AI timestamp
     function updateAITimestamp() {
       const now = new Date();
       aiTimestamp.textContent = `Cập nhật: ${fmtDateTimeVN(now)}`;
     }
-
+    
     // Simple linear regression for trend analysis
     function linearRegression(data) {
       const n = data.length;
       if (n === 0) return { slope: 0, intercept: 0, r2: 0 };
-
+      
       let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
-
+      
       for (let i = 0; i < n; i++) {
         sumX += i;
         sumY += data[i];
@@ -3628,55 +3511,55 @@
         sumX2 += i * i;
         sumY2 += data[i] * data[i];
       }
-
+      
       const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
       const intercept = (sumY - slope * sumX) / n;
-
+      
       // Calculate R-squared
       const meanY = sumY / n;
       let ssTotal = 0, ssResidual = 0;
-
+      
       for (let i = 0; i < n; i++) {
         const yPred = slope * i + intercept;
         ssTotal += Math.pow(data[i] - meanY, 2);
         ssResidual += Math.pow(data[i] - yPred, 2);
       }
-
+      
       const r2 = 1 - (ssResidual / ssTotal);
-
+      
       return { slope, intercept, r2 };
     }
-
+    
     // Simple exponential smoothing for prediction
     function exponentialSmoothing(data, alpha = 0.3, periods = 7) {
       if (data.length === 0) return [];
-
+      
       const smoothed = [data[0]];
-
+      
       // Smooth existing data
       for (let i = 1; i < data.length; i++) {
         smoothed.push(alpha * data[i] + (1 - alpha) * smoothed[i - 1]);
       }
-
+      
       // Predict future values
       const predictions = [];
       let lastValue = smoothed[smoothed.length - 1];
-
+      
       for (let i = 0; i < periods; i++) {
         predictions.push(lastValue);
         lastValue = alpha * lastValue + (1 - alpha) * lastValue;
       }
-
+      
       return predictions;
     }
-
+    
     // Calculate correlation coefficient
     function correlation(x, y) {
       if (x.length !== y.length || x.length === 0) return 0;
-
+      
       const n = x.length;
       let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
-
+      
       for (let i = 0; i < n; i++) {
         sumX += x[i];
         sumY += y[i];
@@ -3684,21 +3567,21 @@
         sumX2 += x[i] * x[i];
         sumY2 += y[i] * y[i];
       }
-
+      
       const numerator = n * sumXY - sumX * sumY;
       const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
-
+      
       return denominator === 0 ? 0 : numerator / denominator;
     }
-
+    
     // Update AI Analysis
     function updateAIAnalysis() {
       if (filtered.length === 0) return;
-
+      
       // Prepare data for analysis
       const rainByDay = new Map();
       const levelByDay = new Map();
-
+      
       filtered.forEach(r => {
         const d = r.__d;
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -3712,27 +3595,27 @@
           levelByDay.set(key, lvl);
         }
       });
-
+      
       const dayKeys = [...new Set([...rainByDay.keys(), ...levelByDay.keys()])].sort();
       const rainData = dayKeys.map(k => rainByDay.get(k) || 0);
       const levelData = dayKeys.map(k => levelByDay.has(k) ? levelByDay.get(k) : null).filter(v => v !== null);
-
+      
       // Update Trend Analysis
       updateTrendAnalysis(levelData);
-
+      
       // Update Prediction
       updatePrediction(levelData);
-
+      
       // Update Recommendations
       updateRecommendations(levelData, rainData);
-
+      
       // Update Pattern Analysis
       updatePatternAnalysis(rainData, levelData);
-
+      
       // Update timestamp
       updateAITimestamp();
     }
-
+    
     function updateTrendAnalysis(levelData) {
       if (levelData.length < 3) {
         waterLevelTrend.textContent = 'Không đủ dữ liệu để phân tích xu hướng.';
@@ -3741,10 +3624,10 @@
         trendConsistency.textContent = '--';
         return;
       }
-
+      
       // Perform linear regression
       const regression = linearRegression(levelData);
-
+      
       // Determine trend direction
       let direction, directionIcon;
       if (Math.abs(regression.slope) < 0.01) {
@@ -3757,29 +3640,29 @@
         direction = 'Giảm';
         directionIcon = '↓';
       }
-
+      
       // Calculate consistency (R-squared as percentage)
       const consistency = Math.round(regression.r2 * 100);
-
+      
       // Update UI
       waterLevelTrend.textContent = `Mực nước đang có xu hướng ${direction.toLowerCase()} với tốc độ ${nf2.format(Math.abs(regression.slope))} m/ngày. Mức độ tin cậy của xu hướng là ${consistency}%.`;
       trendDirection.textContent = `${directionIcon} ${direction}`;
       trendRate.textContent = nf2.format(regression.slope);
       trendConsistency.textContent = `${consistency}%`;
-
+      
       // Update trend chart
       updateTrendChart(levelData, regression);
     }
-
+    
     function updateTrendChart(levelData, regression) {
       const ctx = document.getElementById('trendChart');
       if (!ctx) return;
-
+      
       if (trendChart) trendChart.destroy();
-
+      
       const labels = levelData.map((_, i) => `Ngày ${i + 1}`);
       const trendLine = levelData.map((_, i) => regression.slope * i + regression.intercept);
-
+      
       trendChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -3832,7 +3715,7 @@
         }
       });
     }
-
+    
     function updatePrediction(levelData) {
       if (levelData.length < 5) {
         waterLevelPrediction.textContent = 'Không đủ dữ liệu lịch sử để đưa ra dự báo chính xác.';
@@ -3841,17 +3724,17 @@
         predictionRisk.textContent = '--';
         return;
       }
-
+      
       // Get threshold values
       const settings = loadAlertSettings();
-
+      
       // Generate predictions using exponential smoothing
       const predictions = exponentialSmoothing(levelData);
-
+      
       // Calculate min and max predictions
       const minPred = Math.min(...predictions);
       const maxPred = Math.max(...predictions);
-
+      
       // Determine risk level
       let riskLevel, riskColor;
       if (maxPred >= settings.emergency) {
@@ -3867,26 +3750,26 @@
         riskLevel = 'Rất thấp';
         riskColor = '#22c55e';
       }
-
+      
       // Update UI
       waterLevelPrediction.textContent = `Dựa trên dữ liệu lịch sử, mực nước dự báo sẽ dao động trong khoảng ${nf2.format(minPred)} m - ${nf2.format(maxPred)} m trong 7 ngày tới.`;
       predictionMin.textContent = nf2.format(minPred);
       predictionMax.textContent = nf2.format(maxPred);
       predictionRisk.innerHTML = `<span style="color: ${riskColor}">${riskLevel}</span>`;
-
+      
       // Update prediction chart
       updatePredictionChart(levelData, predictions);
     }
-
+    
     function updatePredictionChart(levelData, predictions) {
       const ctx = document.getElementById('predictionChart');
       if (!ctx) return;
-
+      
       if (predictionChart) predictionChart.destroy();
-
+      
       const historicalLabels = levelData.map((_, i) => `Ngày ${i + 1}`);
       const predictionLabels = predictions.map((_, i) => `+${i + 1}`);
-
+      
       predictionChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -3941,7 +3824,7 @@
         }
       });
     }
-
+    
     function updateRecommendations(levelData, rainData) {
       if (levelData.length === 0) {
         operationRecommendation.textContent = 'Không có dữ liệu để đưa ra đề xuất.';
@@ -3949,14 +3832,14 @@
         attentionPoints.textContent = 'Không có dữ liệu để phân tích.';
         return;
       }
-
+      
       // Get current and threshold values
       const currentLevel = levelData[levelData.length - 1];
       const settings = loadAlertSettings();
-
+      
       // Analyze recent rain
       const recentRain = rainData.slice(-3).reduce((sum, val) => sum + val, 0);
-
+      
       // Generate operation recommendations
       let operationRec = '';
       if (currentLevel >= settings.emergency) {
@@ -3968,14 +3851,14 @@
       } else {
         operationRec = 'Mực nước ở mức an toàn. Vận hành theo chế độ bình thường, duy trì tần suất quan trắc định kỳ.';
       }
-
+      
       // Add rain context
       if (recentRain > 50) {
         operationRec += ' Lượng mưa lớn gần đây có thể làm mực nước tăng nhanh.';
       } else if (recentRain > 20) {
         operationRec += ' Có mưa vừa phải gần đây, cần theo dõi xu hướng mực nước.';
       }
-
+      
       // Generate discharge recommendations
       let dischargeRec = '';
       if (currentLevel >= settings.emergency) {
@@ -3987,31 +3870,31 @@
       } else {
         dischargeRec = 'Không cần xả nước ở thời điểm hiện tại. Duy trì mực nước ở mức tối ưu cho vận hành.';
       }
-
+      
       // Generate attention points
       let attentionPointsList = [];
-
+      
       if (currentLevel >= settings.monitor) {
         attentionPointsList.push('Mực nước cao, cần theo dõi chặt chẽ');
       }
-
+      
       if (recentRain > 30) {
         attentionPointsList.push('Lượng mưa lớn gần đây');
       }
-
+      
       if (levelData.length > 1) {
         const trend = levelData[levelData.length - 1] - levelData[levelData.length - 2];
         if (trend > 0.5) {
           attentionPointsList.push('Mực nước tăng nhanh');
         }
       }
-
+      
       // Add seasonal considerations
       const currentMonth = new Date().getMonth() + 1;
       if (currentMonth >= 6 && currentMonth <= 10) {
         attentionPointsList.push('Mùa mưa, cần đề phòng lũ lụt');
       }
-
+      
       // Update UI
       operationRecommendation.textContent = operationRec;
       dischargeRecommendation.textContent = dischargeRec;
@@ -4019,7 +3902,7 @@
         ? `Các điểm cần chú ý: ${attentionPointsList.join(', ')}.` 
         : 'Không có điểm đặc biệt cần chú ý ở thời điểm hiện tại.';
     }
-
+    
     function updatePatternAnalysis(rainData, levelData) {
       if (rainData.length === 0 || levelData.length === 0) {
         rainPattern.textContent = 'Không đủ dữ liệu để phân tích mẫu mưa.';
@@ -4028,42 +3911,42 @@
         seasonalVariation.textContent = '--';
         return;
       }
-
+      
       // Analyze rain pattern
       const avgRain = rainData.reduce((sum, val) => sum + val, 0) / rainData.length;
       const maxRain = Math.max(...rainData);
       const rainyDays = rainData.filter(val => val > 0).length;
       const rainyDayRatio = (rainyDays / rainData.length) * 100;
-
+      
       rainPattern.textContent = `Lượng mưa trung bình ${nf1.format(avgRain)} mm/ngày, với ${rainyDays} ngày có mưa (${nf1.format(rainyDayRatio)}%). Lượng mưa lớn nhất trong kỳ là ${nf1.format(maxRain)} mm.`;
-
+      
       // Analyze seasonal pattern
       const avgLevel = levelData.reduce((sum, val) => sum + val, 0) / levelData.length;
       const minLevel = Math.min(...levelData);
       const maxLevel = Math.max(...levelData);
       const variation = ((maxLevel - minLevel) / avgLevel) * 100;
-
+      
       seasonalPattern.textContent = `Mực nước trung bình ${nf2.format(avgLevel)} m, dao động từ ${nf2.format(minLevel)} m đến ${nf2.format(maxLevel)} m.`;
-
+      
       // Calculate rain-level correlation
       const correlationCoeff = correlation(rainData, levelData.slice(-rainData.length));
-
+      
       // Update UI
       rainCorrelation.textContent = nf2.format(correlationCoeff);
       seasonalVariation.textContent = `${nf1.format(variation)}%`;
-
+      
       // Update pattern chart
       updatePatternChart(rainData, levelData);
     }
-
+    
     function updatePatternChart(rainData, levelData) {
       const ctx = document.getElementById('patternChart');
       if (!ctx) return;
-
+      
       if (patternChart) patternChart.destroy();
-
+      
       const labels = rainData.map((_, i) => `Ngày ${i + 1}`);
-
+      
       patternChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -4180,7 +4063,7 @@
       }
       applyFilters(); 
     });
-
+    
     quarterSel.addEventListener('change',()=>{ 
       if(quarterSel.value!=='all') {
         monthSel.value='all';
@@ -4188,7 +4071,7 @@
       }
       applyFilters(); 
     });
-
+    
     weekSel.addEventListener('change', () => {
       if(weekSel.value !== 'all') {
         quarterSel.value = 'all';
@@ -4196,7 +4079,7 @@
       }
       applyFilters();
     });
-
+    
     dayNightSel.addEventListener('change', applyFilters);
     yearSel.addEventListener('change', () => {
       if(yearSel.value !== 'all') {
@@ -4211,10 +4094,10 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Load data with progressive enhancement
       loadDataWithProgressiveEnhancement();
-
+      
       // Set up periodic data refresh (every 5 minutes)
       setInterval(() => {
-        // Only refresh if page is visible
+        // Only refresh if the page is visible
         if (!document.hidden) {
           fetchFreshDataInBackground();
         }
@@ -4227,9 +4110,9 @@
         showToast('Không có dữ liệu để xuất.', 'warning', 3000); 
         return; 
       }
-
+      
       showToast('Đang chuẩn bị xuất Excel...', 'info', 2000);
-
+      
       const H1=["Ngày","Giờ","Mực nước (m)","Dung tích (Triệu m³)","Lượng mưa (mm)",
         "Thông số vận hành tràn tự do","",
         "Thông số vận hành tràn sự cố","","","",
@@ -4248,7 +4131,8 @@
       ws['!merges']=[
         {s:{r:0,c:0},e:{r:1,c:0}},{s:{r:0,c:1},e:{r:1,c:1}},
         {s:{r:0,c:2},e:{r:1,c:2}},{s:{r:0,c:3},e:{r:1,c:3}},
-        {s:{r:0,c:4},e:{r:0,c:6}},
+        {s:{r:0,c:4},e:{r:1,c:4}},
+        {s:{r:0,c:5},e:{r:0,c:6}},
         {s:{r:0,c:7},e:{r:0,c:10}},
         {s:{r:0,c:11},e:{r:0,c:13}},
         {s:{r:0,c:14},e:{r:1,c:14}},
@@ -4262,7 +4146,7 @@
       XLSX.utils.book_append_sheet(wb,ws,"NhatKy_HoNuocNgot");
       XLSX.writeFile(wb,"NhatKyVanHanh_HoNuocNgot.xlsx");
       function num(v){ const n=Number(v); return Number.isNaN(n)?"":n; }
-
+      
       showToast('Đã xuất file Excel thành công', 'success', 3000);
     });
 
@@ -4301,21 +4185,6 @@
     /* Mobile Menu Toggle Logic */
     menuToggle.addEventListener('click', () => {
       sidebar.classList.toggle('open');
-    });
-
-    // Desktop Sidebar Toggle Logic
-    sidebarToggle.addEventListener('click', () => {
-      sidebarCollapsed = !sidebarCollapsed;
-      
-      if (sidebarCollapsed) {
-        sidebar.classList.add('collapsed');
-        mainContent.classList.add('expanded');
-        sidebarToggleIcon.className = 'fas fa-chevron-right';
-      } else {
-        sidebar.classList.remove('collapsed');
-        mainContent.classList.remove('expanded');
-        sidebarToggleIcon.className = 'fas fa-chevron-left';
-      }
     });
 
     // Close sidebar when clicking outside on mobile
@@ -4427,7 +4296,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Load data with cache-first approach
       loadDataWithCacheFirst();
-
+      
       // Set up periodic background refresh (every 5 minutes)
       setInterval(() => {
         // Only refresh if page is visible
@@ -4443,7 +4312,7 @@
       if (scrollTimeout) {
         window.cancelAnimationFrame(scrollTimeout);
       }
-
+      
       scrollTimeout = window.requestAnimationFrame(() => {
         // Handle scroll-based lazy loading if needed in the future
       });
@@ -4455,7 +4324,7 @@
       if (resizeTimeout) {
         clearTimeout(resizeTimeout);
       }
-
+      
       resizeTimeout = setTimeout(() => {
         // Handle responsive layout changes
         if (comboChart) {
@@ -4480,19 +4349,19 @@
         event.preventDefault();
         fetchFreshData();
       }
-
+      
       // Ctrl/Cmd + E: Export to Excel
       if ((event.ctrlKey || event.metaKey) && event.key === 'e') {
         event.preventDefault();
         document.getElementById('btnExcel').click();
       }
-
+      
       // Ctrl/Cmd + P: Print
       if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
         event.preventDefault();
         window.print();
       }
-
+      
       // Escape: Close modals
       if (event.key === 'Escape') {
         if (dashboardSettingsModal.style.display === 'block') {
@@ -4513,11 +4382,11 @@
           button.setAttribute('aria-label', button.textContent.trim());
         }
       });
-
+      
       // Add keyboard navigation to menu items
       menuItems.forEach((item, index) => {
         item.setAttribute('tabindex', '0');
-
+        
         item.addEventListener('keydown', (event) => {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
@@ -4581,9 +4450,9 @@
         localStorage: 'localStorage' in window,
         sessionStorage: 'sessionStorage' in window
       };
-
+      
       console.log('Browser features:', features);
-
+      
       // Show warning if IndexedDB is not supported
       if (!features.indexedDB) {
         showToast('Trình duyệt không hỗ trợ IndexedDB. Một số tính năng có thể không hoạt động.', 'warning', 5000);
@@ -4596,7 +4465,7 @@
     // Add dark mode support (optional enhancement)
     function initDarkMode() {
       const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
+      
       function updateDarkMode(e) {
         if (e.matches) {
           document.body.classList.add('dark-mode');
@@ -4604,7 +4473,7 @@
           document.body.classList.remove('dark-mode');
         }
       }
-
+      
       darkModeQuery.addListener(updateDarkMode);
       updateDarkMode(darkModeQuery);
     }
@@ -4616,7 +4485,7 @@
     function initProgressiveEnhancement() {
       // Show a minimal version of the page while JavaScript loads
       document.body.classList.add('js-loading');
-
+      
       window.addEventListener('load', () => {
         setTimeout(() => {
           document.body.classList.remove('js-loading');
