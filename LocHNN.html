@@ -2578,28 +2578,24 @@ function syncAllTabsData() {
     console.log("Đã đồng bộ dữ liệu mới cho toàn bộ Dashboard.");
 }
 // --- KẾT THÚC CODE THÊM MỚI ---
-    // Fetch fresh data from server in background
+    // Fetch fresh data from server in background (ĐÃ SỬA LỖI LOGIC)
     async function fetchFreshDataInBackground() {
       // Tránh gọi nhiều lần cùng lúc
       if (isRefreshing) return;
       isRefreshing = true;
       
       try {
-        // Show data update indicator
         showDataUpdateIndicator(true, 'Đang kiểm tra dữ liệu mới...');
         
-        // Fetch data from server
-        
-    // Thêm tham số "&t=" + thời gian hiện tại để chống cache tuyệt đối
-    const antiCacheURL = `${API_URL}&t=${new Date().getTime()}`;
-    const response = await fetch(antiCacheURL);
-    // --------------------
+        // --- SỬA LỖI: Thêm tham số chống Cache ---
+        const antiCacheURL = `${API_URL}&t=${new Date().getTime()}`;
+        const response = await fetch(antiCacheURL);
+        // ----------------------------------------
         
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
         
-        showDataUpdateIndicator(true, 'Đang xử lý dữ liệu mới...');
         const data = await response.json();
         
         if (!Array.isArray(data) || !data.length) {
@@ -2609,118 +2605,44 @@ function syncAllTabsData() {
         // Process new data
         const processedData = processData(data);
         
-        // Check if there's actually new data
-        let hasNewData = false;
-        if (allData.length > 0) {
-          const newestExistingDate = allData[0].__d;
-          const newestNewDate = processedData[0].__d;
-          
-          if (newestNewDate > newestExistingDate) {
-            hasNewData = true;
-          }
-        } else {
-          hasNewData = true;
+        // --- LOGIC MỚI: Luôn cập nhật nếu tải được dữ liệu ---
+        showDataUpdateIndicator(true, 'Đang cập nhật dữ liệu mới...');
+        
+        const previousDataCount = allData.length;
+        // Combine sẽ tự loại bỏ trùng lặp và lấy bản ghi mới nhất
+        allData = combineData(allData, processedData);
+        const newDataCount = allData.length - previousDataCount;
+        
+        // Cache combined data
+        if (typeof cacheData === 'function') {
+            await cacheData(allData.map(item => {
+              const { __d, __y, __m, __q, __rowHTML, ...cleanItem } = item;
+              return cleanItem;
+            }));
         }
         
-        if (hasNewData) {
-          showDataUpdateIndicator(true, 'Đang cập nhật dữ liệu mới...');
-          
-          // Combine with existing data
-          const previousDataCount = allData.length;
-          allData = combineData(allData, processedData);
-          const newDataCount = allData.length - previousDataCount;
-          
-          // Cache combined data
-          await cacheData(allData.map(item => {
-            // Create a clean version for caching (without computed properties)
-            const { __d, __y, __m, __q, __rowHTML, ...cleanItem } = item;
-            return cleanItem;
-          }));
-          
-          // Update UI with fresh data
-          populateYears(allData);
-          populateWeeks(allData);
-          applyFiltersCore();
-          
-          showDataUpdateIndicator(false);
-          
-          if (newDataCount > 0) {
-            showToast(`Đã cập nhật ${newDataCount} bản ghi mới`, 'success', 5000);
-          } else {
-            showToast('Dữ liệu đã được cập nhật', 'success', 3000);
-          }
+        // Update UI
+        if (typeof syncAllTabsData === 'function') {
+            syncAllTabsData();
         } else {
-          showDataUpdateIndicator(false);
-          showToast('Không có dữ liệu mới', 'info', 3000);
+            populateYears(allData);
+            populateWeeks(allData);
+            applyFiltersCore();
         }
+        
+        showDataUpdateIndicator(false);
+        
+        if (newDataCount > 0) {
+          showToast(`Đã cập nhật ${newDataCount} bản ghi mới`, 'success', 5000);
+        } else {
+          console.log('Đã đồng bộ dữ liệu (cập nhật giá trị mới nhất)');
+        }
+
       } catch (error) {
         console.error('Error fetching fresh data:', error);
         showDataUpdateIndicator(false);
-        showToast(`Lỗi kiểm tra dữ liệu mới: ${error.message}`, 'error', 5000);
       } finally {
         isRefreshing = false;
-      }
-    }
-
-    // Cập nhật hàm fetchFreshData
-    async function fetchFreshData() {
-      // Tránh gọi nhiều lần cùng lúc
-      if (isDataLoading) return;
-      isDataLoading = true;
-      
-      try {
-        showLoading(true, 'Đang tải dữ liệu từ máy chủ...', 30);
-        
-        // Fetch data from server
-        const response = await fetch(API_URL, { cache: 'no-store' });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        
-        showLoading(true, 'Đang xử lý dữ liệu...', 60);
-        const data = await response.json();
-        
-        if (!Array.isArray(data) || !data.length) {
-          throw new Error('Không có dữ liệu từ máy chủ');
-        }
-        
-        // Process new data
-        const processedData = processData(data);
-        
-        // Combine with existing data
-        allData = combineData(allData, processedData);
-        
-        // Cache combined data
-        showLoading(true, 'Đang lưu dữ liệu vào cache...', 80);
-        await cacheData(allData.map(item => {
-          // Create a clean version for caching (without computed properties)
-          const { __d, __y, __m, __q, __rowHTML, ...cleanItem } = item;
-          return cleanItem;
-        }));
-        
-        // Update UI with fresh data
-        showLoading(true, 'Cập nhật giao diện...', 90);
-        populateYears(allData);
-        populateWeeks(allData);
-        applyFiltersCore();
-        
-        showLoading(false);
-        showToast('Đã tải dữ liệu mới nhất thành công', 'success', 3000);
-      } catch (error) {
-        console.error('Error fetching fresh data:', error);
-        showLoading(false);
-        showToast(`Lỗi tải dữ liệu mới: ${error.message}`, 'error', 5000);
-        
-        // If we have cached data, continue using it
-        if (allData && allData.length > 0) {
-          showToast('Đang sử dụng dữ liệu đã lưu', 'warning', 3000);
-        } else {
-          // Show error in the table
-          tbody.innerHTML = `<tr><td class="state" colspan="16">Lỗi tải dữ liệu: ${error.message || error}</td></tr>`;
-        }
-      } finally {
-        isDataLoading = false;
       }
     }
 
