@@ -2309,7 +2309,7 @@
     <!-- PHẦN JAVASCRIPT TIẾP THEO Ở FILE PART 2 -->
     <script>
         // ====== API ======
-        const EXEC_URL = "https://script.google.com/macros/s/AKfycbwCz4UxT1XoFe3nJtVxGn0w6N1Nf8JKZ1B6DjKVPLfzB7jz9CFidYG3Ks0hbOZqI23I/exec";
+        const EXEC_URL = "https://script.google.com/macros/s/AKfycby33GTNUv9exQy15mdXBg1y6L9SWdkHJISGQ4c3dwhL4GXAVn-IZvcXlsQmWDwD_Fth/exec";
         const SHEET = "HoOngKinh";
         const API_URL = `${EXEC_URL}?sheet=${encodeURIComponent(SHEET)}`;
         const CACHE_KEY = 'HoOngKinh_Data_v1';
@@ -3650,10 +3650,27 @@
                 console.warn('Failed to load cache', e);
             }
 
-            fetch(API_URL, { cache: 'no-store' })
-                .then(res => res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`)))
-                .then(async json => {
-                    if (json && json.error) throw new Error(json.message || 'Lỗi từ API');
+            fetch(API_URL, { 
+  cache: 'no-store',
+  headers: {
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache'
+  }
+})
+  .then(res => {
+    console.log('Response status:', res.status);
+    if (!res.ok) {
+      return res.text().then(text => {
+        console.error('Response error:', text);
+        throw new Error(`HTTP ${res.status}: ${text}`);
+      });
+    }
+    return res.json();
+  })
+  .then(async json => {
+    console.log('Data received:', json);
+    if (json && json.error) throw new Error(json.message || 'Lỗi từ API');
+    if (!Array.isArray(json)) throw new Error('Dữ liệu không đúng định dạng');
 
                     await saveToDB(CACHE_KEY, json);
 
