@@ -2309,7 +2309,7 @@
     <!-- PHẦN JAVASCRIPT TIẾP THEO Ở FILE PART 2 -->
     <script>
         // ====== API ======
-        const EXEC_URL = "https://script.google.com/macros/s/AKfycby33GTNUv9exQy15mdXBg1y6L9SWdkHJISGQ4c3dwhL4GXAVn-IZvcXlsQmWDwD_Fth/exec";
+        const EXEC_URL = "https://script.google.com/macros/s/AKfycby33GTNUv9exQy15mdXBg1y6L9SWdkHJISGQ4c3dwhL4GXAVn-IZvcXlsQmWDwD_Fth/exec?sheet=HoOngKinh";
         const SHEET = "HoOngKinh";
         const API_URL = `${EXEC_URL}?sheet=${encodeURIComponent(SHEET)}`;
         const CACHE_KEY = 'HoOngKinh_Data_v1';
@@ -4074,6 +4074,117 @@
             renderTablePaged(filteredData);
             updateChartsAndKPIs();
         }
+        // ====== ANTI-CACHE & CROSS-TAB SYNC ======
+
+/**
+ * Tạo URL API với tham số chống cache
+ * Thêm timestamp và số ngẫu nhiên để đảm bảo mỗi lần gọi là duy nhất
+ */
+function getApiUrl() {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(7);
+  return `${EXEC_URL}&_t=${timestamp}&_r=${random}`;
+}
+// ... (sau hàm getApiUrl)
+
+/**
+ * Gọi API với cơ chế thử lại khi thất bại
+ * @param {string} url - URL API cần gọi
+ * @param {object} options - Các tùy chọn cho fetch
+ * @param {number} maxRetries - Số lần thử lại tối đa
+ * @returns {Promise} - Promise chứa dữ liệu JSON
+ */
+ async function fetchWithRetry(url, options = {}, maxRetries = 3) {
+  let retryCount = 0;
+  
+  while (retryCount < maxRetries) {
+    try {
+      const response = await fetch(url, options);
+      
+      if (!response.ok) {
+        // Nếu server trả về lỗi, ném lỗi để thử lại
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      // Nếu thành công, parse và trả về JSON
+      return await response.json();
+      
+    } catch (error) {
+      retryCount++;
+      console.warn(`Lỗi gọi API (lần ${retryCount}/${maxRetries}):`, error.message);
+      
+      // Nếu đã thử lại đủ số lần, ném lỗi cuối cùng
+      if (retryCount >= maxRetries) {
+        console.error(`Đã thử lại ${maxRetries} lần nhưng vẫn thất bại.`);
+        throw new Error(`Không thể tải dữ liệu sau ${maxRetries} lần thử. Lỗi cuối: ${error.message}`);
+      }
+      
+      // Đợi một khoảng thời gian ngẫu nhiên trước khi thử lại (gi tránh trùng nhau)
+      const delay = Math.random() * 1000 + (retryCount * 1000); // Đợi 1s, 2s, 3s...
+      console.log(`Chờ ${Math.round(delay)}ms trước khi thử lại...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+
+// ... (tiếp tục với hàm signalDataUpdate)
+/**
+ * Gửi tín hiệu đến các tab khác để yêu cầu làm mới dữ liệu
+ * Sử dụng localStorage event để giao tiếp giữa các tab
+ */
+function signalDataUpdate() {
+  console.log("Đã tải dữ liệu mới, gửi tín hiệu đến các tab khác...");
+  localStorage.setItem('dataUpdateSignal', JSON.stringify({
+    sheet: new URL(EXEC_URL).searchParams.get('sheet'), // Lấy tên sheet từ URL
+    timestamp: Date.now()
+  }));
+  // Xóa ngay lập tức để sự kiện có thể kích hoạt lại lần sau
+  localStorage.removeItem('dataUpdateSignal');
+}
+
+/**
+ * Lắng nghe tín hiệu từ các tab khác
+ * Khi nhận được tín hiệu, sẽ tự động tải lại dữ liệu
+ */
+window.addEventListener('storage', (event) => {
+  if (event.key === 'dataUpdateSignal') {
+    try {
+      const signal = JSON.parse(event.newValue);
+      // Chỉ làm mới nếu tín hiệu không phải từ tab hiện tại (tránh vòng lặp vô hạn)
+      // và chỉ làm mới khi tín hiệu dành cho sheet hiện tại
+      const currentSheet = new URL(EXEC_URL).searchParams.get('sheet');
+      if (signal.sheet === currentSheet) {
+        console.log("Nhận tín hiệu làm mới dữ liệu từ tab khác. Đang tải lại...");
+        // Gọi lại hàm chính của bạn để tải lại dữ liệu
+        // Ví dụ: fetchAndRender() hoặc tên hàm tương ứng trong file của bạn
+        fetchAndRender(); 
+      }
+    } catch (e) {
+      console.error("Lỗi khi xử lý tín hiệu từ tab khác:", e);
+    }
+  }
+});
+
+/**
+ * Cập nhật hàm fetch chính của bạn để tích hợp signaling
+ * Tìm đến hàm fetch dữ liệu chính trong code của bạn (ví dụ: fetchAndRender, loadData, v.v.)
+ * và thêm `signalDataUpdate()` vào khối `then` khi fetch thành công.
+ */
+// Ví dụ, trong file của bạn có thể có hàm tương tự như thế này:
+// function fetchAndRender() {
+//   fetch(getApiUrl(), { cache: 'no-store', ... })
+//     .then(response => response.json())
+//     .then(data => {
+//       // ... xử lý và hiển thị data ...
+//       
+//       // ---- THÊM DÒNG NÀY VÀO ĐÂY ----
+//       signalDataUpdate(); 
+//       // --------------------------------
+//     })
+//     .catch(error => {
+//       // ... xử lý lỗi ...
+//     });
+// } 
     </script>
 </body>
 
