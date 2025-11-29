@@ -11,6 +11,15 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 
     <style>
+        /* THÊM MỚI - LOADING ĐẸP */
+.loading-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8);
+  display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;
+}
+.spinner { border: 4px solid #f3f3f3; border-top: 4px solid #1EA48D; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.loading-text { font-size: 16pt; font-weight: bold; color: #0f172a; margin-top: 10px; }
+/* Toast system has been consolidated into a single class at the end of the CSS file */
         :root {
             --header-bg: #1EA48D;
             --border-color: #d1d5db;
@@ -673,14 +682,11 @@
             }
         }
 
-        #toast-container {
+        /* Consolidated Toast Notification System */
+        .toast {
             position: fixed;
             bottom: 20px;
             left: 20px;
-            z-index: 1000;
-        }
-
-        .toast {
             background: #333;
             color: #fff;
             padding: 12px 24px;
@@ -690,11 +696,17 @@
             transition: opacity 0.3s;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             font-size: 13pt;
+            z-index: 1000;
         }
 
         .toast.show {
             opacity: 1;
         }
+
+        .toast.success { background: #22c55e; }
+        .toast.error { background: #ef4444; }
+        .toast.info { background: #3b82f6; }
+
 
         #data-table col.col-stt {
             width: 60px
@@ -884,14 +896,14 @@
         .water-level-scale {
             position: relative;
             height: 30px;
-            background: linear-gradient(to right, 
-                var(--safe-level) 0%, 
-                var(--safe-level) 25%, 
-                var(--theory-level) 25%, 
-                var(--theory-level) 50%, 
-                var(--warning-level) 50%, 
-                var(--warning-level) 75%, 
-                var(--emergency-level) 75%, 
+            background: linear-gradient(to right,
+                var(--safe-level) 0%,
+                var(--safe-level) 25%,
+                var(--theory-level) 25%,
+                var(--theory-level) 50%,
+                var(--warning-level) 50%,
+                var(--warning-level) 75%,
+                var(--emergency-level) 75%,
                 var(--emergency-level) 100%);
             border-radius: 15px;
             margin-bottom: 10px;
@@ -1031,12 +1043,12 @@
                 transform: scale(0.95);
                 box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
             }
-            
+
             70% {
                 transform: scale(1);
                 box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
             }
-            
+
             100% {
                 transform: scale(0.95);
                 box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
@@ -1579,7 +1591,7 @@
     .charts,
     .pagination-bar,
     .custom-time-panel,
-    #toast-container,
+    .toast,
     .ai-analysis-container,
     .warning-system-container,
     .trend-analysis-container,
@@ -1747,9 +1759,32 @@
                 flex-wrap: wrap;
             }
         }
+
+        /* BƯỚC 3 - SIDEBAR ĐẸP TRÊN ĐIỆN THOẠI */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 999;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .main-content {
+    margin-left: 0 !important;
+  }
+  .menu-toggle-btn,
+  .show-sidebar-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
     </style>
 </head>
-
+<!-- NÚT ☰ HOẠT ĐỘNG Ở MỌI TAB (MOBILE) -->
+<button class="menu-toggle-btn" id="menu-toggle-btn" style="display:none;">☰ Menu</button>
 <body>
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
@@ -2053,7 +2088,6 @@
                 </table>
 
                 <div id="error-message" class="error-message" style="display:none;"></div>
-                <div id="toast-container"></div>
             </div>
         </section>
 
@@ -2306,14 +2340,24 @@
         </div>
     </div>
 
+    <!-- Loading Overlay and Toast Notification -->
+    <div id="loadingOverlay" class="loading-overlay" style="display:none">
+        <div class="spinner"></div>
+        <div class="loading-text">Đang tải dữ liệu...</div>
+    </div>
+    <div id="toast" class="toast"></div>
+
     <!-- PHẦN JAVASCRIPT TIẾP THEO Ở FILE PART 2 -->
     <script>
         // ====== API ======
-        const EXEC_URL = "https://script.google.com/macros/s/AKfycby33GTNUv9exQy15mdXBg1y6L9SWdkHJISGQ4c3dwhL4GXAVn-IZvcXlsQmWDwD_Fth/exec?sheet=HoOngKinh";
-        const SHEET = "HoOngKinh";
-        const API_URL = `${EXEC_URL}?sheet=${encodeURIComponent(SHEET)}`;
-        const CACHE_KEY = 'HoOngKinh_Data_v1';
-        const DASHBOARD_PREFS_KEY = 'HoOngKinh_DashboardPrefs';
+        // Đoạn code đã sửa – làm dynamic theo tên hồ (không cần sửa thủ công nữa)
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwCz4UxT1XoFe3nJtVxGn0w6N1Nf8JKZ1B6DjKVPLfzB7jz9CFidYG3Ks0hbOZqI23I/exec";
+    const CURRENT_SHEET = "HoThanhSon";        // ← ĐỔI DÒNG NÀY THÔI là đổi hồ (ví dụ: "HoOngKinh", "HoNuocNgot")
+    const API_URL = `${WEB_APP_URL}?sheet=${CURRENT_SHEET}&t=${Date.now()}`;
+
+    // 2 dòng này – tự động theo tên hồ (cache riêng cho từng hồ, không lẫn lộn)
+    const CACHE_KEY = `${CURRENT_SHEET}_Data_v1`;
+    const DASHBOARD_PREFS_KEY = `${CURRENT_SHEET}_DashboardPrefs`;
 
         // Updated water level thresholds
         const LVL_DEAD = 42.50;      // Mực nước chết
@@ -2434,18 +2478,12 @@
         let comboChart;
         let trendChart;
 
-        function showToast(message) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = message;
-            container.appendChild(toast);
-            void toast.offsetWidth;
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+        // ====== TOAST NOTIFICATION SYSTEM ======
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = `toast show ${type}`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
         function showError(message) {
@@ -2749,7 +2787,7 @@
             
             // Show toast notification for non-safe status
             if (status !== 'safe') {
-                showToast(message);
+                showToast(message, 'warning');
             }
         }
 
@@ -2809,7 +2847,7 @@
             warningThresholds.emergency = parseFloat(thresholdEmergency.value);
             
             localStorage.setItem('HoOngKinh_WarningThresholds', JSON.stringify(warningThresholds));
-            showToast('Cài đặt ngưỡng cảnh báo đã được lưu.');
+            showToast('Cài đặt ngưỡng cảnh báo đã được lưu.', 'success');
             
             // Re-check warning status with new thresholds
             updateCurrentKPIs();
@@ -3025,14 +3063,14 @@
 
             localStorage.setItem(DASHBOARD_PREFS_KEY, JSON.stringify(dashboardPrefs));
             applyDashboardPrefs();
-            showToast('Cài đặt Dashboard đã được lưu.');
+            showToast('Cài đặt Dashboard đã được lưu.', 'success');
         }
 
         function resetDashboardPrefs() {
             dashboardPrefs = JSON.parse(JSON.stringify(defaultDashboardPrefs));
             localStorage.removeItem(DASHBOARD_PREFS_KEY);
             applyDashboardPrefs();
-            showToast('Cài đặt Dashboard đã được khôi phục về mặc định.');
+            showToast('Cài đặt Dashboard đã được khôi phục về mặc định.', 'info');
         }
 
         function applyDashboardPrefs() {
@@ -3631,62 +3669,65 @@
             return suggestionsText;
         }
 
-        (async function init() {
-            // Load preferences on initialization
-            loadDashboardPrefs();
-            loadWarningThresholds();
+        // ====== DATA LOADING AND RENDERING ======
+        let isLoading = false;
 
-            let hasCache = false;
-
-            try {
-                const cachedData = await getFromDB(CACHE_KEY);
-                if (cachedData) {
-                    console.log('Loaded from IndexedDB');
-                    processData(cachedData);
-                    showToast('Đã tải dữ liệu từ bộ nhớ đệm. Đang cập nhật...');
-                    hasCache = true;
-                }
-            } catch (e) {
-                console.warn('Failed to load cache', e);
+        async function loadData() {
+          if (isLoading) return;
+          isLoading = true;
+          
+          const loadingOverlay = document.getElementById('loadingOverlay');
+          
+          loadingOverlay.style.display = 'flex';
+          
+          try {
+            // Kiểm tra cache trước (từ localStorage)
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached) {
+              const cacheData = JSON.parse(cached);
+              if (Date.now() - cacheData.timestamp < 30 * 60 * 1000) { // Cache 30 phút
+                allData = cacheData.data;
+                applyFiltersAndRender();
+                showToast('Dữ liệu từ cache – siêu nhanh!', 'success');
+                return;
+              }
             }
+            
+            // Fetch mới từ API
+            const res = await fetch(API_URL);
+            if (!res.ok) throw new Error(`Lỗi mạng: ${res.status}`);
+            const data = await res.json();
+            if (data.error) throw new Error(data.message);
+            
+            allData = data;
+            
+            // Lưu cache mới
+            localStorage.setItem(CACHE_KEY, JSON.stringify({ data: allData, timestamp: Date.now() }));
+            
+            applyFiltersAndRender();
+            showToast('Dữ liệu tải thành công!', 'success');
+                    
+        } catch (err) {
+            console.error('Lỗi loadData:', err);
+            showToast('Lỗi tải dữ liệu: ' + err.message, 'error');
+            // Fallback từ cache nếu có
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached) {
+              allData = JSON.parse(cached).data;
+              applyFiltersAndRender();
+              showToast('Dùng dữ liệu cũ từ cache', 'info');
+            }
+          } finally {
+            isLoading = false;
+            loadingOverlay.style.display = 'none';
+          }
+        }
 
-            fetch(API_URL, { 
-  cache: 'no-store',
-  headers: {
-    'Cache-Control': 'no-cache',
-    'Pragma': 'no-cache'
-  }
-})
-  .then(res => {
-    console.log('Response status:', res.status);
-    if (!res.ok) {
-      return res.text().then(text => {
-        console.error('Response error:', text);
-        throw new Error(`HTTP ${res.status}: ${text}`);
-      });
-    }
-    return res.json();
-  })
-  .then(async json => {
-    console.log('Data received:', json);
-    if (json && json.error) throw new Error(json.message || 'Lỗi từ API');
-    if (!Array.isArray(json)) throw new Error('Dữ liệu không đúng định dạng');
-
-                    await saveToDB(CACHE_KEY, json);
-
-                    processData(json);
-                    if (hasCache) showToast('Dữ liệu đã được cập nhật mới nhất.');
-                })
-                .catch(err => {
-                    console.error('Lỗi tải dữ liệu:', err);
-                    if (!hasCache) {
-                        showError(`Không thể tải dữ liệu. Lỗi: ${err.message || err}`);
-                        waterStatusEl.textContent = 'Không thể xác định trạng thái mực nước do lỗi dữ liệu.';
-                    } else {
-                        showToast('Không thể cập nhật dữ liệu mới. Đang hiển thị dữ liệu cũ.');
-                    }
-                });
-        })();
+        // THÊM MỚI - HÀM RENDER TẤT CẢ
+        function renderAll() {
+          applyFiltersAndRender(); // Gọi hàm render cũ của bạn
+          updateChartsAndKPIs(); // Nếu có hàm này
+        }
 
         function rebuildPrintTable() {
             if (!filteredData.length) {
@@ -4074,118 +4115,34 @@
             renderTablePaged(filteredData);
             updateChartsAndKPIs();
         }
-        // ====== ANTI-CACHE & CROSS-TAB SYNC ======
 
-/**
- * Tạo URL API với tham số chống cache
- * Thêm timestamp và số ngẫu nhiên để đảm bảo mỗi lần gọi là duy nhất
- */
-function getApiUrl() {
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(7);
-  return `${EXEC_URL}&_t=${timestamp}&_r=${random}`;
-}
-// ... (sau hàm getApiUrl)
+        // GỌI HÀM KHỞI TẠO KHI MỞ TRANG
+        renderAll(); // Khởi tạo giao diện ban đầu
+        loadData(); // Tự động chạy khi mở trang
 
-/**
- * Gọi API với cơ chế thử lại khi thất bại
- * @param {string} url - URL API cần gọi
- * @param {object} options - Các tùy chọn cho fetch
- * @param {number} maxRetries - Số lần thử lại tối đa
- * @returns {Promise} - Promise chứa dữ liệu JSON
- */
- async function fetchWithRetry(url, options = {}, maxRetries = 3) {
-  let retryCount = 0;
-  
-  while (retryCount < maxRetries) {
-    try {
-      const response = await fetch(url, options);
-      
-      if (!response.ok) {
-        // Nếu server trả về lỗi, ném lỗi để thử lại
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      // Nếu thành công, parse và trả về JSON
-      return await response.json();
-      
-    } catch (error) {
-      retryCount++;
-      console.warn(`Lỗi gọi API (lần ${retryCount}/${maxRetries}):`, error.message);
-      
-      // Nếu đã thử lại đủ số lần, ném lỗi cuối cùng
-      if (retryCount >= maxRetries) {
-        console.error(`Đã thử lại ${maxRetries} lần nhưng vẫn thất bại.`);
-        throw new Error(`Không thể tải dữ liệu sau ${maxRetries} lần thử. Lỗi cuối: ${error.message}`);
-      }
-      
-      // Đợi một khoảng thời gian ngẫu nhiên trước khi thử lại (gi tránh trùng nhau)
-      const delay = Math.random() * 1000 + (retryCount * 1000); // Đợi 1s, 2s, 3s...
-      console.log(`Chờ ${Math.round(delay)}ms trước khi thử lại...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
-}
-
-// ... (tiếp tục với hàm signalDataUpdate)
-/**
- * Gửi tín hiệu đến các tab khác để yêu cầu làm mới dữ liệu
- * Sử dụng localStorage event để giao tiếp giữa các tab
- */
-function signalDataUpdate() {
-  console.log("Đã tải dữ liệu mới, gửi tín hiệu đến các tab khác...");
-  localStorage.setItem('dataUpdateSignal', JSON.stringify({
-    sheet: new URL(EXEC_URL).searchParams.get('sheet'), // Lấy tên sheet từ URL
-    timestamp: Date.now()
-  }));
-  // Xóa ngay lập tức để sự kiện có thể kích hoạt lại lần sau
-  localStorage.removeItem('dataUpdateSignal');
-}
-
-/**
- * Lắng nghe tín hiệu từ các tab khác
- * Khi nhận được tín hiệu, sẽ tự động tải lại dữ liệu
- */
-window.addEventListener('storage', (event) => {
-  if (event.key === 'dataUpdateSignal') {
-    try {
-      const signal = JSON.parse(event.newValue);
-      // Chỉ làm mới nếu tín hiệu không phải từ tab hiện tại (tránh vòng lặp vô hạn)
-      // và chỉ làm mới khi tín hiệu dành cho sheet hiện tại
-      const currentSheet = new URL(EXEC_URL).searchParams.get('sheet');
-      if (signal.sheet === currentSheet) {
-        console.log("Nhận tín hiệu làm mới dữ liệu từ tab khác. Đang tải lại...");
-        // Gọi lại hàm chính của bạn để tải lại dữ liệu
-        // Ví dụ: fetchAndRender() hoặc tên hàm tương ứng trong file của bạn
-        fetchAndRender(); 
-      }
-    } catch (e) {
-      console.error("Lỗi khi xử lý tín hiệu từ tab khác:", e);
-    }
-  }
+        // Tự động làm mới mỗi 5 phút (tùy chọn, rất hay)
+        setInterval(() => {
+          console.log("Tự động làm mới dữ liệu...");
+          loadData();
+        }, 5 * 60 * 1000);
+        // BƯỚC 3 - ĐIỀU KHIỂN SIDEBAR TRÊN ĐIỆN THOẠI
+document.querySelectorAll('#menu-toggle-btn, #show-sidebar-btn, .sidebar-toggle').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('sidebar').classList.toggle('open');
+  });
 });
 
-/**
- * Cập nhật hàm fetch chính của bạn để tích hợp signaling
- * Tìm đến hàm fetch dữ liệu chính trong code của bạn (ví dụ: fetchAndRender, loadData, v.v.)
- * và thêm `signalDataUpdate()` vào khối `then` khi fetch thành công.
- */
-// Ví dụ, trong file của bạn có thể có hàm tương tự như thế này:
-// function fetchAndRender() {
-//   fetch(getApiUrl(), { cache: 'no-store', ... })
-//     .then(response => response.json())
-//     .then(data => {
-//       // ... xử lý và hiển thị data ...
-//       
-//       // ---- THÊM DÒNG NÀY VÀO ĐÂY ----
-//       signalDataUpdate(); 
-//       // --------------------------------
-//     })
-//     .catch(error => {
-//       // ... xử lý lỗi ...
-//     });
-// } 
+// Đóng sidebar khi click ngoài
+document.addEventListener('click', (e) => {
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtns = document.querySelectorAll('#menu-toggle-btn, #show-sidebar-btn, .sidebar-toggle');
+  if (window.innerWidth <= 768 && 
+      !sidebar.contains(e.target) && 
+      ![...toggleBtns].some(btn => btn.contains(e.target))) {
+    sidebar.classList.remove('open');
+  }
+});
     </script>
 </body>
-
 </html>
