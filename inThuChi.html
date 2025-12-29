@@ -17,7 +17,6 @@
             padding: 40px 0;
         }
 
-        /* --- THANH CÔNG CỤ --- */
         .no-print {
             margin-bottom: 20px;
             text-align: center;
@@ -55,7 +54,6 @@
             background: #0b7dda;
         }
 
-        /* --- KHỞI TẠO KHỞNG GIẤY A4 --- */
         .phieu-container {
             background: white;
             width: 210mm;
@@ -97,7 +95,7 @@
         .so-phieu {
             text-align: center;
             font-size: 13px;
-            margin: 5px 0 0 0;
+            margin: 2px 0 0 0;
         }
 
         .title {
@@ -113,7 +111,7 @@
             text-align: center;
             font-style: italic;
             font-size: 14px;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
 
         .content {
@@ -148,7 +146,7 @@
         .signature-location {
             font-style: italic;
             font-size: 14px;
-            margin-bottom: 5px;
+            margin-bottom: 0px;
             text-align: center;
             min-height: 20px;
             line-height: 1.4;
@@ -164,7 +162,7 @@
         .signature-name {
             font-weight: bold;
             font-size: 14px;
-            margin-top: 5px;
+            margin-top: 0px;
             margin-bottom: 0px;
         }
 
@@ -251,67 +249,58 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
-        // --- HÀM ĐỌC SỐ THÀNH CHỮ ---
+        // --- HÀM ĐỌC SỐ THÀNH CHỮ (ĐÃ VIẾT LẠI GỌN HƠN, CHẮC CHẮN HƠN) ---
         function docSo(num) {
-            if (num === 0) return "không";
+            if (num === 0) return "không đồng";
             
-            const chuDonVi = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
-            const chuDonViNgan = ["", "mốt", "hai", "ba", "bốn", "lăm", "sáu", "bảy", "tám", "chín"];
+            const chuSo = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+            const donvi = ["", "nghìn", "triệu", "tỷ", "nghìn tỷ", "triệu tỷ"];
             
-            function docNhom3(so, dayDu) {
-                let tram = Math.floor(so / 100);
-                let chuc = Math.floor((so % 100) / 10);
-                let donvi = so % 10;
-                let str = "";
-
-                if (dayDu || tram > 0) {
-                    str = (tram > 0 ? chuDonVi[tram] + " trăm" : "") + (dayDu && tram === 0 && (chuc > 0 || donvi > 0) ? " không trăm" : "");
-                }
-                
-                if (chuc > 0) {
-                    if (chuc === 1) {
-                        str += " mười";
-                        if (donvi === 1) str += " một";
-                    } else {
-                        str += " " + chuDonVi[chuc] + " mươi";
-                        if (donvi === 5) str += " năm";
-                        else if (donvi > 0) str += " " + chuDonVi[donvi];
-                    }
-                } else if (donvi > 0) {
-                    str += (tram > 0 ? " lẻ" : "") + " " + chuDonVi[donvi];
-                }
-
-                
-                return str.trim();
-            }
-
-            if (num === 0) return "đồng";
-
-            let hang = ["", "nghìn", "triệu", "tỷ", "nghìn tỷ", "triệu tỷ"];
+            let chuoi = "";
             let i = 0;
-            let str = "";
             
             while (num > 0) {
-                let nhom3 = num % 1000;
-                if (nhom3 > 0) {
-                    let dayDu = (i === 0); 
-                    str = docNhom3(nhom3, dayDu) + (hang[i] ? " " + hang[i] : "") + " " + str;
-                } else if (i === 0) {
-                    str = "không" + " " + str;
-                } else if (num > 1000) {
+                let block = num % 1000;
+                
+                if (block > 0) {
+                    let docBlock = "";
+                    
+                    // Đọc hàng trăm
+                    let tram = Math.floor(block / 100);
+                    if (tram > 0) docBlock += chuSo[tram] + " trăm";
+                    
+                    // Đọc hàng chục
+                    let chuc = Math.floor((block % 100) / 10);
+                    if (chuc === 1) docBlock += " mười";
+                    else if (chuc > 1) docBlock += " " + chuSo[chuc] + " mươi";
+                    
+                    // Đọc hàng đơn vị
+                    let dv = block % 10;
+                    
+                    // --- SỬA LỖI Ở ĐÂY: Thêm điều kiện dv > 0 ---
+                    if (chuc === 0 && tram > 0 && dv > 0) docBlock += " lẻ"; 
+                    // -------------------------------------------
+                    
+                    if (chuc === 1 && dv === 1) docBlock += " một";
+                    else if (chuc > 1 && dv === 5) docBlock += " năm";
+                    else if (dv > 0 && chuc !== 0) docBlock += " " + chuSo[dv]; // Chỉ đọc dv nếu đã có chục (để tránh lỗi lẻ ở trên)
+                    else if (dv > 0) docBlock += " " + chuSo[dv]; // Đọc dv đơn lẻ (ví dụ: 005 -> năm)
+                    
+                    chuoi = docBlock.trim() + " " + donvi[i] + " " + chuoi;
                 }
+                
                 num = Math.floor(num / 1000);
                 i++;
             }
             
-            return str.trim();
+            return chuoi.trim();
         }
 
         function soThanhChu(num) {
             const result = docSo(parseInt(num));
             return result.charAt(0).toUpperCase() + result.slice(1) + " đồng./.";
         }
-        // ----------------------------------
+        // ---------------------------------------------------------
 
         function populateForm() {
             const params = new URLSearchParams(window.location.search);
@@ -326,8 +315,7 @@
             const congTac = params.get('congTac') || 'Cụm vùng 4';
             const lyDo = params.get('lyDo') || 'Test In phiếu chi';
             
-            // Xử lý số tiền (xóa dấu chấm)
-            let soTienStr = params.get('soTien') || '1000000';
+            let soTienStr = params.get('soTien') || '3400000';
             let cleanSoTienStr = soTienStr.replace(/\./g, '').replace(/,/g, '.');
             let soTienNum = parseInt(cleanSoTienStr) || 0;
 
@@ -336,7 +324,6 @@
             const nguoiNhanTien = params.get('nguoiNhanTien') || 'Nguyễn Thị Vân Anh';
             const diaDiem = params.get('diaDiem') || 'Khánh Hòa';
 
-            // Hiển thị
             document.getElementById('soPhieu').textContent = soPhieu;
             document.getElementById('loaiPhieu').textContent = loaiPhieu;
             document.getElementById('ngayPhieu').textContent = `Ngày ${ngay} tháng ${thang} năm ${nam}`;
@@ -348,10 +335,7 @@
             document.getElementById('chuTich').textContent = chuTich;
             document.getElementById('keToan').textContent = keToan;
             document.getElementById('nguoiNhanTien').textContent = nguoiNhanTien;
-            
-            // --- SỬA: CHỮ "ngày" CHỮ THƯỜNG ---
             document.getElementById('diaDiem').textContent = `${diaDiem}, ngày ${ngay} tháng ${thang} năm ${nam}`;
-            // ----------------------------------
         }
 
         function exportPDF() {
