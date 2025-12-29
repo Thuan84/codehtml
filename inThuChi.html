@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phiếu Thu Chi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .no-print {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .no-print button {
+            padding: 12px 30px;
+            margin: 0 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+
+        .no-print button:hover {
+            background: #45a049;
+        }
+
+        .no-print button:nth-child(2) {
+            background: #2196F3;
+        }
+
+        .no-print button:nth-child(2):hover {
+            background: #0b7dda;
+        }
+
+        .phieu-container {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 15mm 20mm 15mm 25mm;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .header-content {
+            display: inline-block;
+            text-align: center;
+        }
+
+        .header-left {
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .header-left div {
+            margin: 2px 0;
+        }
+
+        .header-left div:nth-child(3) {
+            font-weight: bold;
+        }
+
+        .header-left div:nth-child(4) {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .so-phieu {
+            text-align: center;
+            font-size: 13px;
+            margin: 10px 0 0 0;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 30px 0 5px 0;
+            letter-spacing: 1px;
+        }
+
+        .date {
+            text-align: center;
+            font-style: italic;
+            font-size: 13px;
+            margin-bottom: 35px;
+        }
+
+        .content {
+            font-size: 13px;
+            line-height: 1.8;
+            margin: 20px 0;
+        }
+
+        .content > div {
+            margin: 8px 0;
+        }
+
+        .bang-chu {
+            margin: 10px 0;
+        }
+
+        .signatures {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-top: 60px;
+            text-align: center;
+            align-items: start;
+        }
+
+        .signature-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .signature-location {
+            font-style: italic;
+            font-size: 13px;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            min-height: 20px;
+        }
+
+        .signature-title {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 70px;
+        }
+
+        .signature-name {
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .phieu-container {
+                box-shadow: none;
+                padding: 15mm 20mm 15mm 25mm;
+                margin: 0;
+                width: 210mm;
+            }
+
+            @page {
+                size: A4;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button onclick="window.print()">🖨️ In Phiếu</button>
+        <button onclick="exportPDF()">📄 Xuất PDF</button>
+    </div>
+
+    <div class="phieu-container" id="phieu">
+        <div class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div>CĐCS CÔNG TY TNHH MTV</div>
+                    <div>KHAI THÁC CTTT NINH THUẬN</div>
+                    <div>CÔNG ĐOÀN BỘ PHẬN</div>
+                    <div>TRẠM THỦY NÔNG NINH HẢI</div>
+                </div>
+                <div class="so-phieu">Số: <span id="soPhieu"></span></div>
+            </div>
+        </div>
+
+        <div class="title" id="loaiPhieu">PHIẾU CHI</div>
+        <div class="date" id="ngayPhieu"></div>
+
+        <div class="content">
+            <div>- Họ và tên người nhận tiền: <span id="nguoiNhan"></span></div>
+            <div>- Hiện đang công tác tại: <span id="congTac"></span></div>
+            <div>- Lý do chi: <span id="lyDo"></span></div>
+            <div>- Số tiền: <span id="soTien"></span></div>
+            <div class="bang-chu">- Bằng chữ: <span id="bangChu" style="font-style: italic;"></span></div>
+        </div>
+
+        <div class="signatures">
+            <div class="signature-box">
+                <div class="signature-location"></div>
+                <div class="signature-title">TM. BCH CĐBP</div>
+                <div class="signature-name" id="chuTich"></div>
+            </div>
+
+            <div class="signature-box">
+                <div class="signature-location"></div>
+                <div class="signature-title">Kế toán</div>
+                <div class="signature-name" id="keToan"></div>
+            </div>
+
+            <div class="signature-box">
+                <div class="signature-location" id="diaDiem"></div>
+                <div class="signature-title">Người nhận tiền</div>
+                <div class="signature-name" id="nguoiNhanTien"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        // Hàm chuyển số thành chữ
+        function docSo(num) {
+            if (num == 0) return "Không";
+            
+            const ones = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+            const teens = ["mười", "mười một", "mười hai", "mười ba", "mười bốn", "mười lăm", 
+                          "mười sáu", "mười bảy", "mười tám", "mười chín"];
+            
+            if (num < 10) return ones[num];
+            if (num < 20) return teens[num - 10];
+            if (num < 100) {
+                const ten = Math.floor(num / 10);
+                const one = num % 10;
+                return ones[ten] + " mươi" + (one === 5 ? " lăm" : (one > 0 ? " " + ones[one] : ""));
+            }
+            if (num < 1000) {
+                const hundred = Math.floor(num / 100);
+                const rest = num % 100;
+                return ones[hundred] + " trăm" + (rest > 0 ? " " + docSo(rest) : "");
+            }
+            if (num < 1000000) {
+                const thousand = Math.floor(num / 1000);
+                const rest = num % 1000;
+                return docSo(thousand) + " nghìn" + (rest > 0 ? " " + docSo(rest) : "");
+            }
+            if (num < 1000000000) {
+                const million = Math.floor(num / 1000000);
+                const rest = num % 1000000;
+                return docSo(million) + " triệu" + (rest > 0 ? " " + docSo(rest) : "");
+            }
+            return "Số quá lớn";
+        }
+
+        function soThanhChu(num) {
+            const result = docSo(num);
+            return result.charAt(0).toUpperCase() + result.slice(1) + " đồng./.";
+        }
+
+        // Đọc parameters từ URL
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            
+            // Lấy từng trường riêng lẻ
+            const soPhieu = params.get('soPhieu') || '01-2026/PC';
+            const loaiPhieu = params.get('loaiPhieu') || 'PHIẾU CHI';
+            
+            // Ngày tháng năm
+            const ngay = params.get('ngay') || '01';
+            const thang = params.get('thang') || '01';
+            const nam = params.get('nam') || '2026';
+            
+            // Thông tin người nhận
+            const nguoiNhan = params.get('nguoiNhan') || 'Nguyễn Thị Vân Anh';
+            const congTac = params.get('congTac') || 'Cụm vùng 4';
+            const lyDo = params.get('lyDo') || 'Test In phiếu chi';
+            const soTien = params.get('soTien') || '500000';
+            
+            // Chữ ký
+            const chuTich = params.get('chuTich') || 'Nguyễn Ngọc Thuận';
+            const keToan = params.get('keToan') || 'Nguyễn Thị Vân Anh';
+            const nguoiNhanTien = params.get('nguoiNhanTien') || 'Nguyễn Thị Vân Anh';
+            
+            // Địa điểm
+            const diaDiem = params.get('diaDiem') || 'Khánh Hòa';
+            
+            return {
+                soPhieu,
+                loaiPhieu,
+                ngayFull: `${ngay} tháng ${thang} năm ${nam}`,
+                nguoiNhan,
+                congTac,
+                lyDo,
+                soTien,
+                chuTich,
+                keToan,
+                nguoiNhanTien,
+                diaDiemFull: `${diaDiem}, Ngày ${ngay} tháng ${thang} năm ${nam}`
+            };
+        }
+
+        // Điền dữ liệu vào form
+        function populateForm() {
+            const data = getUrlParams();
+            
+            document.getElementById('soPhieu').textContent = data.soPhieu;
+            document.getElementById('loaiPhieu').textContent = data.loaiPhieu;
+            document.getElementById('ngayPhieu').textContent = 'Ngày ' + data.ngayFull;
+            document.getElementById('nguoiNhan').textContent = data.nguoiNhan;
+            document.getElementById('congTac').textContent = data.congTac;
+            document.getElementById('lyDo').textContent = data.lyDo;
+            document.getElementById('soTien').textContent = parseInt(data.soTien).toLocaleString('vi-VN') + ' đ';
+            document.getElementById('bangChu').textContent = soThanhChu(parseInt(data.soTien));
+            document.getElementById('chuTich').textContent = data.chuTich;
+            document.getElementById('keToan').textContent = data.keToan;
+            document.getElementById('nguoiNhanTien').textContent = data.nguoiNhanTien;
+            document.getElementById('diaDiem').textContent = data.diaDiemFull;
+        }
+
+        // Xuất PDF
+        function exportPDF() {
+            const element = document.getElementById('phieu');
+            const params = getUrlParams();
+            const opt = {
+                margin: 10,
+                filename: 'phieu-thu-chi-' + params.soPhieu.replace('/', '-') + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        // Khởi tạo khi trang load
+        window.onload = populateForm;
+    </script>
+</body>
+</html>
