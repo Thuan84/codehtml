@@ -89,40 +89,44 @@
             margin: 10px 0 0 0;
         }
 
+        /* --- GIẢM KHOẢNG TRỐNG PHẦN ĐẦU TRANG --- */
         .title {
             text-align: center;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
-            margin: 30px 0 5px 0;
+            margin: 15px 0 5px 0; /* Giảm margin-top từ 30px xuống 15px */
             letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
         .date {
             text-align: center;
             font-style: italic;
-            font-size: 13px;
-            margin-bottom: 35px;
+            font-size: 14px;
+            margin-bottom: 20px; /* Giảm thêm chút ở đây cho gọn */
         }
+        /* ---------------------------------------- */
 
         .content {
-            font-size: 13px;
-            line-height: 1.8;
-            margin: 20px 0;
+            font-size: 14px;
+            line-height: 1.4;
+            margin: 10px 0;
         }
 
         .content > div {
-            margin: 8px 0;
+            margin: 5px 0;
         }
 
         .bang-chu {
             margin: 10px 0;
+            font-style: italic;
         }
 
         .signatures {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 20px;
-            margin-top: 60px;
+            gap: 10px;
+            margin-top: 50px;
             text-align: center;
             align-items: start;
         }
@@ -134,21 +138,32 @@
 
         .signature-location {
             font-style: italic;
-            font-size: 13px;
-            margin-bottom: 8px;
-            white-space: nowrap;
+            font-size: 14px;
+            margin-bottom: 5px;
+            text-align: center;
             min-height: 20px;
+            line-height: 1.4;
+            white-space: nowrap;
         }
 
+        /* --- GIỮ NGUYÊN CẤU HÌNH CHỮ KÝ (90px) --- */
         .signature-title {
             font-weight: bold;
-            font-size: 13px;
-            margin-bottom: 70px;
+            font-size: 14px;
+            margin-bottom: 90px;
         }
+        /* ---------------------------------------- */
 
         .signature-name {
             font-weight: bold;
-            font-size: 13px;
+            font-size: 14px;
+            margin-top: 15px;
+            margin-bottom: 100px;
+        }
+
+        /* Căn chỉnh cột Kế toán */
+        .signature-box:nth-child(2) .signature-location {
+            height: 25px;
         }
 
         @media print {
@@ -202,7 +217,7 @@
             <div>- Hiện đang công tác tại: <span id="congTac"></span></div>
             <div>- Lý do chi: <span id="lyDo"></span></div>
             <div>- Số tiền: <span id="soTien"></span></div>
-            <div class="bang-chu">- Bằng chữ: <span id="bangChu" style="font-style: italic;"></span></div>
+            <div class="bang-chu">- Bằng chữ: <span id="bangChu"></span></div>
         </div>
 
         <div class="signatures">
@@ -228,14 +243,11 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
-        // Hàm chuyển số thành chữ
         function docSo(num) {
             if (num == 0) return "Không";
-            
             const ones = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
             const teens = ["mười", "mười một", "mười hai", "mười ba", "mười bốn", "mười lăm", 
                           "mười sáu", "mười bảy", "mười tám", "mười chín"];
-            
             if (num < 10) return ones[num];
             if (num < 20) return teens[num - 10];
             if (num < 100) {
@@ -266,55 +278,36 @@
             return result.charAt(0).toUpperCase() + result.slice(1) + " đồng./.";
         }
 
-        // Đọc parameters từ URL
         function getUrlParams() {
             const params = new URLSearchParams(window.location.search);
-            
-            // Lấy từng trường riêng lẻ
             const soPhieu = params.get('soPhieu') || '01-2026/PC';
             const loaiPhieu = params.get('loaiPhieu') || 'PHIẾU CHI';
-            
-            // Ngày tháng năm
             const ngay = params.get('ngay') || '01';
             const thang = params.get('thang') || '01';
             const nam = params.get('nam') || '2026';
-            
-            // Thông tin người nhận
             const nguoiNhan = params.get('nguoiNhan') || 'Nguyễn Thị Vân Anh';
             const congTac = params.get('congTac') || 'Cụm vùng 4';
             const lyDo = params.get('lyDo') || 'Test In phiếu chi';
             const soTien = params.get('soTien') || '500000';
-            
-            // Chữ ký
             const chuTich = params.get('chuTich') || 'Nguyễn Ngọc Thuận';
             const keToan = params.get('keToan') || 'Nguyễn Thị Vân Anh';
             const nguoiNhanTien = params.get('nguoiNhanTien') || 'Nguyễn Thị Vân Anh';
-            
-            // Địa điểm
             const diaDiem = params.get('diaDiem') || 'Khánh Hòa';
             
             return {
-                soPhieu,
-                loaiPhieu,
-                ngayFull: `${ngay} tháng ${thang} năm ${nam}`,
-                nguoiNhan,
-                congTac,
-                lyDo,
-                soTien,
-                chuTich,
-                keToan,
-                nguoiNhanTien,
+                soPhieu, loaiPhieu,
+                ngayFull: `Ngày ${ngay} tháng ${thang} năm ${nam}`,
+                nguoiNhan, congTac, lyDo, soTien,
+                chuTich, keToan, nguoiNhanTien,
                 diaDiemFull: `${diaDiem}, Ngày ${ngay} tháng ${thang} năm ${nam}`
             };
         }
 
-        // Điền dữ liệu vào form
         function populateForm() {
             const data = getUrlParams();
-            
             document.getElementById('soPhieu').textContent = data.soPhieu;
             document.getElementById('loaiPhieu').textContent = data.loaiPhieu;
-            document.getElementById('ngayPhieu').textContent = 'Ngày ' + data.ngayFull;
+            document.getElementById('ngayPhieu').textContent = data.ngayFull;
             document.getElementById('nguoiNhan').textContent = data.nguoiNhan;
             document.getElementById('congTac').textContent = data.congTac;
             document.getElementById('lyDo').textContent = data.lyDo;
@@ -326,7 +319,6 @@
             document.getElementById('diaDiem').textContent = data.diaDiemFull;
         }
 
-        // Xuất PDF
         function exportPDF() {
             const element = document.getElementById('phieu');
             const params = getUrlParams();
@@ -340,7 +332,6 @@
             html2pdf().set(opt).from(element).save();
         }
 
-        // Khởi tạo khi trang load
         window.onload = populateForm;
     </script>
 </body>
