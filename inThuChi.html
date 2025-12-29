@@ -89,12 +89,11 @@
             margin: 10px 0 0 0;
         }
 
-        /* --- GIẢM KHOẢNG TRỐNG PHẦN ĐẦU TRANG --- */
         .title {
             text-align: center;
             font-size: 18px;
             font-weight: bold;
-            margin: 15px 0 5px 0; /* Giảm margin-top từ 30px xuống 15px */
+            margin: 15px 0 5px 0; 
             letter-spacing: 1px;
             text-transform: uppercase;
         }
@@ -103,9 +102,8 @@
             text-align: center;
             font-style: italic;
             font-size: 14px;
-            margin-bottom: 20px; /* Giảm thêm chút ở đây cho gọn */
+            margin-bottom: 20px;
         }
-        /* ---------------------------------------- */
 
         .content {
             font-size: 14px;
@@ -146,13 +144,11 @@
             white-space: nowrap;
         }
 
-        /* --- GIỮ NGUYÊN CẤU HÌNH CHỮ KÝ (90px) --- */
         .signature-title {
             font-weight: bold;
             font-size: 14px;
             margin-bottom: 90px;
         }
-        /* ---------------------------------------- */
 
         .signature-name {
             font-weight: bold;
@@ -166,9 +162,11 @@
             height: 25px;
         }
 
+        /* --- CẤU HÌNH IN ẤN VÀ CANH LỀ A4 CHUẨN --- */
         @media print {
             body {
                 background: white;
+                /* Xóa padding khi in để kiểm soát lề chính xác bằng @page */
                 padding: 0;
             }
 
@@ -178,14 +176,19 @@
 
             .phieu-container {
                 box-shadow: none;
-                padding: 15mm 20mm 15mm 25mm;
                 margin: 0;
                 width: 210mm;
+                /* Khi dùng @page set margin, ta nên giảm padding của container lại
+                   hoặc để mặc định. Ở đây ta giữ nguyên padding nội dung bên trong, 
+                   nhưng lề giấy sẽ do @page quyết định. */
+                padding: 0; 
+                /* Padding nội dung bên trong sẽ được tính toán dựa trên lề giấy @page */
             }
 
             @page {
                 size: A4;
-                margin: 0;
+                /* Canh lề theo yêu cầu: Trên 2cm, Dưới 2cm, Trái 2.5cm, Phải 2cm */
+                margin: 2cm 2cm 2cm 2.5cm; 
             }
         }
     </style>
@@ -267,7 +270,7 @@
             }
             if (num < 1000000000) {
                 const million = Math.floor(num / 1000000);
-                const rest = num % 1000000;
+                const rest = num % 1000006;
                 return docSo(million) + " triệu" + (rest > 0 ? " " + docSo(rest) : "");
             }
             return "Số quá lớn";
