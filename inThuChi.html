@@ -13,11 +13,11 @@
 
         body {
             font-family: 'Times New Roman', Times, serif;
-            background: #e0e0e0; /* Nền xám để dễ nhìn thấy khung giấy */
-            padding: 40px 0; /* Khoảng cách nhìn tổng quan */
+            background: #e0e0e0;
+            padding: 40px 0;
         }
 
-        /* --- THANH CÔNG CỤ (Không in) --- */
+        /* --- THANH CÔNG CỤ --- */
         .no-print {
             margin-bottom: 20px;
             text-align: center;
@@ -54,24 +54,20 @@
         .no-print button:nth-child(2):hover {
             background: #0b7dda;
         }
-        /* -------------------------------- */
 
         /* --- KHỞI TẠO KHỞNG GIẤY A4 --- */
         .phieu-container {
             background: white;
-            width: 210mm; /* Chiều rộng A4 */
-            min-height: 297mm; /* Chiều cao A4 */
-            margin: 20px auto; /* Căn giữa trang màn hình */
-            
-            /* Lề giấy theo yêu cầu: Trên 2cm, Dưới 2cm, Trái 2.5cm, Phải 2cm */
-            padding: 2cm 2cm 2cm 2.5cm; 
-            
-            box-shadow: 0 0 15px rgba(0,0,0,0.3); /* Đổ bóng để thấy rõ khung giấy */
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            padding: 2cm 2cm 2cm 2.5cm;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
             position: relative;
         }
 
         .header {
-            margin-bottom: 15px; /* Giảm bớt khoảng trống */
+            margin-bottom: 15px;
             text-align: left;
         }
 
@@ -108,7 +104,7 @@
             text-align: center;
             font-size: 18px;
             font-weight: bold;
-            margin: 15px 0 5px 0; 
+            margin: 15px 0 0px 0; 
             letter-spacing: 1px;
             text-transform: uppercase;
         }
@@ -117,7 +113,7 @@
             text-align: center;
             font-style: italic;
             font-size: 14px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .content {
@@ -139,7 +135,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             gap: 10px;
-            margin-top: 40px; /* Giảm chút khoảng cách trên phần chữ ký cho vừa trang */
+            margin-top: 40px;
             text-align: center;
             align-items: start;
         }
@@ -162,22 +158,20 @@
         .signature-title {
             font-weight: bold;
             font-size: 14px;
-            margin-bottom: 90px; /* Khoảng cách ký */
+            margin-bottom: 90px;
         }
 
         .signature-name {
             font-weight: bold;
             font-size: 14px;
-            margin-top: 15px;
-            margin-bottom: 0px; /* Xóa khoảng cách dư thừa dưới cùng */
+            margin-top: 5px;
+            margin-bottom: 0px;
         }
 
-        /* Căn chỉnh cột Kế toán */
         .signature-box:nth-child(2) .signature-location {
             height: 25px;
         }
 
-        /* --- CẤU HÌNH KHI IN --- */
         @media print {
             body {
                 background: white;
@@ -193,14 +187,12 @@
                 margin: 0;
                 width: 210mm;
                 min-height: 297mm;
-                padding: 0; /* Lấy padding mặc định của trình duyệt */
-                /* Viền in nhẹ (nếu muốn) hoặc bỏ border */
-                border: none; 
+                padding: 0;
+                border: none;
             }
 
             @page {
                 size: A4;
-                /* Lề in khi ấn Ctrl+P */
                 margin: 2cm 2cm 2cm 2.5cm; 
             }
         }
@@ -259,95 +251,121 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
+        // --- HÀM ĐỌC SỐ THÀNH CHỮ ---
         function docSo(num) {
-            if (num == 0) return "Không";
-            const ones = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
-            const teens = ["mười", "mười một", "mười hai", "mười ba", "mười bốn", "mười lăm", 
-                          "mười sáu", "mười bảy", "mười tám", "mười chín"];
-            if (num < 10) return ones[num];
-            if (num < 20) return teens[num - 10];
-            if (num < 100) {
-                const ten = Math.floor(num / 10);
-                const one = num % 10;
-                return ones[ten] + " mươi" + (one === 5 ? " lăm" : (one > 0 ? " " + ones[one] : ""));
+            if (num === 0) return "không";
+            
+            const chuDonVi = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+            const chuDonViNgan = ["", "mốt", "hai", "ba", "bốn", "lăm", "sáu", "bảy", "tám", "chín"];
+            
+            function docNhom3(so, dayDu) {
+                let tram = Math.floor(so / 100);
+                let chuc = Math.floor((so % 100) / 10);
+                let donvi = so % 10;
+                let str = "";
+
+                if (dayDu || tram > 0) {
+                    str = (tram > 0 ? chuDonVi[tram] + " trăm" : "") + (dayDu && tram === 0 && (chuc > 0 || donvi > 0) ? " không trăm" : "");
+                }
+                
+                if (chuc > 0) {
+                    if (chuc === 1) {
+                        str += " mười";
+                        if (donvi === 1) str += " một";
+                    } else {
+                        str += " " + chuDonVi[chuc] + " mươi";
+                        if (donvi === 5) str += " năm";
+                        else if (donvi > 0) str += " " + chuDonVi[donvi];
+                    }
+                } else if (donvi > 0) {
+                    str += (tram > 0 ? " lẻ" : "") + " " + chuDonVi[donvi];
+                }
+
+                if (dayDu && so === 0) str += " không";
+                return str.trim();
             }
-            if (num < 1000) {
-                const hundred = Math.floor(num / 100);
-                const rest = num % 100;
-                return ones[hundred] + " trăm" + (rest > 0 ? " " + docSo(rest) : "");
+
+            if (num === 0) return "không đồng";
+
+            let hang = ["", "nghìn", "triệu", "tỷ", "nghìn tỷ", "triệu tỷ"];
+            let i = 0;
+            let str = "";
+            
+            while (num > 0) {
+                let nhom3 = num % 1000;
+                if (nhom3 > 0) {
+                    let dayDu = (i === 0); 
+                    str = docNhom3(nhom3, dayDu) + (hang[i] ? " " + hang[i] : "") + " " + str;
+                } else if (i === 0) {
+                    str = "không" + " " + str;
+                } else if (num > 1000) {
+                }
+                num = Math.floor(num / 1000);
+                i++;
             }
-            if (num < 1000000) {
-                const thousand = Math.floor(num / 1000);
-                const rest = num % 1000;
-                return docSo(thousand) + " nghìn" + (rest > 0 ? " " + docSo(rest) : "");
-            }
-            if (num < 1000000000) {
-                const million = Math.floor(num / 1000006);
-                return docSo(million) + " triệu" + (rest > 0 ? " " + docSo(rest) : "");
-            }
-            return "Số quá lớn";
+            
+            return str.trim();
         }
 
         function soThanhChu(num) {
-            const result = docSo(num);
+            const result = docSo(parseInt(num));
             return result.charAt(0).toUpperCase() + result.slice(1) + " đồng./.";
         }
+        // ----------------------------------
 
-        function getUrlParams() {
+        function populateForm() {
             const params = new URLSearchParams(window.location.search);
+            
             const soPhieu = params.get('soPhieu') || '01-2026/PC';
             const loaiPhieu = params.get('loaiPhieu') || 'PHIẾU CHI';
             const ngay = params.get('ngay') || '01';
             const thang = params.get('thang') || '01';
             const nam = params.get('nam') || '2026';
+            
             const nguoiNhan = params.get('nguoiNhan') || 'Nguyễn Thị Vân Anh';
             const congTac = params.get('congTac') || 'Cụm vùng 4';
             const lyDo = params.get('lyDo') || 'Test In phiếu chi';
-            const soTien = params.get('soTien') || '500000';
+            
+            // Xử lý số tiền (xóa dấu chấm)
+            let soTienStr = params.get('soTien') || '1000000';
+            let cleanSoTienStr = soTienStr.replace(/\./g, '').replace(/,/g, '.');
+            let soTienNum = parseInt(cleanSoTienStr) || 0;
+
             const chuTich = params.get('chuTich') || 'Nguyễn Ngọc Thuận';
             const keToan = params.get('keToan') || 'Nguyễn Thị Vân Anh';
             const nguoiNhanTien = params.get('nguoiNhanTien') || 'Nguyễn Thị Vân Anh';
             const diaDiem = params.get('diaDiem') || 'Khánh Hòa';
-            
-            return {
-                soPhieu, loaiPhieu,
-                ngayFull: `Ngày ${ngay} tháng ${thang} năm ${nam}`,
-                nguoiNhan, congTac, lyDo, soTien,
-                chuTich, keToan, nguoiNhanTien,
-                diaDiemFull: `${diaDiem}, Ngày ${ngay} tháng ${thang} năm ${nam}`
-            };
-        }
 
-        function populateForm() {
-            const data = getUrlParams();
-            document.getElementById('soPhieu').textContent = data.soPhieu;
-            document.getElementById('loaiPhieu').textContent = data.loaiPhieu;
-            document.getElementById('ngayPhieu').textContent = data.ngayFull;
-            document.getElementById('nguoiNhan').textContent = data.nguoiNhan;
-            document.getElementById('congTac').textContent = data.congTac;
-            document.getElementById('lyDo').textContent = data.lyDo;
-            document.getElementById('soTien').textContent = parseInt(data.soTien).toLocaleString('vi-VN') + ' đ';
-            document.getElementById('bangChu').textContent = soThanhChu(parseInt(data.soTien));
-            document.getElementById('chuTich').textContent = data.chuTich;
-            document.getElementById('keToan').textContent = data.keToan;
-            document.getElementById('nguoiNhanTien').textContent = data.nguoiNhanTien;
-            document.getElementById('diaDiem').textContent = data.diaDiemFull;
+            // Hiển thị
+            document.getElementById('soPhieu').textContent = soPhieu;
+            document.getElementById('loaiPhieu').textContent = loaiPhieu;
+            document.getElementById('ngayPhieu').textContent = `Ngày ${ngay} tháng ${thang} năm ${nam}`;
+            document.getElementById('nguoiNhan').textContent = nguoiNhan;
+            document.getElementById('congTac').textContent = congTac;
+            document.getElementById('lyDo').textContent = lyDo;
+            document.getElementById('soTien').textContent = soTienNum.toLocaleString('vi-VN') + ' đ';
+            document.getElementById('bangChu').textContent = soThanhChu(soTienNum);
+            document.getElementById('chuTich').textContent = chuTich;
+            document.getElementById('keToan').textContent = keToan;
+            document.getElementById('nguoiNhanTien').textContent = nguoiNhanTien;
+            
+            // --- SỬA: CHỮ "ngày" CHỮ THƯỜNG ---
+            document.getElementById('diaDiem').textContent = `${diaDiem}, ngày ${ngay} tháng ${thang} năm ${nam}`;
+            // ----------------------------------
         }
 
         function exportPDF() {
             const element = document.getElementById('phieu');
-            const params = getUrlParams();
+            const params = new URLSearchParams(window.location.search);
             
-            // Tối ưu hóa cấu hình xuất PDF
             const opt = {
-                margin:       0, // Để 0 vì đã set padding trong CSS
-                filename:     'phieu-thu-chi-' + params.soPhieu.replace('/', '-') + '.pdf',
+                margin:       0, 
+                filename:     'phieu-thu-chi-' + (params.get('soPhieu') || 'PC').replace('/', '-') + '.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { 
                     scale: 2, 
                     useCORS: true, 
                     logging: false,
-                    // Quan trọng: Giữ nguyên trang, không tự động ngắt dòng xấu
                     pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } 
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
